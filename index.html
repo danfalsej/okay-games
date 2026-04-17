@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Turbo 21</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#1a1a1a;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;padding:20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
+#gc{background:#0b3020;border-radius:20px;padding:16px;width:100%;max-width:480px;}
+.hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.gtitle{font-size:17px;font-weight:500;color:#d4af6a;letter-spacing:2px;text-transform:uppercase;}
+.pills{display:flex;gap:7px;}
+.pill{background:rgba(0,0,0,0.4);border:0.5px solid rgba(212,175,106,0.25);border-radius:30px;padding:4px 11px;font-size:12px;color:rgba(212,175,106,0.55);}
+.pill b{color:#d4af6a;font-weight:500;}
+
+/* Timer */
+.timer-row{margin-bottom:10px;}
+.timer-track{width:100%;height:6px;background:rgba(0,0,0,0.4);border-radius:3px;overflow:hidden;}
+.timer-fill{height:100%;border-radius:3px;background:#d4af6a;transition:background-color 0.4s;}
+.timer-fill.warn{background:#e8a040;}
+.timer-fill.danger{background:#e57373;}
+.timer-meta{display:flex;justify-content:space-between;align-items:center;margin-top:3px;}
+.timer-label{font-size:11px;color:rgba(212,175,106,0.4);transition:color 0.4s;}
+.timer-label.warn{color:#e8a040;}
+.timer-label.danger{color:#e57373;}
+.next-bonus{font-size:11px;color:rgba(212,175,106,0.35);}
+.next-bonus b{color:rgba(212,175,106,0.6);font-weight:500;}
+
+/* Multiplier strip */
+.mult-strip{display:flex;gap:3px;margin-bottom:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+.mult-strip::-webkit-scrollbar{display:none;}
+.mb{flex-shrink:0;font-size:10px;padding:3px 6px;border-radius:4px;border:0.5px solid rgba(212,175,106,0.15);color:rgba(212,175,106,0.3);background:rgba(0,0,0,0.2);}
+.mb.done{background:rgba(212,175,106,0.12);color:rgba(212,175,106,0.35);text-decoration:line-through;}
+.mb.next{background:rgba(212,175,106,0.18);border-color:rgba(212,175,106,0.5);color:#d4af6a;font-weight:500;}
+
+.deal-zone{display:flex;justify-content:center;align-items:center;gap:24px;margin-bottom:12px;}
+.deck-stack{position:relative;width:76px;height:108px;flex-shrink:0;}
+.dl{position:absolute;width:76px;height:108px;border-radius:9px;}
+.dl2{background:#08281a;border:1px solid rgba(0,0,0,0.6);top:4px;left:4px;}
+.dl1{background:#0a3020;border:1px solid rgba(0,0,0,0.5);top:2px;left:2px;}
+.dl0{background:#183f8a;border:1px solid rgba(255,255,255,0.12);top:0;left:0;display:flex;align-items:center;justify-content:center;}
+.cbd{width:58px;height:84px;border:1.5px solid rgba(255,255,255,0.18);border-radius:6px;}
+.cbd::after{content:'';display:block;width:42px;height:62px;border:1px solid rgba(255,255,255,0.1);border-radius:4px;margin:9px auto 0;}
+.deck-ct{font-size:11px;color:rgba(212,175,106,0.45);text-align:center;margin-top:5px;}
+.bigcard{width:82px;height:118px;background:#fff;border-radius:11px;border:1.5px solid rgba(212,175,106,0.55);position:relative;flex-shrink:0;box-shadow:0 4px 16px rgba(0,0,0,0.5);}
+.bigcard.empty{background:rgba(0,0,0,0.15);border:1.5px dashed rgba(212,175,106,0.2);box-shadow:none;}
+.bc-tl{position:absolute;top:7px;left:8px;font-size:13px;font-weight:700;line-height:1.15;text-align:center;}
+.bc-br{position:absolute;bottom:7px;right:8px;font-size:13px;font-weight:700;line-height:1.15;text-align:center;transform:rotate(180deg);}
+.bc-s{display:block;font-size:10px;margin-top:1px;}
+.bc-ctr{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:40px;line-height:1;}
+.cr{color:#c0392b;}.cb{color:#1c1c1c;}
+
+.lanes{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px;}
+.lane{background:rgba(0,0,0,0.28);border:1px solid rgba(212,175,106,0.18);border-radius:13px;min-height:185px;cursor:pointer;display:flex;flex-direction:column;align-items:center;padding:8px 5px 6px;transition:border-color 0.14s,background 0.14s;position:relative;overflow:visible;}
+.lane:hover{border-color:rgba(212,175,106,0.42);background:rgba(0,0,0,0.38);}
+.lane.dead{cursor:default;pointer-events:none;}
+.lane.flash-good{animation:fgood 0.22s ease;}
+.lane.flash-bust{animation:fbust 0.22s ease;}
+@keyframes fgood{0%{background:rgba(212,175,106,0.25);}100%{background:rgba(0,0,0,0.28);}}
+@keyframes fbust{0%{background:rgba(200,60,60,0.3);}100%{background:rgba(0,0,0,0.28);}}
+.lnum{font-size:9px;color:rgba(212,175,106,0.38);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;}
+.lkey{font-size:10px;color:rgba(212,175,106,0.3);background:rgba(0,0,0,0.35);border:0.5px solid rgba(212,175,106,0.18);border-radius:4px;padding:1px 6px;margin-bottom:5px;font-family:monospace;letter-spacing:1px;}
+.ltot{font-size:24px;font-weight:500;color:#d4af6a;line-height:1;margin-bottom:4px;}
+.ltot.over{color:#e57373;}.ltot.on21{color:#81c784;}
+.lcards{display:flex;flex-direction:column;gap:3px;width:100%;}
+.mc{background:#fff;border-radius:5px;padding:2px 3px;text-align:center;font-size:12px;font-weight:600;line-height:1.3;border:0.5px solid rgba(0,0,0,0.08);}
+.mc.cr{color:#c0392b;}.mc.cb{color:#1c1c1c;}
+.lslot{flex:1;width:100%;border:1px dashed rgba(212,175,106,0.12);border-radius:7px;margin-top:3px;min-height:28px;}
+.pop{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:500;padding:3px 9px;border-radius:20px;white-space:nowrap;z-index:30;animation:pfloat 1.4s ease forwards;pointer-events:none;}
+.pop.win{background:rgba(160,130,40,0.97);color:#fff9e0;}
+.pop.bust{background:rgba(160,40,40,0.95);color:#ffe0e0;}
+@keyframes pfloat{0%{opacity:1;transform:translateX(-50%) translateY(0);}70%{opacity:1;}100%{opacity:0;transform:translateX(-50%) translateY(-30px);}}
+
+.hint-bar{display:flex;justify-content:center;gap:18px;font-size:11px;color:rgba(212,175,106,0.32);padding-top:4px;}
+
+/* End screen */
+.over-panel{background:rgba(0,0,0,0.5);border-radius:16px;border:1px solid rgba(212,175,106,0.3);padding:20px 16px;text-align:center;margin-bottom:12px;}
+.over-sc{font-size:52px;font-weight:500;color:#ffd700;line-height:1;}
+.over-reason{font-size:13px;margin-top:6px;margin-bottom:14px;}
+.over-reason.timeout{color:#e57373;}
+.over-reason.complete{color:rgba(212,175,106,0.55);}
+.score-breakdown{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px;}
+.sb{background:rgba(0,0,0,0.3);border-radius:9px;padding:8px 10px;border:0.5px solid rgba(212,175,106,0.15);text-align:left;}
+.sb-v{font-size:16px;font-weight:500;color:#d4af6a;}
+.sb-v.neg{color:#e57373;}
+.sb-l{font-size:10px;color:rgba(212,175,106,0.38);margin-top:2px;}
+.bk{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.bkb{background:rgba(0,0,0,0.3);border-radius:9px;padding:8px 4px;border:0.5px solid rgba(212,175,106,0.15);}
+.bkb-v{font-size:16px;font-weight:500;color:#d4af6a;}.bkb-l{font-size:10px;color:rgba(212,175,106,0.38);margin-top:2px;}
+.nbtn{width:100%;background:rgba(212,175,106,0.1);border:0.5px solid rgba(212,175,106,0.35);border-radius:11px;padding:12px;font-size:14px;color:#d4af6a;cursor:pointer;transition:background 0.12s;font-family:inherit;margin-top:12px;}
+.nbtn:hover{background:rgba(212,175,106,0.2);}.nbtn:active{transform:scale(0.98);}
+</style>
+</head>
+<body>
+<div id="gc">
+  <div class="hdr">
+    <div class="gtitle">Turbo 21</div>
+    <div class="pills">
+      <div class="pill">Score <b id="sc">0</b></div>
+      <div class="pill">Left <b id="dk">52</b></div>
+    </div>
+  </div>
+  <div id="main"></div>
+</div>
+
+<script>
+const SUITS=['♠','♥','♦','♣'],RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'],RED=new Set(['♥','♦']);
+const TOTAL_TIME=65;
+const COMP_BONUSES=[10,10,10,20,20,20,30,30,50,50,70,100,500,750,2500,5000,10000];
+const TIME_BONUS_PER_SEC=5;
+const BUST_PENALTY=10;
+
+function tot(cs){
+  let t=0,a=0;
+  for(const c of cs){if(c.r==='A'){t+=11;a++;}else t+=('JQK'.includes(c.r)?10:+c.r);}
+  while(t>21&&a>0){t-=10;a--;}
+  return t;
+}
+function shuf(d){for(let i=d.length-1;i>0;i--){const j=0|Math.random()*(i+1);[d[i],d[j]]=[d[j],d[i]];}return d;}
+function compBonus(n){return COMP_BONUSES[Math.min(n,COMP_BONUSES.length-1)];}
+
+let G={over:true}, ptimers=[null,null,null,null], timerRaf=null, timerStart=null, elapsed=0;
+let statsLog={completionPts:0,bustPenalty:0,timeBonus:0,completions:0,busts:0};
+
+function startTimer(){
+  stopTimer();
+  timerStart=Date.now()-elapsed*1000;
+  function tick(){
+    elapsed=(Date.now()-timerStart)/1000;
+    if(elapsed>=TOTAL_TIME){elapsed=TOTAL_TIME;stopTimer();timeUp();return;}
+    updateTimerUI();
+    timerRaf=requestAnimationFrame(tick);
+  }
+  timerRaf=requestAnimationFrame(tick);
+}
+function stopTimer(){if(timerRaf){cancelAnimationFrame(timerRaf);timerRaf=null;}}
+
+function updateTimerUI(){
+  const bar=document.getElementById('tbar'),lbl=document.getElementById('tlbl'),nb=document.getElementById('nbonuslbl');
+  if(!bar||!lbl)return;
+  const rem=Math.max(0,TOTAL_TIME-elapsed);
+  bar.style.width=((rem/TOTAL_TIME)*100)+'%';
+  const warn=rem<=20,danger=rem<=10;
+  bar.className='timer-fill'+(danger?' danger':warn?' warn':'');
+  lbl.className='timer-label'+(danger?' danger':warn?' warn':'');
+  lbl.textContent=Math.ceil(rem)+'s';
+  if(nb)nb.textContent='+'+Math.floor(rem)*TIME_BONUS_PER_SEC+' if cleared now';
+}
+
+function timeUp(){
+  statsLog.timeBonus=0;
+  G.finalLanes=G.lanes.map(l=>({cards:[...l],total:tot(l)}));
+  G.over=true;G.timeout=true;
+  document.getElementById('sc').textContent=G.score;
+  render();
+}
+
+function init(){
+  stopTimer();
+  ptimers.forEach(t=>t&&clearTimeout(t));
+  ptimers=[null,null,null,null];
+  elapsed=0;
+  statsLog={completionPts:0,bustPenalty:0,timeBonus:0,completions:0,busts:0};
+  const deck=[];
+  for(const s of SUITS)for(const r of RANKS)deck.push({r,s});
+  shuf(deck);
+  G={deck,lanes:[[],[],[],[]],cur:deck.pop(),score:0,completions:0,pops:[null,null,null,null],over:false,timeout:false,finalLanes:[]};
+  render();
+  startTimer();
+}
+
+function flashLane(i,type){
+  const els=document.querySelectorAll('.lane[data-li]');
+  const el=els[i];if(!el)return;
+  el.classList.remove('flash-good','flash-bust');
+  void el.offsetWidth;
+  el.classList.add(type==='bust'?'flash-bust':'flash-good');
+}
+
+function place(i){
+  if(!G.cur||G.over)return;
+  const lane=G.lanes[i];
+  lane.push(G.cur);
+  G.cur=null;
+  const t=tot(lane);
+  let pop=null,clearType=null;
+
+  if(t===21){
+    clearType=lane.length===2?'blackjack':'21';
+  } else if(t>21){
+    clearType='bust';
+  } else if(lane.length>=5){
+    clearType='fivecard';
+  }
+
+  if(clearType==='bust'){
+    G.score=Math.max(0,G.score-BUST_PENALTY);
+    statsLog.bustPenalty+=BUST_PENALTY;
+    statsLog.busts++;
+    pop={type:'bust',text:'Bust! −'+BUST_PENALTY};
+    flashLane(i,'bust');
+    G.lanes[i]=[];
+  } else if(clearType){
+    const bonus=compBonus(G.completions);
+    G.score+=bonus;
+    statsLog.completionPts+=bonus;
+    statsLog.completions++;
+    G.completions++;
+    const label=clearType==='blackjack'?'Blackjack':clearType==='fivecard'?'Five-card':'21';
+    pop={type:'win',text:label+'! +'+bonus};
+    flashLane(i,'good');
+    G.lanes[i]=[];
+  } else {
+    flashLane(i,'good');
+  }
+
+  if(pop){
+    G.pops[i]=pop;
+    if(ptimers[i])clearTimeout(ptimers[i]);
+    ptimers[i]=setTimeout(()=>{G.pops[i]=null;render();},1400);
+  }
+
+  if(G.deck.length>0){
+    G.cur=G.deck.pop();
+  } else {
+    stopTimer();
+    const rem=Math.max(0,TOTAL_TIME-elapsed);
+    const tb=Math.floor(rem)*TIME_BONUS_PER_SEC;
+    G.score+=tb;
+    statsLog.timeBonus=tb;
+    G.finalLanes=G.lanes.map(l=>({cards:[...l],total:tot(l)}));
+    G.over=true;
+  }
+
+  document.getElementById('sc').textContent=G.score;
+  document.getElementById('dk').textContent=G.deck.length+(G.cur?1:0);
+  render();
+}
+
+function bigCard(c){
+  if(!c)return'<div class="bigcard empty"></div>';
+  const rc=RED.has(c.s)?'cr':'cb';
+  return`<div class="bigcard"><div class="bc-tl ${rc}">${c.r}<span class="bc-s">${c.s}</span></div><div class="bc-ctr ${rc}">${c.s}</div><div class="bc-br ${rc}">${c.r}<span class="bc-s">${c.s}</span></div></div>`;
+}
+
+function laneHTML(lane,i,interactive){
+  const t=lane.length?tot(lane):0;
+  const tc=t>21?'over':t===21?'on21':'';
+  const pop=G.pops[i];
+  const popH=pop?`<div class="pop ${pop.type}">${pop.text}</div>`:'';
+  const disp=lane.length?t:'—';
+  const cards=lane.map(c=>`<div class="mc ${RED.has(c.s)?'cr':'cb'}">${c.r}${c.s}</div>`).join('');
+  const slot=lane.length<5?'<div class="lslot"></div>':'';
+  const cls='lane'+(interactive?'':' dead');
+  const attr=interactive?`data-li="${i}"`:'';
+  return`<div class="${cls}" ${attr}>${popH}<div class="lnum">Lane ${i+1}</div><div class="lkey">${i+1}</div><div class="ltot ${tc}">${disp}</div><div class="lcards">${cards}</div>${slot}</div>`;
+}
+
+function multStripHTML(){
+  const n=G.completions||0;
+  const items=COMP_BONUSES.map((v,idx)=>{
+    let cls='mb';
+    if(idx<n)cls+=' done';
+    else if(idx===n)cls+=' next';
+    return`<div class="${cls}">+${v}</div>`;
+  });
+  return`<div class="mult-strip">${items.join('')}</div>`;
+}
+
+function timerBarHTML(){
+  const rem=Math.max(0,TOTAL_TIME-elapsed);
+  const pct=(rem/TOTAL_TIME)*100;
+  const warn=rem<=20,danger=rem<=10;
+  const timebonus=Math.floor(rem)*TIME_BONUS_PER_SEC;
+  return`<div class="timer-row">
+    <div class="timer-track"><div class="timer-fill${danger?' danger':warn?' warn':''}" id="tbar" style="width:${pct}%"></div></div>
+    <div class="timer-meta">
+      <div class="timer-label${danger?' danger':warn?' warn':''}" id="tlbl">${Math.ceil(rem)}s</div>
+      <div class="next-bonus" id="nbonuslbl">+${timebonus} if cleared now</div>
+    </div>
+  </div>`;
+}
+
+function render(){
+  const m=document.getElementById('main');
+  if(G.over){
+    const reason=G.timeout
+      ?'<div class="over-reason timeout">Time\'s up!</div>'
+      :'<div class="over-reason complete">Deck cleared!</div>';
+    const bk=(G.finalLanes||[]).map((fl,i)=>`<div class="bkb"><div class="bkb-v">${fl.cards.length?fl.total:'—'}</div><div class="bkb-l">lane ${i+1}</div></div>`).join('');
+    const lanesH=(G.finalLanes||G.lanes).map((fl,i)=>laneHTML(Array.isArray(fl)?fl:fl.cards,i,false)).join('');
+    const negStyle=statsLog.bustPenalty>0?' neg':'';
+    m.innerHTML=`
+      <div class="over-panel">
+        <div class="over-sc">${G.score}</div>
+        ${reason}
+        <div class="score-breakdown">
+          <div class="sb"><div class="sb-v">${statsLog.completionPts}</div><div class="sb-l">${statsLog.completions} lane clears</div></div>
+          <div class="sb"><div class="sb-v${negStyle}">${statsLog.bustPenalty>0?'−'+statsLog.bustPenalty:'0'}</div><div class="sb-l">${statsLog.busts} bust${statsLog.busts!==1?'s':''}</div></div>
+          <div class="sb"><div class="sb-v">+${statsLog.timeBonus}</div><div class="sb-l">time bonus</div></div>
+          <div class="sb"><div class="sb-v">${G.score}</div><div class="sb-l">total</div></div>
+        </div>
+        <div class="bk">${bk}</div>
+      </div>
+      <div class="lanes">${lanesH}</div>
+      <button class="nbtn" id="ngb">Deal new game</button>`;
+    document.getElementById('ngb').addEventListener('click',init);
+    return;
+  }
+
+  const lanesH=G.lanes.map((lane,i)=>laneHTML(lane,i,!!G.cur)).join('');
+  m.innerHTML=`
+    ${timerBarHTML()}
+    ${multStripHTML()}
+    <div class="deal-zone">
+      <div><div class="deck-stack"><div class="dl dl2"></div><div class="dl dl1"></div><div class="dl dl0"><div class="cbd"></div></div></div><div class="deck-ct">${G.deck.length} left</div></div>
+      ${bigCard(G.cur)}
+    </div>
+    <div class="lanes" id="la">${lanesH}</div>
+    <div class="hint-bar"><span>click a lane</span><span>or press 1 – 4</span></div>`;
+
+  document.getElementById('la').addEventListener('click',function h(e){
+    const el=e.target.closest('[data-li]');
+    if(el&&G.cur&&!G.over){
+      document.getElementById('la').removeEventListener('click',h);
+      place(+el.dataset.li);
+    }
+  });
+}
+
+window.addEventListener('keydown',function(e){
+  if(G&&!G.over&&G.cur){
+    if(e.key==='1')place(0);
+    else if(e.key==='2')place(1);
+    else if(e.key==='3')place(2);
+    else if(e.key==='4')place(3);
+  }
+});
+
+init();
+</script>
+</body>
+</html>
