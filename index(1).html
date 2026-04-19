@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Okay Games</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Cormorant+Garamond:ital,wght@0,600;1,400;1,600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f0ebe0;
+      --paper: #faf8f2;
+      --ink: #1a1612;
+      --mid: #6b6155;
+      --accent: #c84b2f;
+      --accent2: #2f6ec8;
+      --card-border: #d4cbbf;
+      --shadow: rgba(26,22,18,0.10);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--bg);
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 39px,
+          rgba(180,165,145,0.18) 39px,
+          rgba(180,165,145,0.18) 40px
+        );
+      color: var(--ink);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ---------- HEADER ---------- */
+    header {
+      width: 100%;
+      max-width: 760px;
+      padding: 3.5rem 2rem 1.5rem;
+      text-align: center;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .site-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 600;
+      font-style: normal;
+      font-size: clamp(3.5rem, 11vw, 6.5rem);
+      letter-spacing: 0.01em;
+      line-height: 1;
+      color: var(--ink);
+      position: relative;
+      display: inline-block;
+    }
+
+    .site-title::after {
+      content: '™';
+      font-size: 0.22em;
+      vertical-align: super;
+      color: var(--mid);
+      font-family: 'DM Mono', monospace;
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+
+    .tagline {
+      margin-top: 0.75rem;
+      font-size: clamp(0.7rem, 2.5vw, 0.85rem);
+      color: var(--mid);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .divider {
+      width: 100%;
+      max-width: 760px;
+      padding: 0 2rem;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+
+    .divider hr {
+      border: none;
+      border-top: 2px solid var(--ink);
+      margin: 1.5rem 0 0.4rem;
+    }
+
+    .divider-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--mid);
+    }
+
+    /* ---------- GAME GRID ---------- */
+    .games-grid {
+      width: 100%;
+      max-width: 760px;
+      padding: 2rem 2rem 1rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .game-card {
+      background: var(--paper);
+      border: 1.5px solid var(--card-border);
+      border-radius: 4px;
+      padding: 1.75rem 1.75rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      box-shadow: 3px 3px 0 var(--card-border);
+      animation: fadeUp 0.55s ease both;
+    }
+
+    .game-card:nth-child(1) { animation-delay: 0.2s; }
+    .game-card:nth-child(2) { animation-delay: 0.32s; }
+    .game-card:nth-child(3) { animation-delay: 0.44s; }
+
+    .game-card:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 var(--ink);
+      border-color: var(--ink);
+    }
+
+    .game-card:active {
+      transform: translate(1px, 1px);
+      box-shadow: 2px 2px 0 var(--ink);
+    }
+
+    .card-number {
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--mid);
+    }
+
+    .card-icon {
+      font-size: 2.4rem;
+      line-height: 1;
+      display: block;
+    }
+
+    .card-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 600;
+      font-style: normal;
+      font-size: 1.6rem;
+      letter-spacing: 0.01em;
+      line-height: 1.1;
+      color: var(--ink);
+    }
+
+    .card-desc {
+      font-size: 0.78rem;
+      color: var(--mid);
+      line-height: 1.55;
+    }
+
+    .card-cta {
+      margin-top: auto;
+      padding-top: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .card-cta::after {
+      content: '→';
+      transition: transform 0.15s ease;
+    }
+
+    .game-card:hover .card-cta::after {
+      transform: translateX(4px);
+    }
+
+    /* color accents per card */
+    .game-card[data-color="red"]  { border-top: 3px solid var(--accent); }
+    .game-card[data-color="blue"] { border-top: 3px solid var(--accent2); }
+
+    .game-card[data-color="red"]  .card-cta { color: var(--accent); }
+    .game-card[data-color="blue"] .card-cta { color: var(--accent2); }
+
+    /* ---------- FOOTER ---------- */
+    footer {
+      width: 100%;
+      max-width: 760px;
+      padding: 1.5rem 2rem 3rem;
+      margin-top: auto;
+      text-align: center;
+      animation: fadeUp 0.6s 0.5s ease both;
+    }
+
+    footer hr {
+      border: none;
+      border-top: 1px solid var(--card-border);
+      margin-bottom: 1.25rem;
+    }
+
+    .footer-text {
+      font-size: 0.72rem;
+      color: var(--mid);
+      letter-spacing: 0.06em;
+    }
+
+    .footer-text strong {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    /* ---------- ANIMATION ---------- */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width: 480px) {
+      header { padding: 2.5rem 1.5rem 1rem; }
+      .games-grid { padding: 1.5rem 1.25rem 0.5rem; gap: 1rem; }
+      .divider { padding: 0 1.25rem; }
+      footer { padding: 1.25rem 1.25rem 2.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1 class="site-title">Okay Games</h1>
+    <p class="tagline">No ads, no downloads, not that much fun.</p>
+  </header>
+
+  <div class="divider">
+    <hr />
+    <span class="divider-label">Available now · 2 games</span>
+  </div>
+
+  <main class="games-grid">
+
+    <a class="game-card" href="okay_blitz.html" data-color="red">
+      <span class="card-number">01</span>
+      <span class="card-icon">🃏</span>
+      <span class="card-name">Okay Blitz 21</span>
+      <p class="card-desc">Race the clock to hit 21. A card game that's exactly as exciting as the name implies.</p>
+      <span class="card-cta">Play now</span>
+    </a>
+
+    <a class="game-card" href="okay_FreeCell.html" data-color="blue">
+      <span class="card-number">02</span>
+      <span class="card-icon">🂠</span>
+      <span class="card-name">Okay FreeCell</span>
+      <p class="card-desc">Classic FreeCell solitaire. Every deal is winnable — whether you are is a different question.</p>
+      <span class="card-cta">Play now</span>
+    </a>
+
+  </main>
+
+  <footer>
+    <hr />
+    <p class="footer-text">
+      Made with <strong>adequate effort</strong> ·
+      <strong>Okay Games</strong> · All games free, forever.
+    </p>
+  </footer>
+
+</body>
+</html>
