@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FreeCell</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; min-height: 100%;
+    background: #061510;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  :root {
+    --gold: #d4a017;
+    --gold-dim: rgba(212,160,23,0.3);
+    --felt-dark: #061510;
+    --felt-mid: #0b3d26;
+    --felt-light: #105e38;
+  }
+  #app {
+    min-height: 100vh;
+    background:
+      repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(0,0,0,0.022) 4px,rgba(0,0,0,0.022) 8px),
+      radial-gradient(ellipse at 50% 8%, var(--felt-light) 0%, var(--felt-mid) 50%, var(--felt-dark) 100%);
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px 4px 22px;
+    user-select: none; touch-action: manipulation;
+  }
+  #title {
+    font-family: 'Cinzel', Georgia, serif;
+    font-weight: 900;
+    color: var(--gold);
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    margin-bottom: 9px;
+    text-shadow: 0 0 20px rgba(212,160,23,0.6), 0 2px 4px rgba(0,0,0,0.7);
+    animation: sparkle 3s ease-in-out infinite;
+  }
+  #top-row {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    margin-bottom: 7px;
+    gap: 2px;
+  }
+  #fc-row, #found-row { display: flex; gap: 2px; }
+  #tableau { display: flex; gap: 2px; width: 100%; align-items: flex-start; }
+  .col-wrap { position: relative; flex-shrink: 0; }
+  .slot {
+    background: rgba(0,0,0,0.22);
+    border: 1.5px dashed rgba(212,160,23,0.3);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.3);
+    flex-shrink: 0;
+    position: absolute; top: 0; left: 0;
+    font-family: Georgia, serif; font-weight: 700;
+    line-height: 1;
+  }
+  .card {
+    cursor: pointer;
+    position: absolute; left: 0;
+    background: linear-gradient(155deg, #fffef6 0%, #fff4e2 100%);
+    border: 1.5px solid #c8bfa0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.32), inset 0 1px 2px rgba(255,255,255,0.75);
+    display: flex; flex-direction: column; justify-content: space-between;
+    flex-shrink: 0;
+    transition: box-shadow 0.1s, border-color 0.1s;
+  }
+  .card.selected {
+    background: linear-gradient(155deg, #fff9c0 0%, #ffef90 100%);
+    border: 2.5px solid var(--gold);
+    box-shadow: 0 0 0 2.5px rgba(212,160,23,0.55), 0 5px 16px rgba(0,0,0,0.5);
+    z-index: 999 !important;
+  }
+  .card-corner { font-family: Georgia, serif; font-weight: 800; line-height: 1.1; }
+  .card-corner-bot { transform: rotate(180deg); text-align: right; }
+  .card-suit-big {
+    position: absolute; left: 0; right: 0;
+    text-align: center; line-height: 1;
+    opacity: 0.88; pointer-events: none;
+  }
+  #controls {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 13px; flex-wrap: wrap; justify-content: center;
+  }
+  .btn {
+    font-family: 'Cinzel', Georgia, serif; font-weight: 700;
+    letter-spacing: 1px; border-radius: 8px;
+    cursor: pointer; user-select: none;
+    transition: opacity 0.15s, transform 0.1s;
+    border: none; outline: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn:disabled { cursor: not-allowed; opacity: 0.4; }
+  #btn-undo {
+    background: transparent;
+    color: var(--gold);
+    border: 1.5px solid var(--gold) !important;
+  }
+  #btn-undo:disabled { color: var(--gold-dim); border-color: var(--gold-dim) !important; }
+  #btn-auto {
+    background: var(--gold);
+    color: #1a1a2e;
+    border: 1.5px solid var(--gold) !important;
+  }
+  #btn-auto.active {
+    background: rgba(212,160,23,0.12);
+    color: var(--gold);
+    animation: autoShimmer 0.9s ease-in-out infinite;
+  }
+  #btn-new {
+    background: rgba(110,30,30,0.9);
+    color: #ffd0bb;
+    border: 1.5px solid rgba(190,70,70,0.55) !important;
+  }
+  #move-count {
+    color: rgba(212,160,23,0.6);
+    font-family: 'Cinzel', Georgia, serif;
+    letter-spacing: 1px; min-width: 60px; text-align: center;
+  }
+  #hint {
+    color: rgba(212,160,23,0.28);
+    font-family: Georgia, serif;
+    text-align: center; margin-top: 7px;
+    letter-spacing: 0.5px;
+  }
+  #win-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.84);
+    align-items: center; justify-content: center;
+    z-index: 9999;
+  }
+  #win-overlay.show { display: flex; }
+  #win-box {
+    background: linear-gradient(150deg, #0e5c36 0%, #071e12 100%);
+    border: 3px solid var(--gold);
+    border-radius: 20px; padding: 40px 52px;
+    text-align: center;
+    box-shadow: 0 0 80px rgba(212,160,23,0.35), inset 0 0 30px rgba(212,160,23,0.06);
+    animation: winPop 0.5s cubic-bezier(0.175,0.885,0.32,1.275);
+  }
+  #win-title {
+    font-family: 'Cinzel', Georgia, serif; font-weight: 900; font-size: 46px;
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(212,160,23,0.8), 0 2px 4px rgba(0,0,0,0.6);
+    margin-bottom: 12px; letter-spacing: 4px;
+  }
+  #win-moves { color: rgba(212,160,23,0.72); font-size: 15px; letter-spacing: 2px; margin-bottom: 28px; font-family: Georgia,serif; }
+  @keyframes winPop { 0%{transform:scale(0.75);opacity:0} 70%{transform:scale(1.04)} 100%{transform:scale(1);opacity:1} }
+  @keyframes sparkle {
+    0%,100%{text-shadow:0 0 6px rgba(212,160,23,0.8)}
+    50%{text-shadow:0 0 20px rgba(212,160,23,1),0 0 40px rgba(212,160,23,0.5)}
+  }
+  @keyframes autoShimmer { 0%,100%{opacity:1} 50%{opacity:0.55} }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 18%{transform:translateX(-5px)} 36%{transform:translateX(5px)} 54%{transform:translateX(-4px)} 72%{transform:translateX(3px)} 88%{transform:translateX(-2px)} }
+  .shake { animation: shake 0.36s ease !important; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="title">Okay FreeCell.</div>
+  <div id="top-row">
+    <div id="fc-row"></div>
+    <div id="found-row"></div>
+  </div>
+  <div id="tableau"></div>
+  <div id="controls">
+    <button class="btn" id="btn-undo" disabled>↩ Undo</button>
+    <button class="btn" id="btn-auto" disabled>✦ Auto Play</button>
+    <button class="btn" id="btn-new">⟳ New Game</button>
+    <span id="move-count">0 moves</span>
+  </div>
+  <div id="hint">Tap any card to auto-move it · Tap a sequence to move it as a group</div>
+</div>
+<div id="win-overlay">
+  <div id="win-box">
+    <div id="win-title">YOU WIN!</div>
+    <div id="win-moves"></div>
+    <button class="btn" id="btn-play-again">Play Again</button>
+  </div>
+</div>
+
+<script>
+const SUITS = ['♠','♥','♦','♣'];
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const RV = {A:1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,J:11,Q:12,K:13};
+const isRed = s => s==='♥'||s==='♦';
+
+let state, hist, moves, won, autoPlay, autoTimer, CW, CH, OFF;
+// shakeId: card id to shake on next render
+let shakeId = null;
+
+function mkDeck() { return SUITS.flatMap(s=>RANKS.map(r=>({suit:s,rank:r,id:`${r}${s}`}))); }
+function shuffle(a) { const b=[...a];for(let i=b.length-1;i>0;i--){const j=0|Math.random()*(i+1);[b[i],b[j]]=[b[j],b[i]];}return b; }
+function deal() { const d=shuffle(mkDeck());const c=Array.from({length:8},()=>[]);d.forEach((x,i)=>c[i%8].push(x));return c; }
+function canPlace(lo,hi) { if(!lo)return true; return isRed(lo.suit)!==isRed(hi.suit)&&RV[lo.rank]===RV[hi.rank]+1; }
+function validSeq(cs) { for(let i=1;i<cs.length;i++)if(!canPlace(cs[i-1],cs[i]))return false; return true; }
+function maxMove(efc,ec,toEmpty) { return(efc+1)*Math.pow(2,toEmpty?Math.max(0,ec-1):ec); }
+function snap() { return{tab:state.tab.map(c=>[...c]),fc:[...state.fc],found:Object.fromEntries(Object.entries(state.found).map(([k,v])=>[k,[...v]]))}; }
+function isSafe(card,found) {
+  const r=RV[card.rank]; if(r<=2)return true;
+  return isRed(card.suit)?(found['♠'].length>=r-1&&found['♣'].length>=r-1):(found['♥'].length>=r-1&&found['♦'].length>=r-1);
+}
+function findAuto() {
+  for(let i=0;i<8;i++){const col=state.tab[i];if(!col.length)continue;const c=col[col.length-1];if(RV[c.rank]===state.found[c.suit].length+1&&isSafe(c,state.found))return{src:'tab',idx:i,card:c};}
+  for(let i=0;i<4;i++){const c=state.fc[i];if(!c)continue;if(RV[c.rank]===state.found[c.suit].length+1&&isSafe(c,state.found))return{src:'fc',idx:i,card:c};}
+  return null;
+}
+function totalFound() { return Object.values(state.found).reduce((s,p)=>s+p.length,0); }
+
+function commit(next) {
+  hist.push(snap());
+  state = next; moves++;
+  render(); checkWin();
+}
+
+function checkWin() {
+  if(totalFound()===52){
+    won=true; autoPlay=false;
+    document.getElementById('win-moves').textContent=`Completed in ${moves} moves`;
+    document.getElementById('win-overlay').classList.add('show');
+  }
+}
+
+function undo() {
+  if(!hist.length)return;
+  state=hist.pop(); moves=Math.max(0,moves-1);
+  stopAuto(); render();
+}
+
+function newGame() {
+  state={tab:deal(),fc:[null,null,null,null],found:{'♠':[],'♥':[],'♦':[],'♣':[]}};
+  hist=[]; moves=0; won=false; shakeId=null;
+  stopAuto();
+  document.getElementById('win-overlay').classList.remove('show');
+  render();
+}
+
+function stopAuto() { autoPlay=false; clearTimeout(autoTimer); }
+
+function tickAuto() {
+  if(!autoPlay)return;
+  const mv=findAuto();
+  if(!mv){stopAuto();render();return;}
+  const nt=state.tab.map(c=>[...c]),nf=[...state.fc];
+  const nfd=Object.fromEntries(Object.entries(state.found).map(([k,v])=>[k,[...v]]));
+  if(mv.src==='tab')nt[mv.idx].pop(); else nf[mv.idx]=null;
+  nfd[mv.card.suit].push(mv.card);
+  commit({tab:nt,fc:nf,found:nfd});
+  if(autoPlay) autoTimer=setTimeout(tickAuto,220);
+}
+
+// ── Smart single-tap move ──────────────────────────────────────────────────
+// Priority: 1) foundation (single card), 2) non-empty tableau column,
+//           3) empty tableau column, 4) free cell (single card only)
+function smartMove(src, col, ci, fi) {
+  if(won) return;
+
+  // Gather cards to move
+  let cards;
+  if(src==='tab') {
+    const column=state.tab[col];
+    if(!column.length||ci>=column.length) return;
+    cards=column.slice(ci);
+    if(cards.length>1&&!validSeq(cards)){
+      // Not a valid sequence — shake the tapped card
+      shakeId=cards[0].id; render(); return;
+    }
+  } else {
+    if(!state.fc[fi]) return;
+    cards=[state.fc[fi]];
+  }
+
+  const card=cards[0];
+  const nt=()=>state.tab.map(c=>[...c]);
+  const nf=()=>[...state.fc];
+  const nfd=()=>Object.fromEntries(Object.entries(state.found).map(([k,v])=>[k,[...v]]));
+
+  function removeCards(t,f){
+    if(src==='tab') t[col].splice(ci);
+    else f[fi]=null;
+  }
+
+  // 1. Foundation (single card only)
+  if(cards.length===1){
+    const pile=state.found[card.suit];
+    if(RV[card.rank]===pile.length+1){
+      const t=nt(),f=nf(),fd=nfd();
+      removeCards(t,f); fd[card.suit].push(card);
+      commit({tab:t,fc:f,found:fd}); return;
+    }
+  }
+
+  const efc=state.fc.filter(c=>!c).length;
+  const ec=state.tab.filter(c=>!c.length).length;
+
+  // 2. Non-empty tableau columns
+  for(let i=0;i<8;i++){
+    if(src==='tab'&&i===col) continue;
+    const tcol=state.tab[i];
+    if(!tcol.length) continue;
+    if(canPlace(tcol[tcol.length-1],card)){
+      if(cards.length<=maxMove(efc,ec,false)){
+        const t=nt(),f=nf();
+        removeCards(t,f); t[i].push(...cards);
+        commit({tab:t,fc:f,found:state.found}); return;
+      }
+    }
+  }
+
+  // 3. Empty tableau columns (only if not already coming from an empty column)
+  const srcIsEmpty = src==='tab' && ci===0 && state.tab[col].length===cards.length;
+  if(!srcIsEmpty){
+    for(let i=0;i<8;i++){
+      if(src==='tab'&&i===col) continue;
+      if(state.tab[i].length) continue;
+      // Need at least 1 fewer empty col since we're filling one
+      if(cards.length<=maxMove(efc,Math.max(0,ec-1),false)){
+        const t=nt(),f=nf();
+        removeCards(t,f); t[i].push(...cards);
+        commit({tab:t,fc:f,found:state.found}); return;
+      }
+    }
+  }
+
+  // 4. Free cell (single card only)
+  if(cards.length===1){
+    for(let i=0;i<4;i++){
+      if(!state.fc[i]){
+        const t=nt(),f=nf();
+        removeCards(t,f); f[i]=card;
+        commit({tab:t,fc:f,found:state.found}); return;
+      }
+    }
+  }
+
+  // No move available — shake
+  shakeId=card.id; render();
+}
+
+// ── Rendering ─────────────────────────────────────────────────────────────
+function calcSizes() {
+  const w=window.innerWidth;
+  const avail=w-16-14;
+  CW=Math.max(42,Math.min(104,Math.floor(avail/8)));
+  CH=Math.round(CW*1.58);
+  OFF=Math.round(CW*0.42);
+}
+
+function makeCard(card, top, zIdx) {
+  const el=document.createElement('div');
+  el.className='card';
+  if(shakeId===card.id) el.classList.add('shake');
+  el.style.cssText=`width:${CW}px;height:${CH}px;top:${top}px;z-index:${zIdx};border-radius:${Math.max(4,CW*0.09)}px;padding:${Math.max(2,Math.round(CW*0.07))}px;`;
+  const col=isRed(card.suit)?'#b52020':'#1c1c3a';
+  const rf=Math.max(11,CW*0.33),sf=Math.max(9,CW*0.26),bf=Math.max(18,CW*0.56);
+  el.innerHTML=`
+    <div class="card-corner" style="color:${col};display:flex;align-items:baseline;gap:${Math.max(1,CW*0.04)}px">
+      <span style="font-size:${rf}px;line-height:1">${card.rank}</span><span style="font-size:${sf}px;line-height:1">${card.suit}</span>
+    </div>
+    <div class="card-suit-big" style="font-size:${bf}px;color:${col};top:50%;transform:translateY(-50%)">${card.suit}</div>
+    <div class="card-corner card-corner-bot" style="color:${col};display:flex;align-items:baseline;gap:${Math.max(1,CW*0.04)}px">
+      <span style="font-size:${rf}px;line-height:1">${card.rank}</span><span style="font-size:${sf}px;line-height:1">${card.suit}</span>
+    </div>`;
+  // Clear shakeId after one render cycle so it only fires once
+  if(shakeId===card.id) setTimeout(()=>{shakeId=null;},400);
+  return el;
+}
+
+function makeSlot(label, labelColor) {
+  const el=document.createElement('div');
+  el.className='slot';
+  el.style.cssText=`width:${CW}px;height:${CH}px;border-radius:${Math.max(4,CW*0.09)}px;`;
+  if(label) el.innerHTML=`<span style="color:${labelColor||'rgba(212,160,23,0.3)'};font-size:${CW*0.4}px">${label}</span>`;
+  return el;
+}
+
+function render() {
+  document.getElementById('title').style.fontSize=Math.max(18,CW*0.42)+'px';
+
+  // Free cells
+  const fcRow=document.getElementById('fc-row');
+  fcRow.innerHTML='';
+  state.fc.forEach((card,fi)=>{
+    const wrap=document.createElement('div');
+    wrap.style.cssText=`position:relative;width:${CW}px;height:${CH}px;flex-shrink:0`;
+    if(card){
+      const el=makeCard(card,0,1);
+      el.addEventListener('click',e=>{e.stopPropagation();smartMove('fc',null,null,fi);});
+      wrap.appendChild(el);
+    } else {
+      const sl=makeSlot();
+      wrap.appendChild(sl);
+    }
+    fcRow.appendChild(wrap);
+  });
+
+  // Foundations
+  const foundRow=document.getElementById('found-row');
+  foundRow.innerHTML='';
+  SUITS.forEach(suit=>{
+    const pile=state.found[suit];
+    const top=pile.length?pile[pile.length-1]:null;
+    const wrap=document.createElement('div');
+    wrap.style.cssText=`position:relative;width:${CW}px;height:${CH}px;flex-shrink:0`;
+    if(top){
+      const el=makeCard(top,0,1);
+      wrap.appendChild(el);
+    } else {
+      const lc=isRed(suit)?'rgba(181,32,32,0.5)':'rgba(28,28,56,0.55)';
+      wrap.appendChild(makeSlot(suit,lc));
+    }
+    if(pile.length>0){
+      const badge=document.createElement('div');
+      badge.style.cssText=`position:absolute;bottom:3px;right:4px;font-size:${Math.max(8,CW*0.14)}px;font-weight:700;color:rgba(0,0,0,0.28);pointer-events:none;z-index:10;font-family:Georgia,serif`;
+      badge.textContent=pile.length;
+      wrap.appendChild(badge);
+    }
+    foundRow.appendChild(wrap);
+  });
+
+  // Tableau
+  const tabEl=document.getElementById('tableau');
+  tabEl.innerHTML='';
+  state.tab.forEach((col,ci)=>{
+    const h=col.length===0?CH:CH+(col.length-1)*OFF;
+    const wrap=document.createElement('div');
+    wrap.className='col-wrap';
+    wrap.style.cssText=`width:${CW}px;height:${h}px;flex-shrink:0`;
+    if(col.length===0){
+      const sl=makeSlot();
+      sl.style.cssText+=';position:absolute;top:0;left:0';
+      wrap.appendChild(sl);
+    } else {
+      col.forEach((card,idx)=>{
+        const el=makeCard(card,idx*OFF,idx+1);
+        el.addEventListener('click',e=>{e.stopPropagation();smartMove('tab',ci,idx,null);});
+        wrap.appendChild(el);
+      });
+    }
+    tabEl.appendChild(wrap);
+  });
+
+  // Controls sizing
+  const bfs=Math.max(11,CW*0.17);
+  const bpad=`8px ${Math.round(CW*0.26)}px`;
+  document.querySelectorAll('.btn').forEach(b=>{b.style.fontSize=bfs+'px';b.style.padding=bpad;});
+  document.getElementById('move-count').style.fontSize=bfs+'px';
+  document.getElementById('hint').style.fontSize=Math.max(9,CW*0.13)+'px';
+
+  document.getElementById('btn-undo').disabled=!hist.length;
+
+  const autoBtn=document.getElementById('btn-auto');
+  const hasMove=!!findAuto();
+  if(autoPlay){
+    autoBtn.textContent='⏹ Stop Auto'; autoBtn.classList.add('active'); autoBtn.disabled=false;
+  } else {
+    autoBtn.textContent='✦ Auto Play'; autoBtn.classList.remove('active'); autoBtn.disabled=won||!hasMove;
+  }
+  document.getElementById('move-count').textContent=`${moves} moves`;
+}
+
+document.getElementById('btn-undo').addEventListener('click',undo);
+document.getElementById('btn-auto').addEventListener('click',()=>{
+  if(autoPlay){stopAuto();render();}
+  else{autoPlay=true;render();autoTimer=setTimeout(tickAuto,220);}
+});
+document.getElementById('btn-new').addEventListener('click',newGame);
+document.getElementById('btn-play-again').addEventListener('click',newGame);
+
+window.addEventListener('resize',()=>{calcSizes();render();});
+calcSizes();
+newGame();
+</script>
+</body>
+</html>
