@@ -43,13 +43,13 @@
   }
   #top-row {
     display: flex;
-    width: 100%;
-    justify-content: space-between;
+    justify-content: center;
+    align-items: flex-start;
     margin-bottom: 7px;
-    gap: 2px;
+    gap: 16px;
   }
   #fc-row, #found-row { display: flex; gap: 2px; }
-  #tableau { display: flex; gap: 2px; width: 100%; align-items: flex-start; }
+  #tableau { display: flex; gap: 2px; align-items: flex-start; }
   .col-wrap { position: relative; flex-shrink: 0; }
   .slot {
     background: rgba(0,0,0,0.22);
@@ -121,6 +121,11 @@
     color: #ffd0bb;
     border: 1.5px solid rgba(190,70,70,0.55) !important;
   }
+  #btn-restart {
+    background: transparent;
+    color: rgba(212,160,23,0.75);
+    border: 1.5px solid rgba(212,160,23,0.4) !important;
+  }
   #move-count {
     color: rgba(212,160,23,0.6);
     font-family: 'Cinzel', Georgia, serif;
@@ -176,6 +181,7 @@
   <div id="controls">
     <button class="btn" id="btn-undo" disabled>↩ Undo</button>
     <button class="btn" id="btn-auto" disabled>✦ Auto Play</button>
+    <button class="btn" id="btn-restart">↺ Restart Deal</button>
     <button class="btn" id="btn-new">⟳ New Game</button>
     <span id="move-count">0 moves</span>
   </div>
@@ -194,9 +200,10 @@ const SUITS = ['♠','♥','♦','♣'];
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const RV = {A:1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,J:11,Q:12,K:13};
 const isRed = s => s==='♥'||s==='♦';
+const SAVE_KEY = 'okayfreecell_v1';
 
 let state, hist, moves, won, autoPlay, autoTimer, CW, CH, OFF;
-// shakeId: card id to shake on next render
+let initialDeal = null; // saved for Restart Deal
 let shakeId = null;
 
 function mkDeck() { return SUITS.flatMap(s=>RANKS.map(r=>({suit:s,rank:r,id:`${r}${s}`}))); }
@@ -217,15 +224,40 @@ function findAuto() {
 }
 function totalFound() { return Object.values(state.found).reduce((s,p)=>s+p.length,0); }
 
+// ── Persistence ────────────────────────────────────────────────────────────
+function saveGame() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      state, hist, moves, won, initialDeal
+    }));
+  } catch(e) {}
+}
+
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(!raw) return false;
+    const saved = JSON.parse(raw);
+    if(!saved.state||!saved.initialDeal) return false;
+    state = saved.state;
+    hist = saved.hist || [];
+    moves = saved.moves || 0;
+    won = saved.won || false;
+    initialDeal = saved.initialDeal;
+    return true;
+  } catch(e) { return false; }
+}
+
 function commit(next) {
   hist.push(snap());
-  state = next; moves++;
-  render(); checkWin();
+  state=next; moves++;
+  saveGame(); render(); checkWin();
 }
 
 function checkWin() {
   if(totalFound()===52){
     won=true; autoPlay=false;
+    saveGame();
     document.getElementById('win-moves').textContent=`Completed in ${moves} moves`;
     document.getElementById('win-overlay').classList.add('show');
   }
@@ -234,13 +266,26 @@ function checkWin() {
 function undo() {
   if(!hist.length)return;
   state=hist.pop(); moves=Math.max(0,moves-1);
-  stopAuto(); render();
+  stopAuto(); saveGame(); render();
 }
 
 function newGame() {
-  state={tab:deal(),fc:[null,null,null,null],found:{'♠':[],'♥':[],'♦':[],'♣':[]}};
+  const tab=deal();
+  initialDeal=tab.map(c=>[...c]);
+  state={tab,fc:[null,null,null,null],found:{'♠':[],'♥':[],'♦':[],'♣':[]}};
   hist=[]; moves=0; won=false; shakeId=null;
   stopAuto();
+  saveGame();
+  document.getElementById('win-overlay').classList.remove('show');
+  render();
+}
+
+function restartDeal() {
+  if(!initialDeal)return;
+  state={tab:initialDeal.map(c=>[...c]),fc:[null,null,null,null],found:{'♠':[],'♥':[],'♦':[],'♣':[]}};
+  hist=[]; moves=0; won=false; shakeId=null;
+  stopAuto();
+  saveGame();
   document.getElementById('win-overlay').classList.remove('show');
   render();
 }
@@ -260,21 +305,14 @@ function tickAuto() {
 }
 
 // ── Smart single-tap move ──────────────────────────────────────────────────
-// Priority: 1) foundation (single card), 2) non-empty tableau column,
-//           3) empty tableau column, 4) free cell (single card only)
 function smartMove(src, col, ci, fi) {
   if(won) return;
-
-  // Gather cards to move
   let cards;
   if(src==='tab') {
     const column=state.tab[col];
     if(!column.length||ci>=column.length) return;
     cards=column.slice(ci);
-    if(cards.length>1&&!validSeq(cards)){
-      // Not a valid sequence — shake the tapped card
-      shakeId=cards[0].id; render(); return;
-    }
+    if(cards.length>1&&!validSeq(cards)){ shakeId=cards[0].id; render(); return; }
   } else {
     if(!state.fc[fi]) return;
     cards=[state.fc[fi]];
@@ -284,13 +322,9 @@ function smartMove(src, col, ci, fi) {
   const nt=()=>state.tab.map(c=>[...c]);
   const nf=()=>[...state.fc];
   const nfd=()=>Object.fromEntries(Object.entries(state.found).map(([k,v])=>[k,[...v]]));
+  function removeCards(t,f){ if(src==='tab') t[col].splice(ci); else f[fi]=null; }
 
-  function removeCards(t,f){
-    if(src==='tab') t[col].splice(ci);
-    else f[fi]=null;
-  }
-
-  // 1. Foundation (single card only)
+  // 1. Foundation
   if(cards.length===1){
     const pile=state.found[card.suit];
     if(RV[card.rank]===pile.length+1){
@@ -308,22 +342,19 @@ function smartMove(src, col, ci, fi) {
     if(src==='tab'&&i===col) continue;
     const tcol=state.tab[i];
     if(!tcol.length) continue;
-    if(canPlace(tcol[tcol.length-1],card)){
-      if(cards.length<=maxMove(efc,ec,false)){
-        const t=nt(),f=nf();
-        removeCards(t,f); t[i].push(...cards);
-        commit({tab:t,fc:f,found:state.found}); return;
-      }
+    if(canPlace(tcol[tcol.length-1],card)&&cards.length<=maxMove(efc,ec,false)){
+      const t=nt(),f=nf();
+      removeCards(t,f); t[i].push(...cards);
+      commit({tab:t,fc:f,found:state.found}); return;
     }
   }
 
-  // 3. Empty tableau columns (only if not already coming from an empty column)
-  const srcIsEmpty = src==='tab' && ci===0 && state.tab[col].length===cards.length;
+  // 3. Empty tableau columns
+  const srcIsEmpty=src==='tab'&&ci===0&&state.tab[col].length===cards.length;
   if(!srcIsEmpty){
     for(let i=0;i<8;i++){
       if(src==='tab'&&i===col) continue;
       if(state.tab[i].length) continue;
-      // Need at least 1 fewer empty col since we're filling one
       if(cards.length<=maxMove(efc,Math.max(0,ec-1),false)){
         const t=nt(),f=nf();
         removeCards(t,f); t[i].push(...cards);
@@ -332,7 +363,7 @@ function smartMove(src, col, ci, fi) {
     }
   }
 
-  // 4. Free cell (single card only)
+  // 4. Free cell
   if(cards.length===1){
     for(let i=0;i<4;i++){
       if(!state.fc[i]){
@@ -343,7 +374,6 @@ function smartMove(src, col, ci, fi) {
     }
   }
 
-  // No move available — shake
   shakeId=card.id; render();
 }
 
@@ -371,7 +401,6 @@ function makeCard(card, top, zIdx) {
     <div class="card-corner card-corner-bot" style="color:${col};display:flex;align-items:baseline;gap:${Math.max(1,CW*0.04)}px">
       <span style="font-size:${rf}px;line-height:1">${card.rank}</span><span style="font-size:${sf}px;line-height:1">${card.suit}</span>
     </div>`;
-  // Clear shakeId after one render cycle so it only fires once
   if(shakeId===card.id) setTimeout(()=>{shakeId=null;},400);
   return el;
 }
@@ -398,8 +427,7 @@ function render() {
       el.addEventListener('click',e=>{e.stopPropagation();smartMove('fc',null,null,fi);});
       wrap.appendChild(el);
     } else {
-      const sl=makeSlot();
-      wrap.appendChild(sl);
+      wrap.appendChild(makeSlot());
     }
     fcRow.appendChild(wrap);
   });
@@ -412,13 +440,8 @@ function render() {
     const top=pile.length?pile[pile.length-1]:null;
     const wrap=document.createElement('div');
     wrap.style.cssText=`position:relative;width:${CW}px;height:${CH}px;flex-shrink:0`;
-    if(top){
-      const el=makeCard(top,0,1);
-      wrap.appendChild(el);
-    } else {
-      const lc=isRed(suit)?'rgba(181,32,32,0.5)':'rgba(28,28,56,0.55)';
-      wrap.appendChild(makeSlot(suit,lc));
-    }
+    if(top){ const el=makeCard(top,0,1); wrap.appendChild(el); }
+    else { const lc=isRed(suit)?'rgba(181,32,32,0.5)':'rgba(28,28,56,0.55)'; wrap.appendChild(makeSlot(suit,lc)); }
     if(pile.length>0){
       const badge=document.createElement('div');
       badge.style.cssText=`position:absolute;bottom:3px;right:4px;font-size:${Math.max(8,CW*0.14)}px;font-weight:700;color:rgba(0,0,0,0.28);pointer-events:none;z-index:10;font-family:Georgia,serif`;
@@ -450,6 +473,9 @@ function render() {
     tabEl.appendChild(wrap);
   });
 
+  // Win overlay
+  if(won) document.getElementById('win-overlay').classList.add('show');
+
   // Controls sizing
   const bfs=Math.max(11,CW*0.17);
   const bpad=`8px ${Math.round(CW*0.26)}px`;
@@ -458,6 +484,7 @@ function render() {
   document.getElementById('hint').style.fontSize=Math.max(9,CW*0.13)+'px';
 
   document.getElementById('btn-undo').disabled=!hist.length;
+  document.getElementById('btn-restart').disabled=!initialDeal;
 
   const autoBtn=document.getElementById('btn-auto');
   const hasMove=!!findAuto();
@@ -474,12 +501,16 @@ document.getElementById('btn-auto').addEventListener('click',()=>{
   if(autoPlay){stopAuto();render();}
   else{autoPlay=true;render();autoTimer=setTimeout(tickAuto,220);}
 });
+document.getElementById('btn-restart').addEventListener('click',restartDeal);
 document.getElementById('btn-new').addEventListener('click',newGame);
 document.getElementById('btn-play-again').addEventListener('click',newGame);
 
 window.addEventListener('resize',()=>{calcSizes();render();});
 calcSizes();
-newGame();
+
+// Boot: restore saved game or start fresh
+if(!loadGame()) newGame();
+else render();
 </script>
 </body>
 </html>
