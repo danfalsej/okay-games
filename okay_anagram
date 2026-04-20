@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Okay Anagram</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+body{
+background:#fff;color:#000;
+font-family:‘Space Mono’,monospace;
+min-height:100dvh;
+display:flex;flex-direction:column;align-items:center;
+}
+
+/* ── LOADING ── */
+#loading{
+position:fixed;inset:0;background:#fff;
+display:flex;flex-direction:column;align-items:center;justify-content:center;
+gap:22px;z-index:999;
+}
+#loading h1{
+font-family:‘Playfair Display’,serif;
+font-size:clamp(26px,8vw,40px);font-weight:900;letter-spacing:-1px;
+}
+.ld-track{width:200px;height:1px;background:#ddd}
+.ld-fill{height:100%;background:#000;width:0;transition:width .25s ease}
+.ld-note{font-size:10px;letter-spacing:3px;color:#aaa}
+
+/* ── GAME ── */
+#game{
+width:100%;max-width:460px;
+display:none;flex-direction:column;align-items:center;
+padding:20px 18px 60px;
+}
+
+/* ── HEADER ── */
+.hdr{
+width:100%;
+border-bottom:2px solid #000;
+padding-bottom:11px;margin-bottom:18px;
+display:flex;justify-content:space-between;align-items:flex-end;
+}
+.hdr-title{
+font-family:‘Playfair Display’,serif;
+font-size:clamp(22px,6vw,30px);font-weight:900;
+letter-spacing:-0.5px;line-height:1;
+}
+.hdr-rule{
+font-size:10px;letter-spacing:1.5px;color:#999;
+text-align:right;line-height:1.7;
+}
+
+/* ── SCORE ── */
+.scorebar{width:100%;margin-bottom:16px}
+.scorerow{
+display:flex;justify-content:space-between;align-items:baseline;
+margin-bottom:9px;
+}
+.score-n{
+font-family:‘Playfair Display’,serif;
+font-size:28px;font-weight:700;line-height:1;
+}
+.score-lbl{font-size:9px;letter-spacing:2.5px;color:#bbb;margin-bottom:2px}
+.score-rank{
+font-family:‘Playfair Display’,serif;
+font-style:italic;font-size:14px;
+}
+.prog-track{height:1px;background:#e0e0e0}
+.prog-fill{height:100%;background:#000;transition:width .45s cubic-bezier(.4,0,.2,1)}
+
+/* ── HEX GRID ── */
+.hex-wrap{margin:10px 0 6px}
+#hex-svg{
+width:min(270px,76vw);height:auto;
+display:block;touch-action:none;
+}
+
+/* ── WORD DISPLAY ── */
+.word-row{
+width:100%;max-width:360px;
+display:flex;align-items:center;gap:10px;
+margin:8px 0 4px;
+}
+.word-box{
+flex:1;min-height:50px;
+border-bottom:2px solid #000;
+display:flex;align-items:center;justify-content:center;
+font-family:‘Playfair Display’,serif;
+font-size:clamp(20px,6vw,28px);font-weight:700;
+letter-spacing:6px;text-transform:uppercase;
+cursor:text;user-select:none;
+will-change:transform;
+}
+.word-box.empty{
+font-family:‘Space Mono’,monospace;
+font-size:11px;font-weight:400;letter-spacing:2px;
+color:#ccc;font-style:italic;letter-spacing:1px;
+}
+@keyframes shake{
+0%,100%{transform:translateX(0)}
+20%{transform:translateX(-8px)}
+40%{transform:translateX(8px)}
+60%{transform:translateX(-5px)}
+80%{transform:translateX(5px)}
+}
+@keyframes pop{
+0%{transform:scale(1)}
+50%{transform:scale(1.04)}
+100%{transform:scale(1)}
+}
+.word-box.do-shake{animation:shake .36s ease forwards}
+.word-box.do-pop{animation:pop .28s ease forwards}
+.del-btn{
+flex-shrink:0;width:44px;height:44px;
+border:1px solid #ccc;background:#fff;
+cursor:pointer;font-size:18px;
+display:flex;align-items:center;justify-content:center;
+}
+.del-btn:active{background:#f0f0f0}
+
+/* ── MSG ── */
+.msg{
+height:24px;line-height:24px;
+font-size:12px;letter-spacing:2px;text-align:center;
+font-family:‘Playfair Display’,serif;
+transition:opacity .15s;
+}
+.msg.err{color:#aaa;font-style:italic}
+.msg.ok{color:#000;font-weight:700}
+
+/* ── BUTTONS ── */
+.btn-row{display:flex;gap:8px;margin:10px 0 16px}
+.btn{
+padding:10px 14px;
+border:1px solid #000;background:#fff;
+font-family:‘Space Mono’,monospace;
+font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
+cursor:pointer;
+}
+.btn:active{background:#eee}
+.btn-solid{background:#000;color:#fff}
+.btn-solid:active{background:#333}
+
+/* ── FOUND WORDS ── */
+.found-wrap{
+width:100%;border-top:1px solid #e8e8e8;
+padding-top:16px;margin-top:4px;
+}
+.found-hdr{font-size:9px;letter-spacing:3px;color:#ccc;margin-bottom:12px}
+.found-grid{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+border:1px solid #000;
+padding:3px 9px;
+font-family:‘Playfair Display’,serif;
+font-size:12px;letter-spacing:1.5px;
+animation:chipIn .18s ease;
+}
+@keyframes chipIn{
+from{opacity:0;transform:translateY(-3px)}
+to{opacity:1;transform:translateY(0)}
+}
+
+/* ── GENIUS ── */
+.genius{
+width:100%;border:2px solid #000;
+padding:28px 20px;text-align:center;margin-top:28px;
+}
+.genius-word{
+font-family:‘Playfair Display’,serif;
+font-size:40px;font-weight:900;letter-spacing:8px;
+}
+.genius-sub{font-size:10px;letter-spacing:3px;color:#999;margin-top:10px}
+
+/* ── HIDDEN INPUT (keyboard hook) ── */
+#kbd{position:fixed;top:-9999px;left:0;opacity:0;width:1px;height:1px}
+</style>
+
+</head>
+<body>
+
+<!-- Loading Screen -->
+
+<div id="loading">
+  <h1>Okay&nbsp;Anagram</h1>
+  <div class="ld-track"><div class="ld-fill" id="ld-fill"></div></div>
+  <div class="ld-note" id="ld-note">LOADING DICTIONARY</div>
+</div>
+
+<!-- Invisible keyboard input for desktop -->
+
+<input id="kbd" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-hidden="true">
+
+<!-- Game UI -->
+
+<div id="game">
+
+  <div class="hdr">
+    <div class="hdr-title">Okay Anagram</div>
+    <div class="hdr-rule">center letter required<br>4+ letters · real words only</div>
+  </div>
+
+  <div class="scorebar">
+    <div class="scorerow">
+      <div>
+        <div class="score-lbl">SCORE</div>
+        <div class="score-n" id="s-score">0</div>
+      </div>
+      <div style="text-align:center">
+        <div class="score-lbl">FOUND</div>
+        <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700" id="s-words">— / —</div>
+      </div>
+      <div style="text-align:right">
+        <div class="score-lbl">RANK</div>
+        <div class="score-rank" id="s-rank">Beginner</div>
+      </div>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="s-prog" style="width:0%"></div></div>
+  </div>
+
+  <div class="hex-wrap">
+    <svg id="hex-svg" viewBox="0 0 300 280" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+
+  <div class="word-row">
+    <div class="word-box empty" id="w-disp" onclick="focusKbd()">type or tap letters</div>
+    <button class="del-btn" onclick="deleteLetter()" aria-label="Delete last letter">⌫</button>
+  </div>
+
+  <div class="msg" id="w-msg"></div>
+
+  <div class="btn-row">
+    <button class="btn" onclick="doShuffle()">Shuffle</button>
+    <button class="btn btn-solid" onclick="submitWord()">Enter</button>
+    <button class="btn" onclick="newGame()">New Game</button>
+  </div>
+
+  <div class="found-wrap" id="found-wrap" style="display:none">
+    <div class="found-hdr">FOUND WORDS</div>
+    <div class="found-grid" id="found-grid"></div>
+  </div>
+
+  <div id="genius-area"></div>
+
+</div>
+
+<script>
+'use strict';
+
+// ─── CONSTANTS ────────────────────────────────────────────
+const VOWELS = ['a','e','i','o','u'];
+const CONS   = 'bcdfghjklmnpqrstvwxyz'.split('');
+const RANKS  = [
+  [0,    'Beginner'],
+  [0.04, 'Nice'],
+  [0.10, 'Solid'],
+  [0.20, 'Good'],
+  [0.35, 'Great'],
+  [0.55, 'Amazing'],
+  [0.75, 'Genius']
+];
+
+// SVG layout constants
+const CX = 150, CY = 140, HEX_S = 38, RING_R = 66;
+
+// ─── STATE ────────────────────────────────────────────────
+let allWords  = [];   // full filtered word list
+let letters   = [];   // 7 letters for this puzzle
+let ringOrder = [];   // 6 ring letters (can be shuffled)
+let keyLetter = '';   // required center letter
+let validSet  = new Set();
+let found     = [];
+let typed     = '';
+let score     = 0;
+let maxScore  = 0;
+
+// ─── UTILS ────────────────────────────────────────────────
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = 0 | (Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function wordPts(w) { return w.length === 4 ? 1 : w.length; }
+
+function getrank(pct) {
+  let r = RANKS[0][1];
+  for (const [t, n] of RANKS) if (pct >= t) r = n;
+  return r;
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const tick  = () => new Promise(r => setTimeout(r, 0));
+
+// ─── DICTIONARY LOADING ───────────────────────────────────
+async function boot() {
+  // Check session cache first
+  try {
+    const cached = sessionStorage.getItem('oa_dict_v3');
+    if (cached) {
+      allWords = JSON.parse(cached);
+      setStatus('READY');
+      setFill(100);
+      await sleep(200);
+      launch();
+      return;
+    }
+  } catch(e) {}
+
+  try {
+    const res = await fetch(
+      'https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt'
+    );
+    if (!res.ok) throw new Error('Fetch failed');
+
+    const contentLen = parseInt(res.headers.get('content-length') || '0');
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let rawText = '', received = 0;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      received += value.length;
+      rawText += dec.decode(value, { stream: true });
+      if (contentLen > 0) setFill(received / contentLen * 75);
+    }
+
+    setFill(80); setStatus('PROCESSING WORDS\u2026');
+    await tick();
+
+    // Filter: 4–9 letters, only a-z, at most 7 unique letters
+    const lines = rawText.split('\n');
+    const filtered = [];
+    for (const line of lines) {
+      const w = line.trim().toLowerCase();
+      if (
+        w.length >= 4 && w.length <= 9 &&
+        /^[a-z]+$/.test(w) &&
+        new Set(w).size <= 7
+      ) {
+        filtered.push(w);
+      }
+    }
+
+    allWords = filtered;
+    try { sessionStorage.setItem('oa_dict_v3', JSON.stringify(filtered)); } catch(e) {}
+
+    setFill(100); setStatus('READY');
+    await sleep(300);
+    launch();
+
+  } catch(err) {
+    setStatus('LOAD FAILED \u2014 PLEASE REFRESH');
+  }
+}
+
+function setFill(pct) {
+  document.getElementById('ld-fill').style.width = pct + '%';
+}
+function setStatus(txt) {
+  document.getElementById('ld-note').textContent = txt;
+}
+
+function launch() {
+  document.getElementById('loading').style.display = 'none';
+  const g = document.getElementById('game');
+  g.style.display = 'flex';
+  newGame();
+}
+
+// ─── PUZZLE GENERATION ────────────────────────────────────
+function generatePuzzle() {
+  let best = null, bestN = 0;
+
+  for (let attempt = 0; attempt < 200 && bestN < 45; attempt++) {
+    // Pick 2–3 vowels + fill rest with consonants
+    const nv = 2 + (0 | Math.random() * 2);
+    const ls = shuffle(VOWELS).slice(0, nv).concat(shuffle(CONS).slice(0, 7 - nv));
+    const lSet = new Set(ls);
+
+    // Pick key letter randomly from the 7
+    const k = ls[0 | Math.random() * 7];
+
+    const valid = [];
+    for (const w of allWords) {
+      let hasK = false, ok = true;
+      for (const c of w) {
+        if (!lSet.has(c)) { ok = false; break; }
+        if (c === k) hasK = true;
+      }
+      if (ok && hasK) valid.push(w);
+    }
+
+    if (valid.length > bestN && valid.length >= 20) {
+      bestN = valid.length;
+      best = { ls, k, valid };
+    }
+  }
+
+  return best;
+}
+
+function newGame() {
+  const p = generatePuzzle();
+  if (!p) { alert('Puzzle generation failed \u2014 please refresh.'); return; }
+
+  letters   = p.ls;
+  keyLetter = p.k;
+  validSet  = new Set(p.valid);
+  found     = [];
+  typed     = '';
+  score     = 0;
+  maxScore  = p.valid.reduce((s, w) => s + wordPts(w), 0);
+  ringOrder = shuffle(letters.filter(l => l !== keyLetter));
+
+  renderHex();
+  updateStatus();
+
+  setWordDisplay('');
+  clearMsg();
+  document.getElementById('found-wrap').style.display = 'none';
+  document.getElementById('found-grid').innerHTML = '';
+  document.getElementById('genius-area').innerHTML = '';
+  focusKbd();
+}
+
+// ─── HEX RENDERING ───────────────────────────────────────
+function hexPts(cx, cy, s) {
+  return Array.from({ length: 6 }, (_, i) => {
+    const a = Math.PI / 3 * i;  // flat-top hexagon
+    return (cx + s * Math.cos(a)).toFixed(2) + ',' + (cy + s * Math.sin(a)).toFixed(2);
+  }).join(' ');
+}
+
+function renderHex() {
+  const svg = document.getElementById('hex-svg');
+  svg.innerHTML = '';
+
+  const makeHex = (x, y, letter, isKey) => {
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.style.cursor = 'pointer';
+
+    const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    poly.setAttribute('points', hexPts(x, y, HEX_S));
+    poly.setAttribute('fill',         isKey ? '#000000' : '#ffffff');
+    poly.setAttribute('stroke',       '#000000');
+    poly.setAttribute('stroke-width', '1.5');
+    poly.style.transition = 'fill .1s ease';
+
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', x);
+    label.setAttribute('y', y);
+    label.setAttribute('text-anchor',       'middle');
+    label.setAttribute('dominant-baseline', 'central');
+    label.setAttribute('font-family',       "'Space Mono', monospace");
+    label.setAttribute('font-size',         '21');
+    label.setAttribute('font-weight',       '700');
+    label.setAttribute('fill',              isKey ? '#ffffff' : '#000000');
+    label.setAttribute('pointer-events',    'none');
+    label.setAttribute('user-select',       'none');
+    label.textContent = letter.toUpperCase();
+
+    g.appendChild(poly);
+    g.appendChild(label);
+
+    // Press feedback + add letter
+    g.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      poly.setAttribute('fill', isKey ? '#2a2a2a' : '#e0e0e0');
+      addLetter(letter);
+      setTimeout(() => poly.setAttribute('fill', isKey ? '#000000' : '#ffffff'), 150);
+    });
+
+    svg.appendChild(g);
+  };
+
+  // 6 ring hexes at 60° intervals starting from top
+  ringOrder.forEach((l, i) => {
+    const a = Math.PI / 3 * i - Math.PI / 2;
+    makeHex(CX + RING_R * Math.cos(a), CY + RING_R * Math.sin(a), l, false);
+  });
+
+  // Center / key hex
+  makeHex(CX, CY, keyLetter, true);
+}
+
+function doShuffle() {
+  ringOrder = shuffle(ringOrder);
+  renderHex();
+}
+
+// ─── INPUT ────────────────────────────────────────────────
+function addLetter(l) {
+  typed += l;
+  setWordDisplay(typed);
+}
+
+function deleteLetter() {
+  if (!typed.length) return;
+  typed = typed.slice(0, -1);
+  setWordDisplay(typed);
+}
+
+function focusKbd() {
+  document.getElementById('kbd').focus();
+}
+
+function setWordDisplay(word) {
+  const el = document.getElementById('w-disp');
+  if (!word) {
+    el.textContent = 'type or tap letters';
+    el.classList.add('empty');
+  } else {
+    el.textContent = word.toUpperCase();
+    el.classList.remove('empty');
+  }
+}
+
+// ─── SUBMIT ───────────────────────────────────────────────
+function submitWord() {
+  const w = typed.toLowerCase();
+
+  const reject = (msg) => {
+    flashMsg(msg, 'err');
+    trigAnim(false);
+    typed = '';
+    setWordDisplay('');
+  };
+
+  if (!w) return;
+  if (w.length < 4)                        return reject('4 letters minimum');
+  if (!w.includes(keyLetter))              return reject('Must include \u201c' + keyLetter.toUpperCase() + '\u201d');
+  if ([...w].some(c => !new Set(letters).has(c))) return reject('Not in today\u2019s letters');
+  if (found.includes(w))                   return reject('Already found!');
+  if (!validSet.has(w))                    return reject('Not a word');
+
+  // ✓ Valid
+  const pts = wordPts(w);
+  score += pts;
+  found  = [...found, w].sort();
+  typed  = '';
+
+  setWordDisplay('');
+  flashMsg('+' + pts, 'ok');
+  trigAnim(true);
+  updateStatus();
+  renderFound();
+
+  document.getElementById('found-wrap').style.display = 'block';
+  focusKbd();
+
+  if (found.length === validSet.size) setTimeout(showGenius, 600);
+}
+
+// ─── STATUS / SCORE ───────────────────────────────────────
+function updateStatus() {
+  document.getElementById('s-score').textContent = score;
+  document.getElementById('s-words').textContent = found.length + ' / ' + validSet.size;
+  const pct = maxScore > 0 ? score / maxScore : 0;
+  document.getElementById('s-prog').style.width  = Math.min(pct, 1) * 100 + '%';
+  document.getElementById('s-rank').textContent  = getrank(pct);
+}
+
+// ─── FOUND WORDS ─────────────────────────────────────────
+function renderFound() {
+  const grid = document.getElementById('found-grid');
+  grid.innerHTML = '';
+  for (const w of found) {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.textContent = w.toUpperCase();
+    grid.appendChild(chip);
+  }
+}
+
+// ─── GENIUS SCREEN ───────────────────────────────────────
+function showGenius() {
+  document.getElementById('genius-area').innerHTML =
+    '<div class="genius">' +
+      '<div class="genius-word">GENIUS</div>' +
+      '<div class="genius-sub">ALL ' + validSet.size + ' WORDS FOUND &mdash; ' + score + ' POINTS</div>' +
+      '<button class="btn btn-solid" style="margin-top:20px" onclick="newGame()">Play Again</button>' +
+    '</div>';
+}
+
+// ─── UI HELPERS ───────────────────────────────────────────
+let msgTimer;
+function flashMsg(text, cls) {
+  clearTimeout(msgTimer);
+  const el = document.getElementById('w-msg');
+  el.textContent = text;
+  el.className = 'msg ' + (cls || '');
+  if (text) msgTimer = setTimeout(() => clearMsg(), 1900);
+}
+function clearMsg() {
+  const el = document.getElementById('w-msg');
+  el.textContent = '';
+  el.className = 'msg';
+}
+
+function trigAnim(success) {
+  const el = document.getElementById('w-disp');
+  el.classList.remove('do-shake', 'do-pop');
+  void el.offsetWidth; // reflow to restart animation
+  el.classList.add(success ? 'do-pop' : 'do-shake');
+  setTimeout(() => el.classList.remove('do-shake', 'do-pop'), 400);
+}
+
+// ─── KEYBOARD EVENTS ─────────────────────────────────────
+const kbd = document.getElementById('kbd');
+
+kbd.addEventListener('input', function() {
+  const val = this.value;
+  this.value = '';
+  for (const c of val) {
+    if (/[a-zA-Z]/.test(c)) addLetter(c.toLowerCase());
+  }
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    submitWord();
+  } else if (e.key === 'Backspace') {
+    e.preventDefault();
+    deleteLetter();
+  } else if (/^[a-zA-Z]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    addLetter(e.key.toLowerCase());
+    focusKbd();
+  }
+});
+
+// Tap anywhere on game area to (re)focus keyboard hook
+document.getElementById('game').addEventListener('click', focusKbd);
+
+// ─── BOOT ─────────────────────────────────────────────────
+boot();
+</script>
+
+</body>
+</html>
