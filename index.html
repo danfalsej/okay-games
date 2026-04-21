@@ -9,7 +9,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #ffffff;
+      --bg: #f0ebe0;
       --paper: #faf8f2;
       --ink: #1a1612;
       --mid: #6b6155;
@@ -17,15 +17,14 @@
       --accent2: #2f6ec8;
       --card-border: #d4cbbf;
       --shadow: rgba(26,22,18,0.10);
-}
     }
 
     html { scroll-behavior: smooth; }
 
     body {
       background-color: var(--bg);
-      background-image:
-        repeating-linear-gradient(
+     // background-image:
+    /*    repeating-linear-gradient(
           0deg,
           transparent,
           transparent 39px,
@@ -37,7 +36,7 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      align-items: center; */
     }
 
     /* ---------- HEADER ---------- */
@@ -281,7 +280,7 @@
 
     <a class="game-card" href="okay_jumble.html" data-color="red">
       <span class="card-number">04</span>
-      <span class="card-icon">❓❔</span>
+      <span class="card-icon"></span>
       <span class="card-name">Okay Jumble</span>
       <p class="card-desc">You can't get your life in order, but you can get these letters in order.</p>
       <span class="card-cta">Play now</span>
