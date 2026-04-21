@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Okay FreeCell</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    min-height: 100%;
+    background: #fff;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    font-family: 'Space Mono', monospace;
+  }
+
+  #app {
+    min-height: 100vh;
+    background: #fff;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 16px 6px 28px;
+    user-select: none; touch-action: manipulation;
+  }
+
+  /* ── HEADER ── */
+  #header {
+    width: 100%;
+    max-width: 860px;
+    border-bottom: 2px solid #000;
+    padding-bottom: 11px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  #title {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    color: #000;
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+
+  #move-count {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    color: #bbb;
+    text-align: right;
+    line-height: 1.7;
+  }
+
+  /* ── LAYOUT ── */
+  #top-row {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    gap: 16px;
+    width: 100%;
+    max-width: 860px;
+  }
+
+  #fc-row, #found-row { display: flex; gap: 2px; }
+  #tableau { display: flex; gap: 2px; align-items: flex-start; }
+  .col-wrap { position: relative; flex-shrink: 0; }
+
+  /* ── SLOTS ── */
+  .slot {
+    background: #fff;
+    border: 1.5px dashed #d0d0d0;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    position: absolute; top: 0; left: 0;
+    font-family: 'Space Mono', monospace;
+    line-height: 1;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    cursor: pointer;
+    position: absolute; left: 0;
+    background: #fff;
+    border: 1.5px solid #d8d8d8;
+    display: flex; flex-direction: column; justify-content: space-between;
+    flex-shrink: 0;
+    transition: border-color 0.08s;
+  }
+
+  .card.selected {
+    border: 2px solid #000;
+    background: #f8f8f8;
+    z-index: 999 !important;
+  }
+
+  .card-corner {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .card-corner-bot { transform: rotate(180deg); text-align: right; }
+
+  .card-suit-big {
+    position: absolute; left: 0; right: 0;
+    text-align: center; line-height: 1;
+    opacity: 0.9; pointer-events: none;
+  }
+
+  /* ── CONTROLS ── */
+  #controls {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 14px; flex-wrap: wrap; justify-content: center;
+    width: 100%; max-width: 860px;
+  }
+
+  .btn {
+    font-family: 'Space Mono', monospace;
+    font-weight: 400;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid #000;
+    background: #fff;
+    color: #000;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: background 0.08s, color 0.08s, opacity 0.12s;
+  }
+  .btn:active { background: #eee; }
+  .btn:disabled { cursor: not-allowed; opacity: 0.25; }
+
+  #btn-undo  { background: #fff; color: #000; }
+  #btn-auto  { background: #fff; color: #000; }
+  #btn-auto.active { background: #000; color: #fff; }
+  #btn-restart { background: #fff; color: #000; }
+  #btn-new   { background: #000; color: #fff; border-color: #000; }
+  #btn-new:active { background: #333; }
+
+  #hint {
+    color: #bbb;
+    font-family: 'Space Mono', monospace;
+    text-align: center;
+    margin-top: 9px;
+    letter-spacing: 1px;
+    width: 100%; max-width: 860px;
+  }
+
+  /* ── WIN OVERLAY ── */
+  #win-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(255,255,255,0.92);
+    align-items: center; justify-content: center;
+    z-index: 9999;
+  }
+  #win-overlay.show { display: flex; }
+
+  #win-box {
+    background: #fff;
+    border: 2px solid #000;
+    padding: 40px 52px;
+    text-align: center;
+    animation: winPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  #win-title {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    color: #000;
+    margin-bottom: 10px;
+    letter-spacing: 6px;
+  }
+
+  #win-moves {
+    font-family: 'Space Mono', monospace;
+    color: #999;
+    letter-spacing: 2px;
+    margin-bottom: 28px;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes winPop {
+    0%   { transform: scale(0.8); opacity: 0; }
+    70%  { transform: scale(1.03); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes autoShimmer {
+    0%,100% { opacity: 1; }
+    50%     { opacity: 0.5; }
+  }
+  @keyframes shake {
+    0%,100%{ transform:translateX(0) }
+    18%{ transform:translateX(-5px) }
+    36%{ transform:translateX(5px) }
+    54%{ transform:translateX(-4px) }
+    72%{ transform:translateX(3px) }
+    88%{ transform:translateX(-2px) }
+  }
+  .shake { animation: shake 0.36s ease !important; }
+  #btn-auto.active { animation: autoShimmer 0.9s ease-in-out infinite; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="title">Okay FreeCell</div>
+    <div id="move-count">0 MOVES</div>
+  </div>
+  <div id="top-row">
+    <div id="fc-row"></div>
+    <div id="found-row"></div>
+  </div>
+  <div id="tableau"></div>
+  <div id="controls">
+    <button class="btn" id="btn-undo" disabled>&#8617; Undo</button>
+    <button class="btn" id="btn-auto" disabled>&#10022; Auto</button>
+    <button class="btn" id="btn-restart">&#8635; Restart</button>
+    <button class="btn" id="btn-new">&#8999; New Game</button>
+  </div>
+  <div id="hint">Tap any card to auto-move it &middot; Tap a sequence to move it as a group</div>
+</div>
+
+<div id="win-overlay">
+  <div id="win-box">
+    <div id="win-title">YOU WIN</div>
+    <div id="win-moves"></div>
+    <button class="btn" id="btn-play-again">Play Again</button>
+  </div>
+</div>
+
+<script>
+const SUITS = ['♠','♥','♦','♣'];
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const RV = {A:1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,J:11,Q:12,K:13};
+const isRed = s => s==='♥'||s==='♦';
+const SAVE_KEY = 'okayfreecell_v2';
+
+let state, hist, moves, won, autoPlay, autoTimer, CW, CH, OFF;
+let initialDeal = null;
+let shakeId = null;
+
+function mkDeck() { return SUITS.flatMap(s=>RANKS.map(r=>({suit:s,rank:r,id:`${r}${s}`}))); }
+function shuffle(a) { const b=[...a];for(let i=b.length-1;i>0;i--){const j=0|Math.random()*(i+1);[b[i],b[j]]=[b[j],b[i]];}return b; }
+function deal() { const d=shuffle(mkDeck());const c=Array.from({length:8},()=>[]);d.forEach((x,i)=>c[i%8].push(x));return c; }
+function canPlace(lo,hi) { if(!lo)return true; return isRed(lo.suit)!==isRed(hi.suit)&&RV[lo.rank]===RV[hi.rank]+1; }
+function validSeq(cs) { for(let i=1;i<cs.length;i++)if(!canPlace(cs[i-1],cs[i]))return false; return true; }
+function maxMove(efc,ec,toEmpty) { return(efc+1)*Math.pow(2,toEmpty?Math.max(0,ec-1):ec); }
+function snap() { return{tab:state.tab.map(c=>[...c]),fc:[...state.fc],found:Object.fromEntries(Object.entries(state.found).map(([k,v])=>[k,[...v]]))}; }
+function isSafe(card,found) {
+  const r=RV[card.rank]; if(r<=2)return true;
+  return isRed(card.suit)?(found['♠'].length>=r-1&&found['♣'].length>=r-1):(found['♥'].length>=r-1&&found['♦'].length>=r-1);
+}
+function findAuto() {
+  for(let i=0;i<8;i++){const col=state.tab[i];if(!col.length)continue;const c=col[col.length-1];if(RV[c.rank]===state.found[c.suit].length+1&&isSafe(c,state.found))return{src:'tab',idx:i,card:c};}
+  for(let i=0;i<4;i++){const c=state.fc[i];if(!c)continue;if(RV[c.rank]===state.found[c.suit].length+1&&isSafe(c,state.found))return{src:'fc',idx:i,card:c};}
+  return null;
+}
+function totalFound() { return Object.values(state.found).reduce((s,p)=>s+p.length,0); }
+
+// ── Persistence ─────────────────────────────────────────────────────────────
+function saveGame() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify({state,hist,moves,won,initialDeal})); } catch(e) {}
+}
+function loadGame() {
+  try {
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw)return false;
+    const saved=JSON.parse(raw);
+    if(!saved.state||!saved.initialDeal)return false;
+    state=saved.state; hist=saved.hist||[]; moves=saved.moves||0;
+    won=saved.won||false; initialDeal=saved.initialDeal;
+    return true;
+  } catch(e){return false;}
+}
+function commit(next) { hist.push(snap());state=next;moves++;saveGame();render();checkWin(); }
+function checkWin() {
+  if(totalFound()===52){
+    won=true; autoPlay=false; saveGame();
+    document.getElementById('win-moves').textContent=`Completed in ${moves} moves`;
+    document.getElementById('win-overlay').classList.add('show');
+  }
+}
+function undo() { if(!hist.length)return;state=hist.pop();moves=Math.max(0,moves-1);stopAuto();saveGame();render(); }
+function newGame() {
+  const tab=deal();
+  initialDeal=tab.map(c=>[...c]);
+  state={tab,fc:[null,null,null,null],found:{'♠':[],'♥':[],'♦':[],'♣':[]}};
+  hist=[];moves=0;won=false;shakeId=null;
+  stopAuto();saveGame();
+  document.getElementById('win-overlay').classList.remove('show');
+  render();
+}
+function restartDeal() {
+  if(!initialDeal)return;
+  state={tab:initialDeal.map(c=>[...c]),fc:[null,null,null,null],found:{'♠':[],'♥':[],'♦':[],'♣':[]}};
+  hist=[];moves=0;won=false;shakeId=null;
+  stopAuto();saveGame();
+  document.getElementById('win-overlay').classList.remove('show');
+  render();
+}
+function stopAuto() { autoPlay=false; clearTimeout(autoTimer); }
+function tickAuto() {
+  if(!autoPlay)return;
+  const mv=findAuto();
+  if(!mv){stopAuto();render();return;}
+  const nt=state.tab.map(c=>[...c]),nf=[...state.fc];
+  const nfd=Object.fromEntries(Object.entries(state.found).map(([k,v])=>[k,[...v]]));
+  if(mv.src==='tab')nt[mv.idx].pop(); else nf[mv.idx]=null;
+  nfd[mv.card.suit].push(mv.card);
+  commit({tab:nt,fc:nf,found:nfd});
+  if(autoPlay) autoTimer=setTimeout(tickAuto,220);
+}
+
+// ── Smart single-tap move ────────────────────────────────────────────────────
+function smartMove(src,col,ci,fi) {
+  if(won)return;
+  let cards;
+  if(src==='tab'){
+    const column=state.tab[col];
+    if(!column.length||ci>=column.length)return;
+    cards=column.slice(ci);
+    if(cards.length>1&&!validSeq(cards)){shakeId=cards[0].id;render();return;}
+  } else {
+    if(!state.fc[fi])return;
+    cards=[state.fc[fi]];
+  }
+  const card=cards[0];
+  const nt=()=>state.tab.map(c=>[...c]);
+  const nf=()=>[...state.fc];
+  const nfd=()=>Object.fromEntries(Object.entries(state.found).map(([k,v])=>[k,[...v]]));
+  function removeCards(t,f){ if(src==='tab')t[col].splice(ci); else f[fi]=null; }
+
+  // 1. Foundation
+  if(cards.length===1){
+    const pile=state.found[card.suit];
+    if(RV[card.rank]===pile.length+1){
+      const t=nt(),f=nf(),fd=nfd();
+      removeCards(t,f);fd[card.suit].push(card);
+      commit({tab:t,fc:f,found:fd});return;
+    }
+  }
+  const efc=state.fc.filter(c=>!c).length;
+  const ec=state.tab.filter(c=>!c.length).length;
+
+  // 2. Non-empty tableau columns
+  for(let i=0;i<8;i++){
+    if(src==='tab'&&i===col)continue;
+    const tcol=state.tab[i];
+    if(!tcol.length)continue;
+    if(canPlace(tcol[tcol.length-1],card)&&cards.length<=maxMove(efc,ec,false)){
+      const t=nt(),f=nf();
+      removeCards(t,f);t[i].push(...cards);
+      commit({tab:t,fc:f,found:state.found});return;
+    }
+  }
+
+  // 3. Empty tableau columns
+  const srcIsEmpty=src==='tab'&&ci===0&&state.tab[col].length===cards.length;
+  if(!srcIsEmpty){
+    for(let i=0;i<8;i++){
+      if(src==='tab'&&i===col)continue;
+      if(state.tab[i].length)continue;
+      if(cards.length<=maxMove(efc,Math.max(0,ec-1),false)){
+        const t=nt(),f=nf();
+        removeCards(t,f);t[i].push(...cards);
+        commit({tab:t,fc:f,found:state.found});return;
+      }
+    }
+  }
+
+  // 4. Free cell
+  if(cards.length===1){
+    for(let i=0;i<4;i++){
+      if(!state.fc[i]){
+        const t=nt(),f=nf();
+        removeCards(t,f);f[i]=card;
+        commit({tab:t,fc:f,found:state.found});return;
+      }
+    }
+  }
+  shakeId=card.id;render();
+}
+
+// ── Rendering ────────────────────────────────────────────────────────────────
+function calcSizes() {
+  const w=window.innerWidth;
+  const avail=w-16-14;
+  CW=Math.max(42,Math.min(104,Math.floor(avail/8)));
+  CH=Math.round(CW*1.58);
+  OFF=Math.round(CW*0.42);
+}
+
+function cardColor(suit) {
+  // Hearts and Diamonds: red. Spades and Clubs: black.
+  return isRed(suit) ? '#c0392b' : '#000';
+}
+
+function makeCard(card, top, zIdx) {
+  const el=document.createElement('div');
+  el.className='card';
+  if(shakeId===card.id) el.classList.add('shake');
+  const radius=Math.max(3,Math.round(CW*0.07));
+  const pad=Math.max(2,Math.round(CW*0.07));
+  el.style.cssText=`width:${CW}px;height:${CH}px;top:${top}px;z-index:${zIdx};border-radius:${radius}px;padding:${pad}px;`;
+  const col=cardColor(card.suit);
+  const rf=Math.max(11,CW*0.33);
+  const sf=Math.max(9,CW*0.26);
+  const bf=Math.max(18,CW*0.54);
+  const gap=Math.max(1,CW*0.04);
+  el.innerHTML=`
+    <div class="card-corner" style="color:${col};display:flex;align-items:baseline;gap:${gap}px">
+      <span style="font-size:${rf}px;line-height:1">${card.rank}</span><span style="font-size:${sf}px;line-height:1">${card.suit}</span>
+    </div>
+    <div class="card-suit-big" style="font-size:${bf}px;color:${col};top:50%;transform:translateY(-50%)">${card.suit}</div>
+    <div class="card-corner card-corner-bot" style="color:${col};display:flex;align-items:baseline;gap:${gap}px">
+      <span style="font-size:${rf}px;line-height:1">${card.rank}</span><span style="font-size:${sf}px;line-height:1">${card.suit}</span>
+    </div>`;
+  if(shakeId===card.id) setTimeout(()=>{shakeId=null;},400);
+  return el;
+}
+
+function makeSlot(label, labelColor) {
+  const el=document.createElement('div');
+  el.className='slot';
+  const radius=Math.max(3,Math.round(CW*0.07));
+  el.style.cssText=`width:${CW}px;height:${CH}px;border-radius:${radius}px;`;
+  if(label) el.innerHTML=`<span style="color:${labelColor||'#ddd'};font-size:${CW*0.38}px;font-family:'Space Mono',monospace">${label}</span>`;
+  return el;
+}
+
+function render() {
+  // Header sizing
+  const titleEl=document.getElementById('title');
+  titleEl.style.fontSize=Math.max(18,CW*0.40)+'px';
+
+  // Free cells
+  const fcRow=document.getElementById('fc-row');
+  fcRow.innerHTML='';
+  state.fc.forEach((card,fi)=>{
+    const wrap=document.createElement('div');
+    wrap.style.cssText=`position:relative;width:${CW}px;height:${CH}px;flex-shrink:0`;
+    if(card){
+      const el=makeCard(card,0,1);
+      el.addEventListener('click',e=>{e.stopPropagation();smartMove('fc',null,null,fi);});
+      wrap.appendChild(el);
+    } else {
+      wrap.appendChild(makeSlot());
+    }
+    fcRow.appendChild(wrap);
+  });
+
+  // Foundations
+  const foundRow=document.getElementById('found-row');
+  foundRow.innerHTML='';
+  SUITS.forEach(suit=>{
+    const pile=state.found[suit];
+    const top=pile.length?pile[pile.length-1]:null;
+    const wrap=document.createElement('div');
+    wrap.style.cssText=`position:relative;width:${CW}px;height:${CH}px;flex-shrink:0`;
+    if(top){ const el=makeCard(top,0,1); wrap.appendChild(el); }
+    else {
+      const lc=isRed(suit)?'rgba(192,57,43,0.35)':'rgba(0,0,0,0.18)';
+      wrap.appendChild(makeSlot(suit,lc));
+    }
+    if(pile.length>0){
+      const badge=document.createElement('div');
+      badge.style.cssText=`position:absolute;bottom:3px;right:4px;font-size:${Math.max(8,CW*0.14)}px;font-weight:700;color:rgba(0,0,0,0.2);pointer-events:none;z-index:10;font-family:'Space Mono',monospace`;
+      badge.textContent=pile.length;
+      wrap.appendChild(badge);
+    }
+    foundRow.appendChild(wrap);
+  });
+
+  // Tableau
+  const tabEl=document.getElementById('tableau');
+  tabEl.innerHTML='';
+  state.tab.forEach((col,ci)=>{
+    const h=col.length===0?CH:CH+(col.length-1)*OFF;
+    const wrap=document.createElement('div');
+    wrap.className='col-wrap';
+    wrap.style.cssText=`width:${CW}px;height:${h}px;flex-shrink:0`;
+    if(col.length===0){
+      const sl=makeSlot();
+      sl.style.cssText+=';position:absolute;top:0;left:0';
+      wrap.appendChild(sl);
+    } else {
+      col.forEach((card,idx)=>{
+        const el=makeCard(card,idx*OFF,idx+1);
+        el.addEventListener('click',e=>{e.stopPropagation();smartMove('tab',ci,idx,null);});
+        wrap.appendChild(el);
+      });
+    }
+    tabEl.appendChild(wrap);
+  });
+
+  // Win overlay
+  if(won) document.getElementById('win-overlay').classList.add('show');
+
+  // Controls sizing
+  const bfs=Math.max(9,CW*0.155);
+  const bpad=`7px ${Math.round(CW*0.22)}px`;
+  document.querySelectorAll('.btn').forEach(b=>{b.style.fontSize=bfs+'px';b.style.padding=bpad;});
+  document.getElementById('move-count').style.fontSize=Math.max(9,CW*0.13)+'px';
+  document.getElementById('hint').style.fontSize=Math.max(9,CW*0.12)+'px';
+  document.getElementById('win-title').style.fontSize=Math.max(26,CW*0.6)+'px';
+  document.getElementById('win-moves').style.fontSize=Math.max(9,CW*0.14)+'px';
+
+  document.getElementById('btn-undo').disabled=!hist.length;
+  document.getElementById('btn-restart').disabled=!initialDeal;
+
+  const autoBtn=document.getElementById('btn-auto');
+  const hasMove=!!findAuto();
+  if(autoPlay){
+    autoBtn.textContent='Stop Auto'; autoBtn.classList.add('active'); autoBtn.disabled=false;
+  } else {
+    autoBtn.textContent='\u2736 Auto'; autoBtn.classList.remove('active'); autoBtn.disabled=won||!hasMove;
+  }
+  document.getElementById('move-count').textContent=`${moves} MOVES`;
+}
+
+document.getElementById('btn-undo').addEventListener('click',undo);
+document.getElementById('btn-auto').addEventListener('click',()=>{
+  if(autoPlay){stopAuto();render();}
+  else{autoPlay=true;render();autoTimer=setTimeout(tickAuto,220);}
+});
+document.getElementById('btn-restart').addEventListener('click',restartDeal);
+document.getElementById('btn-new').addEventListener('click',newGame);
+document.getElementById('btn-play-again').addEventListener('click',newGame);
+
+window.addEventListener('resize',()=>{calcSizes();render();});
+calcSizes();
+
+if(!loadGame()) newGame();
+else render();
+</script>
+</body>
+</html>
