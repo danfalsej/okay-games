@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WORD JUMBLE 9000</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Comic Sans MS", "Impact", sans-serif;
+            background: linear-gradient(135deg, #ff00ff 0%, #00ffff 50%, #ffff00 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+            color: #333;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            background: #e0e0e0;
+            border: 6px solid;
+            border-color: #fff 0 0 0 #999;
+            box-shadow: inset 1px 1px 0 0 #dfdfdf, inset -1px -1px 0 0 #808080;
+            padding: 20px;
+            max-width: 500px;
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .title {
+            font-size: 2.5em;
+            font-weight: bold;
+            text-shadow: 3px 3px 0 #ff00ff, 6px 6px 0 #00ffff;
+            color: #ffff00;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            transform: skew(-5deg);
+        }
+
+        .subtitle {
+            font-size: 0.9em;
+            color: #666;
+            font-style: italic;
+            background: #ffff00;
+            padding: 3px 8px;
+            display: inline-block;
+            transform: rotate(-2deg);
+            border: 2px solid #000;
+        }
+
+        .score-box {
+            background: #fff;
+            border: 3px solid #000;
+            padding: 10px;
+            text-align: center;
+            margin: 15px 0;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #0066ff;
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.3);
+        }
+
+        .puzzle-area {
+            background: #fff;
+            border: 4px solid #000;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.3);
+        }
+
+        .word-item {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .word-label {
+            font-weight: bold;
+            background: #0066ff;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.9em;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .jumbled {
+            font-size: 1.3em;
+            font-weight: bold;
+            letter-spacing: 3px;
+            color: #ff0066;
+            font-family: "Courier New", monospace;
+            background: #ffffcc;
+            padding: 8px 12px;
+            border: 2px dashed #ff0066;
+            border-radius: 5px;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .answer-input {
+            padding: 8px;
+            font-size: 1em;
+            border: 2px solid #000;
+            background: #fff;
+            font-weight: bold;
+            text-transform: uppercase;
+            width: 100%;
+            margin-top: 5px;
+            font-family: "Courier New", monospace;
+            letter-spacing: 2px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            font-size: 1em;
+            font-weight: bold;
+            border: 3px solid #000;
+            cursor: pointer;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-family: "Impact", sans-serif;
+            transition: all 0.1s;
+            min-width: 100px;
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            box-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+            transform: translate(2px, 2px);
+        }
+
+        .check-btn {
+            background: linear-gradient(135deg, #00ff00 0%, #00cc00 100%);
+            color: #000;
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #ff6600 0%, #ff3300 100%);
+            color: #fff;
+        }
+
+        .hint-btn {
+            background: linear-gradient(135deg, #ffff00 0%, #ffcc00 100%);
+            color: #000;
+            font-size: 0.9em;
+        }
+
+        .feedback {
+            background: #fff;
+            border: 3px solid #000;
+            padding: 12px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1em;
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.3);
+            min-height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .correct {
+            background: #00ff00;
+            color: #000;
+            animation: bounce 0.5s;
+        }
+
+        .incorrect {
+            background: #ff0000;
+            color: #fff;
+            animation: shake 0.5s;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .game-complete {
+            text-align: center;
+            font-size: 1.8em;
+            color: #ff00ff;
+            text-shadow: 2px 2px 0 #00ffff;
+            animation: bounce 0.6s infinite;
+        }
+
+        .instructions {
+            background: #ffff00;
+            border: 2px solid #000;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: #000;
+        }
+
+        @media (max-width: 480px) {
+            .title {
+                font-size: 2em;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .word-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .jumbled {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">WORD JUMBLE</div>
+            <div class="subtitle">🎮 9000 EDITION 🎮</div>
+        </div>
+
+        <div class="instructions">
+            ✨ Unscramble the letters to find the words! Then, match each word to solve the final puzzle.
+        </div>
+
+        <div class="score-box">
+            Score: <span id="score">0</span> / 4
+        </div>
+
+        <div class="puzzle-area" id="puzzleArea"></div>
+
+        <div class="buttons">
+            <button class="check-btn" onclick="checkAnswers()">CHECK</button>
+            <button class="hint-btn" onclick="showHint()">HINT</button>
+            <button class="reset-btn" onclick="resetGame()">NEW GAME</button>
+        </div>
+
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <script>
+        const puzzles = [
+            {
+                words: ["PYTHON", "GALAXY", "BINARY", "MATRIX"],
+                jumbled: ["TNHYPO", "XALGAY", "RABINY", "XARTIM"],
+                answers: ["PYTHON", "GALAXY", "BINARY", "MATRIX"],
+                hints: ["Programming language", "Space system", "Code type", "Math grid"]
+            },
+            {
+                words: ["DIGITAL", "KEYBOARD", "MONITOR", "ROUTER"],
+                jumbled: ["LATIGID", "RAOBYEK", "RONITOM", "TEROUR"],
+                answers: ["DIGITAL", "KEYBOARD", "MONITOR", "ROUTER"],
+                hints: ["Electronic", "Input device", "Display", "Network device"]
+            },
+            {
+                words: ["RETRO", "COMPUTER", "FLOPPY", "RADICAL"],
+                jumbled: ["OTRRE", "TREPMCOU", "YPPOLF", "LACIDAR"],
+                answers: ["RETRO", "COMPUTER", "FLOPPY", "RADICAL"],
+                hints: ["90s style", "Machine", "Old disk", "Awesome!"]
+            },
+            {
+                words: ["AWESOME", "BUZZER", "NINETIES", "SPINNER"],
+                jumbled: ["EMOSEWA", "REZUZB", "SEINTEIN", "RENNISP"],
+                answers: ["AWESOME", "BUZZER", "NINETIES", "SPINNER"],
+                hints: ["Great!", "Game sound", "90s era", "Toy/wheel"]
+            }
+        ];
+
+        let currentPuzzle;
+        let score = 0;
+        let userAnswers = {};
+        let hintUsed = false;
+
+        function initGame() {
+            currentPuzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
+            userAnswers = {};
+            hintUsed = false;
+            score = 0;
+            document.getElementById('score').textContent = '0';
+            renderPuzzle();
+            document.getElementById('feedback').textContent = '';
+            document.getElementById('feedback').className = '';
+        }
+
+        function renderPuzzle() {
+            const puzzleArea = document.getElementById('puzzleArea');
+            puzzleArea.innerHTML = '';
+
+            currentPuzzle.jumbled.forEach((jumbled, index) => {
+                const div = document.createElement('div');
+                div.className = 'word-item';
+                div.innerHTML = `
+                    <div class="word-label">#${index + 1}</div>
+                    <div class="jumbled">${jumbled}</div>
+                    <input 
+                        type="text" 
+                        class="answer-input" 
+                        id="input-${index}" 
+                        placeholder="Your answer..."
+                        autocomplete="off"
+                    >
+                `;
+                puzzleArea.appendChild(div);
+            });
+
+            // Focus first input
+            document.getElementById('input-0').focus();
+        }
+
+        function checkAnswers() {
+            const feedback = document.getElementById('feedback');
+            let allCorrect = true;
+            let correctCount = 0;
+
+            currentPuzzle.answers.forEach((answer, index) => {
+                const input = document.getElementById(`input-${index}`);
+                const userAnswer = input.value.trim().toUpperCase();
+
+                if (userAnswer === answer) {
+                    correctCount++;
+                    input.style.background = '#00ff00';
+                    input.style.color = '#000';
+                } else if (userAnswer === '') {
+                    input.style.background = '#ffff00';
+                    input.style.color = '#000';
+                    allCorrect = false;
+                } else {
+                    input.style.background = '#ff0000';
+                    input.style.color = '#fff';
+                    allCorrect = false;
+                }
+            });
+
+            score = correctCount;
+            document.getElementById('score').textContent = score;
+
+            if (allCorrect) {
+                feedback.className = 'correct game-complete';
+                feedback.textContent = '🎉 YOU WIN! 🎉';
+            } else if (correctCount === currentPuzzle.answers.length - 1) {
+                feedback.className = 'correct';
+                feedback.textContent = `Almost there! ${correctCount}/${currentPuzzle.answers.length} correct`;
+            } else if (correctCount > 0) {
+                feedback.className = 'correct';
+                feedback.textContent = `Good start! ${correctCount}/${currentPuzzle.answers.length} correct`;
+            } else {
+                feedback.className = 'incorrect';
+                feedback.textContent = 'Try again! 0 correct';
+            }
+        }
+
+        function showHint() {
+            if (hintUsed) {
+                document.getElementById('feedback').textContent = 'Only one hint per puzzle!';
+                document.getElementById('feedback').className = 'incorrect';
+                return;
+            }
+
+            hintUsed = true;
+            const hints = currentPuzzle.hints.join(' | ');
+            const feedback = document.getElementById('feedback');
+            feedback.className = 'correct';
+            feedback.textContent = `💡 Hints: ${hints}`;
+        }
+
+        function resetGame() {
+            initGame();
+        }
+
+        // Initialize on load
+        initGame();
+    </script>
+</body>
+</html>
