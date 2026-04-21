@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Okay Jumble</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+body{
+  background:#fff;color:#000;
+  font-family:'Space Mono',monospace;
+  min-height:100dvh;
+  display:flex;flex-direction:column;align-items:center;
+}
+
+/* ── LOADING ── */
+#loading{
+  position:fixed;inset:0;background:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:22px;z-index:999;transition:opacity .3s;
+}
+#loading h1{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(26px,8vw,40px);font-weight:900;letter-spacing:-1px;
+}
+.ld-track{width:200px;height:1px;background:#ddd}
+.ld-fill{height:100%;background:#000;transition:width .4s ease}
+.ld-note{font-size:10px;letter-spacing:3px;color:#aaa}
+
+/* ── GAME ── */
+#game{
+  width:100%;max-width:760px;
+  display:none;flex-direction:column;align-items:center;
+  padding:20px 18px 60px;
+}
+
+/* ── HEADER ── */
+.hdr{
+  width:100%;border-bottom:2px solid #000;
+  padding-bottom:11px;margin-bottom:20px;
+  display:flex;justify-content:space-between;align-items:flex-end;
+}
+.hdr-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(22px,6vw,30px);font-weight:900;
+  letter-spacing:-0.5px;line-height:1;
+}
+.hdr-right{text-align:right}
+.hdr-rule{font-size:10px;letter-spacing:1.5px;color:#999;line-height:1.7}
+
+/* ── SCORE BAR ── */
+.scorebar{width:100%;margin-bottom:20px}
+.scorerow{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px}
+.score-col{display:flex;flex-direction:column}
+.score-lbl{font-size:9px;letter-spacing:2.5px;color:#bbb;margin-bottom:2px}
+.score-n{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;line-height:1}
+.score-sm{font-family:'Playfair Display',serif;font-size:16px;font-weight:700}
+.prog-track{height:1px;background:#e0e0e0}
+.prog-fill{height:100%;background:#000;transition:width .45s cubic-bezier(.4,0,.2,1)}
+
+/* ── PUZZLE GRID ── */
+#puzzles{
+  width:100%;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:16px;
+  margin-bottom:20px;
+}
+
+/* ── PUZZLE CARD ── */
+.card{
+  border:1px solid #000;
+  padding:18px 16px 14px;
+  display:flex;flex-direction:column;gap:12px;
+  position:relative;
+}
+.card.solved{border-width:2px}
+.card.revealed{border-color:#ccc}
+
+.card-meta{
+  display:flex;justify-content:space-between;align-items:center;
+}
+.card-label{font-size:9px;letter-spacing:3px;color:#bbb}
+.card-len{font-size:9px;letter-spacing:2px;color:#bbb}
+
+/* ── TILES ── */
+.tile-bank{
+  display:flex;gap:6px;justify-content:center;
+  min-height:50px;align-items:center;
+  flex-wrap:nowrap;
+}
+.answer-row{
+  display:flex;gap:6px;justify-content:center;
+  align-items:center;
+}
+.answer-tiles{display:flex;gap:6px;justify-content:center;flex:1}
+
+.tile{
+  flex:1;
+  min-width:0;
+  max-width:56px;
+  height:50px;
+  border:1.5px solid #000;
+  background:#fff;
+  font-family:'Space Mono',monospace;
+  font-size:clamp(14px,4vw,18px);
+  font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  text-transform:uppercase;
+  user-select:none;
+  cursor:pointer;
+  transition:background .08s, color .08s, border-color .08s, opacity .15s;
+  letter-spacing:0;
+}
+.tile:active{background:#e8e8e8}
+
+/* bank tile states */
+.tile.available{}
+.tile.spent{opacity:.14;pointer-events:none;cursor:default}
+
+/* answer tile states */
+.tile.filled{background:#fff;cursor:pointer}
+.tile.filled:active{background:#f0f0f0}
+.tile.slot{border-style:dashed;border-color:#d0d0d0;pointer-events:none;color:transparent}
+
+/* solved */
+.card.solved .tile.filled{background:#000;color:#fff;border-color:#000;cursor:default}
+.card.solved .tile.filled:active{background:#000}
+
+/* revealed */
+.card.revealed .tile.reveal-letter{
+  background:#fff;color:#bbb;border-color:#ddd;cursor:default;font-style:italic;
+}
+
+/* ── CARD FOOTER ── */
+.card-footer{
+  display:flex;justify-content:space-between;align-items:center;
+  min-height:22px;
+}
+.card-msg{
+  font-family:'Playfair Display',serif;
+  font-size:12px;letter-spacing:1.5px;
+  font-style:italic;color:#bbb;
+}
+.card-msg.ok{color:#000;font-weight:700;font-style:normal;letter-spacing:2px}
+.card-msg.wrong{color:#bbb;font-style:italic}
+
+.card-btns{display:flex;gap:6px;align-items:center}
+
+/* ── BUTTONS ── */
+.btn{
+  padding:8px 12px;
+  border:1px solid #000;background:#fff;
+  font-family:'Space Mono',monospace;
+  font-size:9px;letter-spacing:1.5px;text-transform:uppercase;
+  cursor:pointer;
+}
+.btn:active{background:#eee}
+.btn-solid{background:#000;color:#fff}
+.btn-solid:active{background:#333}
+
+.del-btn{
+  width:38px;height:38px;
+  border:1px solid #ccc;background:#fff;
+  cursor:pointer;font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.del-btn:active{background:#f0f0f0}
+
+/* ── BOTTOM ROW ── */
+.bottom-row{
+  width:100%;display:flex;justify-content:center;
+  gap:10px;margin-top:4px;
+}
+
+/* ── COMPLETE ── */
+.complete{
+  width:100%;border:2px solid #000;
+  padding:30px 20px;text-align:center;margin-top:8px;
+}
+.complete-hed{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(28px,8vw,42px);font-weight:900;letter-spacing:6px;
+}
+.complete-sub{font-size:10px;letter-spacing:3px;color:#999;margin-top:10px}
+
+/* ── ANIMATIONS ── */
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-8px)}
+  40%{transform:translateX(8px)}
+  60%{transform:translateX(-5px)}
+  80%{transform:translateX(4px)}
+}
+@keyframes pop{
+  0%{transform:scale(1)}
+  45%{transform:scale(1.035)}
+  100%{transform:scale(1)}
+}
+@keyframes chipIn{
+  from{opacity:0;transform:translateY(-4px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.do-shake{animation:shake .36s ease}
+.do-pop{animation:pop .25s ease}
+</style>
+</head>
+<body>
+
+<!-- ── LOADING ── -->
+<div id="loading">
+  <h1>Okay&nbsp;Jumble</h1>
+  <div class="ld-track"><div class="ld-fill" id="ld-fill"></div></div>
+  <div class="ld-note" id="ld-note">SHUFFLING WORDS</div>
+</div>
+
+<!-- ── GAME ── -->
+<div id="game">
+
+  <div class="hdr">
+    <div class="hdr-title">Okay Jumble</div>
+    <div class="hdr-right">
+      <div class="hdr-rule">unscramble each word<br>tap tiles to build your answer</div>
+    </div>
+  </div>
+
+  <div class="scorebar">
+    <div class="scorerow">
+      <div class="score-col">
+        <div class="score-lbl">SCORE</div>
+        <div class="score-n" id="s-score">0</div>
+      </div>
+      <div class="score-col" style="align-items:center">
+        <div class="score-lbl">SOLVED</div>
+        <div class="score-sm" id="s-solved">0&nbsp;/&nbsp;4</div>
+      </div>
+      <div class="score-col" style="align-items:flex-end">
+        <div class="score-lbl">MAX</div>
+        <div class="score-sm" id="s-max">22</div>
+      </div>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="s-prog" style="width:0%"></div></div>
+  </div>
+
+  <div id="puzzles"></div>
+
+  <div class="bottom-row">
+    <button class="btn btn-solid" onclick="newGame()">New Game</button>
+  </div>
+
+  <div id="complete-area"></div>
+
+</div>
+
+<script>
+'use strict';
+
+// ── WORD LISTS ────────────────────────────────────────────
+// Curated common English words only — no proper nouns.
+
+const FIVE = [
+  'black','blade','bland','blaze','bleak','blend','blind','block','blood','bloom',
+  'blown','blunt','boast','braid','brave','bread','break','breed','brine','brink',
+  'brisk','brood','brown','brush','bunch','burst','cable','carry','catch','chain',
+  'chair','chalk','chant','chaos','charm','chase','cheap','check','cheek','chest',
+  'chief','child','chord','civil','clamp','clang','clash','clasp','clean','clear',
+  'click','cliff','cling','cloak','clone','close','cloth','cloud','coach','comet',
+  'coral','crack','crane','crash','crawl','creed','crisp','cross','crowd','crown',
+  'cruel','crush','curve','cycle','dance','delta','dense','depth','doubt','draft',
+  'drain','drape','dread','drift','drill','drive','drone','drown','dwell','eagle',
+  'early','earth','eight','elect','elite','ember','empty','enemy','enter','equal',
+  'evade','exact','exert','exist','extra','false','fancy','feast','fence','fetch',
+  'fever','fiber','fight','fixed','flame','flask','flesh','float','flood','floor',
+  'flour','forge','forte','fraud','freak','fresh','front','frost','fudge','giant',
+  'ghost','glade','gland','glare','gleam','glide','glint','gloom','grace','grade',
+  'grain','graze','greed','greet','grime','groan','grope','gross','growl','gruff',
+  'guile','gusto','haunt','heart','hedge','hinge','hoist','honey','honor','horse',
+  'hotel','hound','house','hunch','inert','ivory','judge','juice','label','laser',
+  'learn','ledge','level','liver','lodge','logic','lover','lower','loyal','magic',
+  'major','manor','maple','marsh','mayor','merge','merit','metal','mirth','money',
+  'month','moral','movie','musty','night','noble','novel','nurse','offer','olive',
+  'order','organ','outer','ozone','panel','panic','patch','pause','peace','pearl',
+  'pedal','penny','perch','peril','pilot','plank','plant','plate','plead','pluck',
+  'plume','poker','pouch','prank','price','pride','prime','print','prism','probe',
+  'proud','prove','prune','pulse','queen','query','quest','quick','quiet','rainy',
+  'rally','raven','reach','realm','rebel','regal','relax','repay','rhyme','ridge',
+  'rivet','rocky','rogue','rough','round','royal','sauce','scone','scorn','scout',
+  'sense','serve','shade','shame','shark','sharp','shelf','shift','shine','shirt',
+  'shore','slate','sleep','slick','slide','smart','smell','smile','smoke','snail',
+  'snake','snare','sorry','south','spark','speak','speed','spell','spend','spice',
+  'spire','spite','stain','stamp','stand','stare','stark','steak','steam','steel',
+  'stern','stone','store','storm','story','stout','stove','sugar','sunny','surge',
+  'sword','table','talon','tango','tense','thick','thorn','tiger','title','toast',
+  'token','touch','tower','track','trade','trail','train','treat','trend','trial',
+  'trick','trunk','trust','tulip','twist','uncle','upper','usher','utter','valor',
+  'vapor','vault','vigor','viper','vital','voice','vowel','water','weary','weave',
+  'wedge','weird','whale','wheat','wheel','whole','worth','wrath','wreck','wrong',
+  'yearn','yield','young'
+];
+
+const SIX = [
+  'battle','beacon','bicker','bitter','border','bother','bottle','bounce','bridge',
+  'broken','bronze','bubble','budget','burden','button','candle','castle','cattle',
+  'center','change','charge','cherry','chosen','circle','combat','corner','cotton',
+  'crafty','cuddle','custom','damage','danger','daring','darken','dazzle','deadly',
+  'debate','decree','defend','define','desert','desire','detail','devout','differ',
+  'divide','driven','earthy','engine','ensure','escape','esteem','extend','famine',
+  'feline','forest','frozen','garden','gentle','gifted','goblin','golden','gravel',
+  'hamlet','herald','hidden','hollow','humble','hungry','immune','insane','inside',
+  'intact','intent','invest','jungle','kettle','kernel','lavish','linear','lively',
+  'lizard','lovely','madden','maiden','marvel','mirror','modern','monkey','mortal',
+  'muster','narrow','nimble','notice','parcel','patron','perish','pirate','plunge',
+  'rocket','rugged','rustic','saddle','sample','savage','sermon','settle','silver',
+  'simple','sleuth','soften','sparse','steady','stolen','subtle','summit','symbol',
+  'tangle','temple','tender','thorny','topple','trophy','tumble','warden','warmer',
+  'weasel','wither','wonder','wooden','wreath','zealot','anklet','armful','artful',
+  'billow','bonnet','brandy','bundle','burrow','bustle','butler','canopy','casket',
+  'cavern','cellar','census','clamor','clench','cobble','colony','corset','cosmos',
+  'deacon','decade','denial','devour','dimple','donkey','double','embark','emerge',
+  'empire','endure','engulf','evolve','excite','fender','fickle','finale','finger',
+  'flinch','fumble','galley','garnet','glower','ground','guzzle','hamper','happen',
+  'harden','hearty','heresy','holler','homage','horror','huddle','impede','inborn',
+  'incite','inland','insult','invade','ironic','lancer','lather','latent','laurel',
+  'lethal','loosen','magnet','mangle','mantle','matrix','mayhem','menace','midget',
+  'mingle','morbid','morsel','mottle','muddle','mutton','nettle','notion','oblige',
+  'offset','outlet','outrun','paddle','pallor','parley','pewter','pigeon','pillow',
+  'pledge','pliant','portal','primer','prison','punish','radish','rafter','ransom',
+  'raptor','rascal','ravage','ravine','reason','redeem','reflex','reform','regret',
+  'resent','resist','resort','result','return','reward','riddle','robber','rudder',
+  'saloon','sanity','scorch','scroll','sculpt','siphon','sketch','socket','solace',
+  'splint','sponge','sprout','stench','stride','string','stroke','stroll','suitor',
+  'sullen','sunken','supple','tailor','thrust','tirade','treble','tremor','trench',
+  'trudge','tyrant','unruly','uproot','urgent','vanish','vessel','victor','visage',
+  'waddle','walker','walrus','wander','washer','welder','wicker','writhe','yeoman'
+];
+
+// ── STATE ─────────────────────────────────────────────────
+let puzzles = [];
+
+// ── UTILS ─────────────────────────────────────────────────
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = 0 | (Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Scramble a word's letters, ensuring result differs from original.
+function scramble(word) {
+  const letters = word.split('');
+  let attempts = 0;
+  do {
+    for (let i = letters.length - 1; i > 0; i--) {
+      const j = 0 | (Math.random() * (i + 1));
+      [letters[i], letters[j]] = [letters[j], letters[i]];
+    }
+    attempts++;
+  } while (letters.join('') === word && attempts < 30);
+  return letters;
+}
+
+// ── BOOT ──────────────────────────────────────────────────
+function boot() {
+  // Brief loading splash for visual consistency
+  let pct = 0;
+  const bar = document.getElementById('ld-fill');
+  const interval = setInterval(() => {
+    pct += pct < 70 ? 18 : 5;
+    bar.style.width = Math.min(pct, 95) + '%';
+    if (pct >= 95) clearInterval(interval);
+  }, 60);
+
+  setTimeout(() => {
+    clearInterval(interval);
+    bar.style.width = '100%';
+    setTimeout(() => {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('game').style.display = 'flex';
+      newGame();
+    }, 250);
+  }, 600);
+}
+
+// ── GAME SETUP ────────────────────────────────────────────
+function newGame() {
+  const fivePool = shuffle(FIVE);
+  const sixPool  = shuffle(SIX);
+
+  // Pick 2 five-letter and 2 six-letter words (all distinct)
+  const chosen = [fivePool[0], fivePool[1], sixPool[0], sixPool[1]];
+
+  puzzles = chosen.map((word, idx) => ({
+    idx,
+    word,
+    // tiles: the scrambled rack — each tile has a stable id and letter
+    tiles: scramble(word).map((letter, i) => ({ id: i, letter })),
+    placed: [],    // ordered array of tile ids placed into the answer
+    solved:   false,
+    revealed: false,
+  }));
+
+  document.getElementById('complete-area').innerHTML = '';
+  renderAll();
+  updateScore();
+}
+
+// ── RENDERING ─────────────────────────────────────────────
+function renderAll() {
+  const container = document.getElementById('puzzles');
+  // Create card shells
+  container.innerHTML = puzzles.map((_, i) =>
+    `<div class="card" id="card-${i}"></div>`
+  ).join('');
+  puzzles.forEach((_, i) => renderCard(i));
+}
+
+function renderCard(idx) {
+  const pz  = puzzles[idx];
+  const el  = document.getElementById(`card-${idx}`);
+  if (!el) return;
+
+  el.className = 'card' +
+    (pz.solved   ? ' solved'   : '') +
+    (pz.revealed ? ' revealed' : '');
+
+  const placedSet = new Set(pz.placed);
+  const wordLabel = idx < 2 ? `WORD ${idx + 1}` : `WORD ${idx + 1}`;
+
+  // ── Tile bank (scrambled rack) ──────────────────────────
+  // Revealed/solved: hide the bank
+  let bankHtml = '';
+  if (!pz.solved && !pz.revealed) {
+    bankHtml = `<div class="tile-bank" id="bank-${idx}">` +
+      pz.tiles.map(t => {
+        const spent = placedSet.has(t.id);
+        return `<div class="tile ${spent ? 'spent' : 'available'}"
+                     ${!spent ? `data-action="place" data-puzzle="${idx}" data-tile="${t.id}"` : ''}
+                >${t.letter.toUpperCase()}</div>`;
+      }).join('') +
+    `</div>`;
+  }
+
+  // ── Answer row ──────────────────────────────────────────
+  let answerInner;
+
+  if (pz.revealed) {
+    // Show the word statically in grayed tiles
+    answerInner = pz.word.split('').map(letter =>
+      `<div class="tile reveal-letter">${letter.toUpperCase()}</div>`
+    ).join('');
+  } else {
+    // Show placed tiles + empty slots
+    answerInner = Array.from({ length: pz.word.length }, (_, i) => {
+      const tid = pz.placed[i];
+      if (tid !== undefined) {
+        const letter = pz.tiles.find(t => t.id === tid).letter;
+        return `<div class="tile filled">${letter.toUpperCase()}</div>`;
+      }
+      return `<div class="tile slot">&nbsp;</div>`;
+    }).join('');
+  }
+
+  // Wrap answer tiles with delete button (only when active)
+  let answerHtml;
+  if (!pz.solved && !pz.revealed) {
+    answerHtml = `
+      <div class="answer-row" id="answer-${idx}">
+        <div class="answer-tiles">${answerInner}</div>
+        <button class="del-btn" data-action="delete" data-puzzle="${idx}" aria-label="Delete">&#9003;</button>
+      </div>`;
+  } else {
+    answerHtml = `
+      <div class="answer-row" id="answer-${idx}">
+        <div class="answer-tiles">${answerInner}</div>
+      </div>`;
+  }
+
+  // ── Footer ──────────────────────────────────────────────
+  let msgText = '', msgCls = '';
+  if (pz.solved)   { msgText = 'Solved';    msgCls = 'ok'; }
+  if (pz.revealed) { msgText = 'Revealed';  msgCls = 'wrong'; }
+
+  const footerHtml = `
+    <div class="card-footer">
+      <span class="card-msg ${msgCls}">${msgText}</span>
+      <div class="card-btns">
+        ${(!pz.solved && !pz.revealed)
+          ? `<button class="btn" data-action="reveal" data-puzzle="${idx}">Give Up</button>`
+          : ''}
+      </div>
+    </div>`;
+
+  // ── Assemble ────────────────────────────────────────────
+  el.innerHTML = `
+    <div class="card-meta">
+      <span class="card-label">${wordLabel}</span>
+      <span class="card-len">${pz.word.length}&nbsp;LETTERS</span>
+    </div>
+    ${bankHtml}
+    ${answerHtml}
+    ${footerHtml}`;
+}
+
+// ── EVENT DELEGATION ──────────────────────────────────────
+document.getElementById('puzzles') && document.addEventListener('click', e => {
+  const el = e.target.closest('[data-action]');
+  if (!el) return;
+
+  const action = el.dataset.action;
+  const idx    = parseInt(el.dataset.puzzle, 10);
+
+  if (action === 'place')  placeTile(idx, parseInt(el.dataset.tile, 10));
+  if (action === 'delete') deleteLast(idx);
+  if (action === 'reveal') revealWord(idx);
+}, true);
+
+// ── INTERACTIONS ──────────────────────────────────────────
+function placeTile(idx, tileId) {
+  const pz = puzzles[idx];
+  if (pz.solved || pz.revealed) return;
+  if (pz.placed.includes(tileId)) return;
+  if (pz.placed.length >= pz.word.length) return;
+
+  pz.placed.push(tileId);
+  renderCard(idx);
+
+  // Auto-check when all slots filled
+  if (pz.placed.length === pz.word.length) {
+    setTimeout(() => checkAnswer(idx), 80);
+  }
+}
+
+function deleteLast(idx) {
+  const pz = puzzles[idx];
+  if (pz.solved || pz.revealed || pz.placed.length === 0) return;
+  pz.placed.pop();
+  renderCard(idx);
+}
+
+function checkAnswer(idx) {
+  const pz     = puzzles[idx];
+  const answer = pz.placed.map(id => pz.tiles.find(t => t.id === id).letter).join('');
+
+  if (answer === pz.word) {
+    pz.solved = true;
+    renderCard(idx);
+    // Pop animation on the answer row
+    const ansRow = document.getElementById(`answer-${idx}`);
+    if (ansRow) { ansRow.classList.add('do-pop'); setTimeout(() => ansRow.classList.remove('do-pop'), 300); }
+    updateScore();
+    if (puzzles.every(p => p.solved || p.revealed)) setTimeout(showComplete, 700);
+  } else {
+    // Shake and clear
+    const ansRow = document.getElementById(`answer-${idx}`);
+    if (ansRow) {
+      ansRow.classList.add('do-shake');
+      setTimeout(() => {
+        ansRow.classList.remove('do-shake');
+        pz.placed = [];
+        renderCard(idx);
+      }, 370);
+    }
+  }
+}
+
+function revealWord(idx) {
+  const pz = puzzles[idx];
+  if (pz.solved || pz.revealed) return;
+  pz.placed   = [];
+  pz.revealed = true;
+  renderCard(idx);
+  updateScore();
+  if (puzzles.every(p => p.solved || p.revealed)) setTimeout(showComplete, 700);
+}
+
+// ── SCORE ─────────────────────────────────────────────────
+function updateScore() {
+  const solved  = puzzles.filter(p => p.solved);
+  const score   = solved.reduce((s, p) => s + p.word.length, 0);
+  const maxScore = puzzles.reduce((s, p) => s + p.word.length, 0);
+  const count   = solved.length;
+
+  document.getElementById('s-score').textContent  = score;
+  document.getElementById('s-solved').textContent = count + '\u00a0/\u00a04';
+  document.getElementById('s-max').textContent    = maxScore;
+  document.getElementById('s-prog').style.width   = (maxScore > 0 ? score / maxScore * 100 : 0) + '%';
+}
+
+// ── COMPLETE ──────────────────────────────────────────────
+function showComplete() {
+  const solved   = puzzles.filter(p => p.solved).length;
+  const score    = puzzles.filter(p => p.solved).reduce((s, p) => s + p.word.length, 0);
+  const maxScore = puzzles.reduce((s, p) => s + p.word.length, 0);
+
+  const headline = solved === 4 ? 'PERFECT' : solved >= 2 ? 'WELL DONE' : 'GAME OVER';
+  const sub = solved === 4
+    ? `All 4 words unscrambled &mdash; ${score} points`
+    : `${solved} of 4 words solved &mdash; ${score} / ${maxScore} points`;
+
+  document.getElementById('complete-area').innerHTML = `
+    <div class="complete">
+      <div class="complete-hed">${headline}</div>
+      <div class="complete-sub">${sub}</div>
+      <button class="btn btn-solid" style="margin-top:22px" onclick="newGame()">Play Again</button>
+    </div>`;
+}
+
+// ── START ─────────────────────────────────────────────────
+// Register delegation on the container (available after DOM parse)
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('puzzles').addEventListener('click', e => {
+    const el = e.target.closest('[data-action]');
+    if (!el) return;
+    const action = el.dataset.action;
+    const idx    = parseInt(el.dataset.puzzle, 10);
+    if (action === 'place')  placeTile(idx, parseInt(el.dataset.tile, 10));
+    if (action === 'delete') deleteLast(idx);
+    if (action === 'reveal') revealWord(idx);
+  });
+
+  boot();
+});
+</script>
+</body>
+</html>
