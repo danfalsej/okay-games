@@ -22,7 +22,8 @@
     min-height: 100vh;
     background: #fff;
     display: flex; flex-direction: column; align-items: center;
-    padding: 16px 6px 28px;
+    /* Leave room for fixed footer */
+    padding: 16px 6px 90px;
     user-select: none; touch-action: manipulation;
   }
 
@@ -36,6 +37,7 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
+    gap: 12px;
   }
 
   #title {
@@ -44,16 +46,39 @@
     color: #000;
     letter-spacing: -0.5px;
     line-height: 1;
+    flex-shrink: 0;
   }
 
-  #move-count {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
+  /* Right side of header: stats */
+  #header-stats {
+    display: flex;
+    gap: 20px;
+    align-items: flex-end;
+  }
+
+  .stat-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .stat-lbl {
+    font-size: 9px;
     letter-spacing: 2.5px;
     color: #bbb;
-    text-align: right;
-    line-height: 1.7;
+    line-height: 1;
   }
+
+  .stat-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: #000;
+    line-height: 1;
+  }
+
+  .stat-val.muted { color: #bbb; font-weight: 400; }
 
   /* ── LAYOUT ── */
   #top-row {
@@ -112,13 +137,40 @@
     opacity: 0.9; pointer-events: none;
   }
 
-  /* ── CONTROLS ── */
-  #controls {
-    display: flex; align-items: center; gap: 8px;
-    margin-top: 14px; flex-wrap: wrap; justify-content: center;
-    width: 100%; max-width: 860px;
+  /* ── FIXED FOOTER ── */
+  #footer {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #fff;
+    border-top: 1px solid #e8e8e8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 12px 14px;
+    /* Safe area inset for notched phones */
+    padding-bottom: calc(14px + env(safe-area-inset-bottom));
+    z-index: 100;
   }
 
+  #controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+    justify-content: center;
+    width: 100%;
+    max-width: 860px;
+  }
+
+  #hint {
+    color: #ccc;
+    font-family: 'Space Mono', monospace;
+    text-align: center;
+    margin-top: 7px;
+    letter-spacing: 1px;
+  }
+
+  /* ── BUTTONS ── */
   .btn {
     font-family: 'Space Mono', monospace;
     font-weight: 400;
@@ -133,31 +185,20 @@
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     transition: background 0.08s, color 0.08s, opacity 0.12s;
+    white-space: nowrap;
   }
   .btn:active { background: #eee; }
   .btn:disabled { cursor: not-allowed; opacity: 0.25; }
 
-  #btn-undo  { background: #fff; color: #000; }
-  #btn-auto  { background: #fff; color: #000; }
-  #btn-auto.active { background: #000; color: #fff; }
-  #btn-restart { background: #fff; color: #000; }
-  #btn-new   { background: #000; color: #fff; border-color: #000; }
-  #btn-new:active { background: #333; }
-
-  #hint {
-    color: #bbb;
-    font-family: 'Space Mono', monospace;
-    text-align: center;
-    margin-top: 9px;
-    letter-spacing: 1px;
-    width: 100%; max-width: 860px;
-  }
+  #btn-auto.active  { background: #000; color: #fff; }
+  #btn-new          { background: #000; color: #fff; border-color: #000; }
+  #btn-new:active   { background: #333; }
 
   /* ── WIN OVERLAY ── */
   #win-overlay {
     display: none;
     position: fixed; inset: 0;
-    background: rgba(255,255,255,0.92);
+    background: rgba(255,255,255,0.93);
     align-items: center; justify-content: center;
     z-index: 9999;
   }
@@ -166,16 +207,17 @@
   #win-box {
     background: #fff;
     border: 2px solid #000;
-    padding: 40px 52px;
+    padding: 36px 48px;
     text-align: center;
     animation: winPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    max-width: 90vw;
   }
 
   #win-title {
     font-family: 'Playfair Display', serif;
     font-weight: 900;
     color: #000;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     letter-spacing: 6px;
   }
 
@@ -183,8 +225,23 @@
     font-family: 'Space Mono', monospace;
     color: #999;
     letter-spacing: 2px;
-    margin-bottom: 28px;
+    margin-bottom: 16px;
+    font-size: 11px;
   }
+
+  /* Win stats row */
+  #win-stats {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-bottom: 28px;
+    padding-top: 16px;
+    border-top: 1px solid #e8e8e8;
+  }
+
+  .win-stat-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .win-stat-lbl { font-size: 9px; letter-spacing: 2.5px; color: #bbb; }
+  .win-stat-val { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; }
 
   /* ── ANIMATIONS ── */
   @keyframes winPop {
@@ -210,103 +267,244 @@
 </head>
 <body>
 <div id="app">
+
   <div id="header">
     <div id="title">Okay FreeCell</div>
-    <div id="move-count">0 MOVES</div>
+    <div id="header-stats">
+      <div class="stat-col">
+        <div class="stat-lbl">MOVES</div>
+        <div class="stat-val muted" id="move-count">0</div>
+      </div>
+      <div class="stat-col">
+        <div class="stat-lbl">WINS</div>
+        <div class="stat-val" id="hdr-wins">0</div>
+      </div>
+      <div class="stat-col">
+        <div class="stat-lbl">STREAK</div>
+        <div class="stat-val" id="hdr-streak">0</div>
+      </div>
+    </div>
   </div>
+
   <div id="top-row">
     <div id="fc-row"></div>
     <div id="found-row"></div>
   </div>
+
   <div id="tableau"></div>
+
+</div><!-- #app -->
+
+<!-- Fixed bottom controls -->
+<div id="footer">
   <div id="controls">
     <button class="btn" id="btn-undo" disabled>&#8617; Undo</button>
     <button class="btn" id="btn-auto" disabled>&#10022; Auto</button>
     <button class="btn" id="btn-restart">&#8635; Restart</button>
-    <button class="btn" id="btn-new">&#8999; New Game</button>
+    <button class="btn" id="btn-new">New Game</button>
   </div>
-  <div id="hint">Tap any card to auto-move it &middot; Tap a sequence to move it as a group</div>
+  <div id="hint">Tap a card to auto-move &middot; Tap a run to move as a group</div>
 </div>
 
+<!-- Win overlay -->
 <div id="win-overlay">
   <div id="win-box">
     <div id="win-title">YOU WIN</div>
     <div id="win-moves"></div>
+    <div id="win-stats">
+      <div class="win-stat-col">
+        <div class="win-stat-lbl">WINS</div>
+        <div class="win-stat-val" id="win-total">0</div>
+      </div>
+      <div class="win-stat-col">
+        <div class="win-stat-lbl">STREAK</div>
+        <div class="win-stat-val" id="win-streak">0</div>
+      </div>
+    </div>
     <button class="btn" id="btn-play-again">Play Again</button>
   </div>
 </div>
 
 <script>
-const SUITS = ['♠','♥','♦','♣'];
-const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-const RV = {A:1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,J:11,Q:12,K:13};
-const isRed = s => s==='♥'||s==='♦';
-const SAVE_KEY = 'okayfreecell_v2';
+'use strict';
+
+const SUITS    = ['♠','♥','♦','♣'];
+const RANKS    = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const RV       = {A:1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,J:11,Q:12,K:13};
+const isRed    = s => s==='♥'||s==='♦';
+const SAVE_KEY  = 'okayfreecell_v3';
+const STATS_KEY = 'okayfreecell_stats_v1';
 
 let state, hist, moves, won, autoPlay, autoTimer, CW, CH, OFF;
 let initialDeal = null;
-let shakeId = null;
+let shakeId     = null;
 
+// ── Win / streak stats (persisted separately) ────────────────────────────────
+// streak breaks only when the player has made ≥1 move in a game and
+// then abandons it by pressing New Game without winning.
+let totalWins  = 0;
+let streak     = 0;
+let gameActive = false; // true once the first move of a deal is made
+
+function loadStats() {
+  try {
+    const raw = localStorage.getItem(STATS_KEY);
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    totalWins = s.totalWins || 0;
+    streak    = s.streak    || 0;
+  } catch(e) {}
+}
+
+function saveStats() {
+  try {
+    localStorage.setItem(STATS_KEY, JSON.stringify({ totalWins, streak }));
+  } catch(e) {}
+}
+
+function recordWin() {
+  totalWins++;
+  streak++;
+  gameActive = false;
+  saveStats();
+  renderStats();
+}
+
+// Called before abandoning an in-progress game (New Game while moves > 0 and not won)
+function breakStreak() {
+  streak = 0;
+  saveStats();
+  renderStats();
+}
+
+function renderStats() {
+  document.getElementById('hdr-wins').textContent   = totalWins;
+  document.getElementById('hdr-streak').textContent = streak;
+  document.getElementById('win-total').textContent  = totalWins;
+  document.getElementById('win-streak').textContent = streak;
+}
+
+// ── Deck / game logic ────────────────────────────────────────────────────────
 function mkDeck() { return SUITS.flatMap(s=>RANKS.map(r=>({suit:s,rank:r,id:`${r}${s}`}))); }
-function shuffle(a) { const b=[...a];for(let i=b.length-1;i>0;i--){const j=0|Math.random()*(i+1);[b[i],b[j]]=[b[j],b[i]];}return b; }
-function deal() { const d=shuffle(mkDeck());const c=Array.from({length:8},()=>[]);d.forEach((x,i)=>c[i%8].push(x));return c; }
-function canPlace(lo,hi) { if(!lo)return true; return isRed(lo.suit)!==isRed(hi.suit)&&RV[lo.rank]===RV[hi.rank]+1; }
-function validSeq(cs) { for(let i=1;i<cs.length;i++)if(!canPlace(cs[i-1],cs[i]))return false; return true; }
-function maxMove(efc,ec,toEmpty) { return(efc+1)*Math.pow(2,toEmpty?Math.max(0,ec-1):ec); }
-function snap() { return{tab:state.tab.map(c=>[...c]),fc:[...state.fc],found:Object.fromEntries(Object.entries(state.found).map(([k,v])=>[k,[...v]]))}; }
+function shuffle(a) {
+  const b=[...a];
+  for(let i=b.length-1;i>0;i--){const j=0|Math.random()*(i+1);[b[i],b[j]]=[b[j],b[i]];}
+  return b;
+}
+function deal() {
+  const d=shuffle(mkDeck());
+  const c=Array.from({length:8},()=>[]);
+  d.forEach((x,i)=>c[i%8].push(x));
+  return c;
+}
+function canPlace(lo,hi) {
+  if(!lo)return true;
+  return isRed(lo.suit)!==isRed(hi.suit)&&RV[lo.rank]===RV[hi.rank]+1;
+}
+function validSeq(cs) {
+  for(let i=1;i<cs.length;i++) if(!canPlace(cs[i-1],cs[i])) return false;
+  return true;
+}
+function maxMove(efc,ec,toEmpty) {
+  return (efc+1)*Math.pow(2,toEmpty?Math.max(0,ec-1):ec);
+}
+function snap() {
+  return {
+    tab:state.tab.map(c=>[...c]),
+    fc:[...state.fc],
+    found:Object.fromEntries(Object.entries(state.found).map(([k,v])=>[k,[...v]]))
+  };
+}
 function isSafe(card,found) {
   const r=RV[card.rank]; if(r<=2)return true;
-  return isRed(card.suit)?(found['♠'].length>=r-1&&found['♣'].length>=r-1):(found['♥'].length>=r-1&&found['♦'].length>=r-1);
+  return isRed(card.suit)
+    ? (found['♠'].length>=r-1&&found['♣'].length>=r-1)
+    : (found['♥'].length>=r-1&&found['♦'].length>=r-1);
 }
 function findAuto() {
-  for(let i=0;i<8;i++){const col=state.tab[i];if(!col.length)continue;const c=col[col.length-1];if(RV[c.rank]===state.found[c.suit].length+1&&isSafe(c,state.found))return{src:'tab',idx:i,card:c};}
-  for(let i=0;i<4;i++){const c=state.fc[i];if(!c)continue;if(RV[c.rank]===state.found[c.suit].length+1&&isSafe(c,state.found))return{src:'fc',idx:i,card:c};}
+  for(let i=0;i<8;i++){
+    const col=state.tab[i];if(!col.length)continue;
+    const c=col[col.length-1];
+    if(RV[c.rank]===state.found[c.suit].length+1&&isSafe(c,state.found))return{src:'tab',idx:i,card:c};
+  }
+  for(let i=0;i<4;i++){
+    const c=state.fc[i];if(!c)continue;
+    if(RV[c.rank]===state.found[c.suit].length+1&&isSafe(c,state.found))return{src:'fc',idx:i,card:c};
+  }
   return null;
 }
-function totalFound() { return Object.values(state.found).reduce((s,p)=>s+p.length,0); }
+function totalFound() {
+  return Object.values(state.found).reduce((s,p)=>s+p.length,0);
+}
 
-// ── Persistence ─────────────────────────────────────────────────────────────
+// ── Persistence ──────────────────────────────────────────────────────────────
 function saveGame() {
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify({state,hist,moves,won,initialDeal})); } catch(e) {}
+  try {
+    localStorage.setItem(SAVE_KEY,JSON.stringify({state,hist,moves,won,initialDeal,gameActive}));
+  } catch(e) {}
 }
 function loadGame() {
   try {
     const raw=localStorage.getItem(SAVE_KEY);
     if(!raw)return false;
-    const saved=JSON.parse(raw);
-    if(!saved.state||!saved.initialDeal)return false;
-    state=saved.state; hist=saved.hist||[]; moves=saved.moves||0;
-    won=saved.won||false; initialDeal=saved.initialDeal;
+    const s=JSON.parse(raw);
+    if(!s.state||!s.initialDeal)return false;
+    state=s.state; hist=s.hist||[]; moves=s.moves||0;
+    won=s.won||false; initialDeal=s.initialDeal;
+    gameActive=s.gameActive||false;
     return true;
   } catch(e){return false;}
 }
-function commit(next) { hist.push(snap());state=next;moves++;saveGame();render();checkWin(); }
+function commit(next) {
+  hist.push(snap());
+  state=next; moves++;
+  gameActive=true; // first move marks game as in-progress
+  saveGame(); render(); checkWin();
+}
 function checkWin() {
   if(totalFound()===52){
-    won=true; autoPlay=false; saveGame();
+    won=true; autoPlay=false;
+    recordWin();
+    saveGame();
+    // Update overlay text before showing
     document.getElementById('win-moves').textContent=`Completed in ${moves} moves`;
+    renderStats();
     document.getElementById('win-overlay').classList.add('show');
   }
 }
-function undo() { if(!hist.length)return;state=hist.pop();moves=Math.max(0,moves-1);stopAuto();saveGame();render(); }
+
+// ── Game control ─────────────────────────────────────────────────────────────
+function undo() {
+  if(!hist.length)return;
+  state=hist.pop(); moves=Math.max(0,moves-1);
+  stopAuto(); saveGame(); render();
+}
+
 function newGame() {
+  // Break streak only if player had actually started playing and didn't win
+  if(gameActive && !won) breakStreak();
+
   const tab=deal();
   initialDeal=tab.map(c=>[...c]);
   state={tab,fc:[null,null,null,null],found:{'♠':[],'♥':[],'♦':[],'♣':[]}};
-  hist=[];moves=0;won=false;shakeId=null;
-  stopAuto();saveGame();
+  hist=[]; moves=0; won=false; shakeId=null; gameActive=false;
+  stopAuto(); saveGame();
   document.getElementById('win-overlay').classList.remove('show');
   render();
 }
+
 function restartDeal() {
   if(!initialDeal)return;
+  // Restart is NOT abandonment — same deal, streak safe
   state={tab:initialDeal.map(c=>[...c]),fc:[null,null,null,null],found:{'♠':[],'♥':[],'♦':[],'♣':[]}};
-  hist=[];moves=0;won=false;shakeId=null;
-  stopAuto();saveGame();
+  hist=[]; moves=0; won=false; shakeId=null; gameActive=false;
+  stopAuto(); saveGame();
   document.getElementById('win-overlay').classList.remove('show');
   render();
 }
+
 function stopAuto() { autoPlay=false; clearTimeout(autoTimer); }
+
 function tickAuto() {
   if(!autoPlay)return;
   const mv=findAuto();
@@ -333,8 +531,8 @@ function smartMove(src,col,ci,fi) {
     cards=[state.fc[fi]];
   }
   const card=cards[0];
-  const nt=()=>state.tab.map(c=>[...c]);
-  const nf=()=>[...state.fc];
+  const nt =()=>state.tab.map(c=>[...c]);
+  const nf =()=>[...state.fc];
   const nfd=()=>Object.fromEntries(Object.entries(state.found).map(([k,v])=>[k,[...v]]));
   function removeCards(t,f){ if(src==='tab')t[col].splice(ci); else f[fi]=null; }
 
@@ -343,22 +541,21 @@ function smartMove(src,col,ci,fi) {
     const pile=state.found[card.suit];
     if(RV[card.rank]===pile.length+1){
       const t=nt(),f=nf(),fd=nfd();
-      removeCards(t,f);fd[card.suit].push(card);
-      commit({tab:t,fc:f,found:fd});return;
+      removeCards(t,f); fd[card.suit].push(card);
+      commit({tab:t,fc:f,found:fd}); return;
     }
   }
   const efc=state.fc.filter(c=>!c).length;
-  const ec=state.tab.filter(c=>!c.length).length;
+  const ec =state.tab.filter(c=>!c.length).length;
 
   // 2. Non-empty tableau columns
   for(let i=0;i<8;i++){
     if(src==='tab'&&i===col)continue;
-    const tcol=state.tab[i];
-    if(!tcol.length)continue;
+    const tcol=state.tab[i]; if(!tcol.length)continue;
     if(canPlace(tcol[tcol.length-1],card)&&cards.length<=maxMove(efc,ec,false)){
       const t=nt(),f=nf();
-      removeCards(t,f);t[i].push(...cards);
-      commit({tab:t,fc:f,found:state.found});return;
+      removeCards(t,f); t[i].push(...cards);
+      commit({tab:t,fc:f,found:state.found}); return;
     }
   }
 
@@ -370,8 +567,8 @@ function smartMove(src,col,ci,fi) {
       if(state.tab[i].length)continue;
       if(cards.length<=maxMove(efc,Math.max(0,ec-1),false)){
         const t=nt(),f=nf();
-        removeCards(t,f);t[i].push(...cards);
-        commit({tab:t,fc:f,found:state.found});return;
+        removeCards(t,f); t[i].push(...cards);
+        commit({tab:t,fc:f,found:state.found}); return;
       }
     }
   }
@@ -381,12 +578,12 @@ function smartMove(src,col,ci,fi) {
     for(let i=0;i<4;i++){
       if(!state.fc[i]){
         const t=nt(),f=nf();
-        removeCards(t,f);f[i]=card;
-        commit({tab:t,fc:f,found:state.found});return;
+        removeCards(t,f); f[i]=card;
+        commit({tab:t,fc:f,found:state.found}); return;
       }
     }
   }
-  shakeId=card.id;render();
+  shakeId=card.id; render();
 }
 
 // ── Rendering ────────────────────────────────────────────────────────────────
@@ -398,12 +595,9 @@ function calcSizes() {
   OFF=Math.round(CW*0.42);
 }
 
-function cardColor(suit) {
-  // Hearts and Diamonds: red. Spades and Clubs: black.
-  return isRed(suit) ? '#c0392b' : '#000';
-}
+function cardColor(suit) { return isRed(suit)?'#c0392b':'#000'; }
 
-function makeCard(card, top, zIdx) {
+function makeCard(card,top,zIdx) {
   const el=document.createElement('div');
   el.className='card';
   if(shakeId===card.id) el.classList.add('shake');
@@ -411,10 +605,8 @@ function makeCard(card, top, zIdx) {
   const pad=Math.max(2,Math.round(CW*0.07));
   el.style.cssText=`width:${CW}px;height:${CH}px;top:${top}px;z-index:${zIdx};border-radius:${radius}px;padding:${pad}px;`;
   const col=cardColor(card.suit);
-  const rf=Math.max(11,CW*0.33);
-  const sf=Math.max(9,CW*0.26);
-  const bf=Math.max(18,CW*0.54);
-  const gap=Math.max(1,CW*0.04);
+  const rf=Math.max(11,CW*0.33), sf=Math.max(9,CW*0.26);
+  const bf=Math.max(18,CW*0.54), gap=Math.max(1,CW*0.04);
   el.innerHTML=`
     <div class="card-corner" style="color:${col};display:flex;align-items:baseline;gap:${gap}px">
       <span style="font-size:${rf}px;line-height:1">${card.rank}</span><span style="font-size:${sf}px;line-height:1">${card.suit}</span>
@@ -427,7 +619,7 @@ function makeCard(card, top, zIdx) {
   return el;
 }
 
-function makeSlot(label, labelColor) {
+function makeSlot(label,labelColor) {
   const el=document.createElement('div');
   el.className='slot';
   const radius=Math.max(3,Math.round(CW*0.07));
@@ -437,9 +629,7 @@ function makeSlot(label, labelColor) {
 }
 
 function render() {
-  // Header sizing
-  const titleEl=document.getElementById('title');
-  titleEl.style.fontSize=Math.max(18,CW*0.40)+'px';
+  document.getElementById('title').style.fontSize=Math.max(18,CW*0.40)+'px';
 
   // Free cells
   const fcRow=document.getElementById('fc-row');
@@ -504,28 +694,38 @@ function render() {
   // Win overlay
   if(won) document.getElementById('win-overlay').classList.add('show');
 
-  // Controls sizing
-  const bfs=Math.max(9,CW*0.155);
-  const bpad=`7px ${Math.round(CW*0.22)}px`;
+  // Button / text sizing
+  const bfs=Math.max(9,CW*0.145);
+  const bpad=`7px ${Math.round(CW*0.20)}px`;
   document.querySelectorAll('.btn').forEach(b=>{b.style.fontSize=bfs+'px';b.style.padding=bpad;});
-  document.getElementById('move-count').style.fontSize=Math.max(9,CW*0.13)+'px';
-  document.getElementById('hint').style.fontSize=Math.max(9,CW*0.12)+'px';
-  document.getElementById('win-title').style.fontSize=Math.max(26,CW*0.6)+'px';
+  document.getElementById('hint').style.fontSize=Math.max(8,CW*0.115)+'px';
+  document.getElementById('win-title').style.fontSize=Math.max(26,CW*0.58)+'px';
   document.getElementById('win-moves').style.fontSize=Math.max(9,CW*0.14)+'px';
+
+  // Stat column font sizing
+  document.querySelectorAll('.stat-val').forEach(el=>{
+    el.style.fontSize=Math.max(12,CW*0.22)+'px';
+  });
+  document.querySelectorAll('.stat-lbl').forEach(el=>{
+    el.style.fontSize=Math.max(8,CW*0.115)+'px';
+  });
 
   document.getElementById('btn-undo').disabled=!hist.length;
   document.getElementById('btn-restart').disabled=!initialDeal;
+  document.getElementById('move-count').textContent=moves;
 
   const autoBtn=document.getElementById('btn-auto');
   const hasMove=!!findAuto();
   if(autoPlay){
-    autoBtn.textContent='Stop Auto'; autoBtn.classList.add('active'); autoBtn.disabled=false;
+    autoBtn.textContent='Stop'; autoBtn.classList.add('active'); autoBtn.disabled=false;
   } else {
     autoBtn.textContent='\u2736 Auto'; autoBtn.classList.remove('active'); autoBtn.disabled=won||!hasMove;
   }
-  document.getElementById('move-count').textContent=`${moves} MOVES`;
+
+  renderStats();
 }
 
+// ── Event wiring ─────────────────────────────────────────────────────────────
 document.getElementById('btn-undo').addEventListener('click',undo);
 document.getElementById('btn-auto').addEventListener('click',()=>{
   if(autoPlay){stopAuto();render();}
@@ -536,8 +736,10 @@ document.getElementById('btn-new').addEventListener('click',newGame);
 document.getElementById('btn-play-again').addEventListener('click',newGame);
 
 window.addEventListener('resize',()=>{calcSizes();render();});
-calcSizes();
 
+// ── Boot ─────────────────────────────────────────────────────────────────────
+calcSizes();
+loadStats();
 if(!loadGame()) newGame();
 else render();
 </script>
