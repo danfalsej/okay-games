@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -9,47 +9,124 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  /* ── THEME TOKENS ── */
+  :root {
+    --bg:           #ffffff;
+    --bg-card:      #ffffff;
+    --bg-card-sel:  #f5f5f5;
+    --bg-footer:    #ffffff;
+    --bg-overlay:   rgba(255,255,255,0.93);
+    --bg-win-box:   #ffffff;
+
+    --border:       #d8d8d8;
+    --border-slot:  #d0d0d0;
+    --border-hdr:   #000000;
+    --border-win:   #000000;
+    --border-footer:#e8e8e8;
+    --border-sel:   #000000;
+    --border-win-stat: #e8e8e8;
+
+    --text:         #000000;
+    --text-muted:   #bbbbbb;
+    --text-hint:    #cccccc;
+    --text-moves:   #999999;
+    --text-badge:   rgba(0,0,0,0.20);
+
+    --btn-bg:       #ffffff;
+    --btn-border:   #000000;
+    --btn-text:     #000000;
+    --btn-bg-hover: #eeeeee;
+    --btn-solid-bg: #000000;
+    --btn-solid-text: #ffffff;
+    --btn-solid-hover:#333333;
+    --btn-active-bg:#000000;
+    --btn-active-text:#ffffff;
+
+    --red:          #c0392b;
+    --black-suit:   #000000;
+
+    --transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+  }
+
+  [data-theme="dark"] {
+    --bg:           #141414;
+    --bg-card:      #ffffff;
+    --bg-card-sel:  #f0f0f0;
+    --bg-footer:    #141414;
+    --bg-overlay:   rgba(0,0,0,0.93);
+    --bg-win-box:   #1f1f1f;
+
+    --border:       #383838;
+    --border-slot:  #2e2e2e;
+    --border-hdr:   #e8e8e8;
+    --border-win:   #e8e8e8;
+    --border-footer:#252525;
+    --border-sel:   #e8e8e8;
+    --border-win-stat: #2e2e2e;
+
+    --text:         #e8e8e8;
+    --text-muted:   #555555;
+    --text-hint:    #3a3a3a;
+    --text-moves:   #666666;
+    --text-badge:   rgba(255,255,255,0.18);
+
+    --btn-bg:       #1f1f1f;
+    --btn-border:   #e8e8e8;
+    --btn-text:     #e8e8e8;
+    --btn-bg-hover: #2a2a2a;
+    --btn-solid-bg: #e8e8e8;
+    --btn-solid-text: #141414;
+    --btn-solid-hover:#cccccc;
+    --btn-active-bg:#e8e8e8;
+    --btn-active-text:#141414;
+
+    --red:          #c0392b;
+    --black-suit:   #000000;
+  }
+
   html, body {
     min-height: 100%;
-    background: #fff;
+    background: var(--bg);
     overscroll-behavior: none;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     font-family: 'Space Mono', monospace;
+    transition: var(--transition);
   }
 
   #app {
     min-height: 100vh;
-    background: #fff;
+    background: var(--bg);
     display: flex; flex-direction: column; align-items: center;
-    /* Leave room for fixed footer */
     padding: 16px 6px 90px;
     user-select: none; touch-action: manipulation;
+    transition: var(--transition);
   }
 
   /* ── HEADER ── */
   #header {
-    width: 100%;
-    max-width: 860px;
-    border-bottom: 2px solid #000;
-    padding-bottom: 11px;
-    margin-bottom: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    gap: 12px;
+    width: 100%; max-width: 860px;
+    border-bottom: 2px solid var(--border-hdr);
+    padding-bottom: 11px; margin-bottom: 16px;
+    display: flex; justify-content: space-between;
+    align-items: flex-end; gap: 12px;
+    transition: var(--transition);
   }
 
   #title {
     font-family: 'Playfair Display', serif;
     font-weight: 900;
-    color: #000;
-    letter-spacing: -0.5px;
-    line-height: 1;
-    flex-shrink: 0;
+    color: var(--text);
+    letter-spacing: -0.5px; line-height: 1; flex-shrink: 0;
+    transition: var(--transition);
   }
 
-  /* Right side of header: stats */
+  #header-right {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+  }
+
   #header-stats {
     display: flex;
     gap: 20px;
@@ -57,38 +134,48 @@
   }
 
   .stat-col {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
+    display: flex; flex-direction: column;
+    align-items: flex-end; gap: 2px;
   }
 
   .stat-lbl {
-    font-size: 9px;
-    letter-spacing: 2.5px;
-    color: #bbb;
-    line-height: 1;
+    font-size: 9px; letter-spacing: 2.5px;
+    color: var(--text-muted); line-height: 1;
+    transition: var(--transition);
   }
 
   .stat-val {
     font-family: 'Space Mono', monospace;
-    font-size: 14px;
-    font-weight: 700;
-    color: #000;
-    line-height: 1;
+    font-size: 14px; font-weight: 700;
+    color: var(--text); line-height: 1;
+    transition: var(--transition);
   }
 
-  .stat-val.muted { color: #bbb; font-weight: 400; }
+  .stat-val.muted { color: var(--text-muted); font-weight: 400; }
+
+  /* ── THEME TOGGLE ── */
+  #btn-theme {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 0 2px;
+    line-height: 1;
+    font-size: 16px;
+    opacity: 0.45;
+    transition: opacity 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
+    /* vertically align with stat labels at bottom */
+    align-self: flex-end;
+  }
+  #btn-theme:hover { opacity: 0.9; }
+  #btn-theme:active { opacity: 1; }
 
   /* ── LAYOUT ── */
   #top-row {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    margin-bottom: 8px;
-    gap: 16px;
-    width: 100%;
-    max-width: 860px;
+    display: flex; justify-content: center; align-items: flex-start;
+    margin-bottom: 8px; gap: 16px;
+    width: 100%; max-width: 860px;
   }
 
   #fc-row, #found-row { display: flex; gap: 2px; }
@@ -97,37 +184,35 @@
 
   /* ── SLOTS ── */
   .slot {
-    background: #fff;
-    border: 1.5px dashed #d0d0d0;
+    background: var(--bg);
+    border: 1.5px dashed var(--border-slot);
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    flex-shrink: 0;
+    cursor: pointer; flex-shrink: 0;
     position: absolute; top: 0; left: 0;
-    font-family: 'Space Mono', monospace;
-    line-height: 1;
+    font-family: 'Space Mono', monospace; line-height: 1;
+    transition: var(--transition);
   }
 
   /* ── CARDS ── */
   .card {
     cursor: pointer;
     position: absolute; left: 0;
-    background: #fff;
-    border: 1.5px solid #d8d8d8;
+    background: var(--bg-card);
+    border: 1.5px solid var(--border);
     display: flex; flex-direction: column; justify-content: space-between;
     flex-shrink: 0;
-    transition: border-color 0.08s;
+    transition: border-color 0.08s, background 0.25s;
   }
 
   .card.selected {
-    border: 2px solid #000;
-    background: #f8f8f8;
+    border: 2px solid var(--border-sel);
+    background: var(--bg-card-sel);
     z-index: 999 !important;
   }
 
   .card-corner {
     font-family: 'Space Mono', monospace;
-    font-weight: 700;
-    line-height: 1.1;
+    font-weight: 700; line-height: 1.1;
   }
   .card-corner-bot { transform: rotate(180deg); text-align: right; }
 
@@ -139,109 +224,103 @@
 
   /* ── FIXED FOOTER ── */
   #footer {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    background: #fff;
-    border-top: 1px solid #e8e8e8;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 10px 12px 14px;
-    /* Safe area inset for notched phones */
-    padding-bottom: calc(14px + env(safe-area-inset-bottom));
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--bg-footer);
+    border-top: 1px solid var(--border-footer);
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px 12px calc(14px + env(safe-area-inset-bottom));
     z-index: 100;
+    transition: var(--transition);
   }
 
   #controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: nowrap;
-    justify-content: center;
-    width: 100%;
-    max-width: 860px;
+    display: flex; align-items: center; gap: 8px;
+    flex-wrap: nowrap; justify-content: center;
+    width: 100%; max-width: 860px;
   }
 
   #hint {
-    color: #ccc;
+    color: var(--text-hint);
     font-family: 'Space Mono', monospace;
-    text-align: center;
-    margin-top: 7px;
-    letter-spacing: 1px;
+    text-align: center; margin-top: 7px; letter-spacing: 1px;
+    transition: var(--transition);
   }
 
   /* ── BUTTONS ── */
   .btn {
     font-family: 'Space Mono', monospace;
-    font-weight: 400;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    cursor: pointer;
-    user-select: none;
-    border: 1px solid #000;
-    background: #fff;
-    color: #000;
+    font-weight: 400; letter-spacing: 1.5px; text-transform: uppercase;
+    cursor: pointer; user-select: none;
+    border: 1px solid var(--btn-border);
+    background: var(--btn-bg);
+    color: var(--btn-text);
     outline: none;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    transition: background 0.08s, color 0.08s, opacity 0.12s;
+    transition: background 0.08s, color 0.08s, opacity 0.12s, border-color 0.25s;
     white-space: nowrap;
   }
-  .btn:active { background: #eee; }
-  .btn:disabled { cursor: not-allowed; opacity: 0.25; }
+  .btn:active  { background: var(--btn-bg-hover); }
+  .btn:disabled{ cursor: not-allowed; opacity: 0.25; }
 
-  #btn-auto.active  { background: #000; color: #fff; }
-  #btn-new          { background: #000; color: #fff; border-color: #000; }
-  #btn-new:active   { background: #333; }
+  #btn-auto.active {
+    background: var(--btn-active-bg);
+    color: var(--btn-active-text);
+  }
+  #btn-new {
+    background: var(--btn-solid-bg);
+    color: var(--btn-solid-text);
+    border-color: var(--btn-solid-bg);
+  }
+  #btn-new:active { background: var(--btn-solid-hover); }
 
   /* ── WIN OVERLAY ── */
   #win-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(255,255,255,0.93);
+    display: none; position: fixed; inset: 0;
+    background: var(--bg-overlay);
     align-items: center; justify-content: center;
     z-index: 9999;
+    transition: var(--transition);
   }
   #win-overlay.show { display: flex; }
 
   #win-box {
-    background: #fff;
-    border: 2px solid #000;
-    padding: 36px 48px;
-    text-align: center;
-    animation: winPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background: var(--bg-win-box);
+    border: 2px solid var(--border-win);
+    padding: 36px 48px; text-align: center;
+    animation: winPop 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
     max-width: 90vw;
+    transition: var(--transition);
   }
 
   #win-title {
-    font-family: 'Playfair Display', serif;
-    font-weight: 900;
-    color: #000;
-    margin-bottom: 8px;
-    letter-spacing: 6px;
+    font-family: 'Playfair Display', serif; font-weight: 900;
+    color: var(--text); margin-bottom: 8px; letter-spacing: 6px;
+    transition: var(--transition);
   }
 
   #win-moves {
     font-family: 'Space Mono', monospace;
-    color: #999;
-    letter-spacing: 2px;
-    margin-bottom: 16px;
-    font-size: 11px;
+    color: var(--text-moves);
+    letter-spacing: 2px; margin-bottom: 16px; font-size: 11px;
+    transition: var(--transition);
   }
 
-  /* Win stats row */
   #win-stats {
-    display: flex;
-    justify-content: center;
-    gap: 32px;
-    margin-bottom: 28px;
-    padding-top: 16px;
-    border-top: 1px solid #e8e8e8;
+    display: flex; justify-content: center; gap: 32px;
+    margin-bottom: 28px; padding-top: 16px;
+    border-top: 1px solid var(--border-win-stat);
+    transition: var(--transition);
   }
 
   .win-stat-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-  .win-stat-lbl { font-size: 9px; letter-spacing: 2.5px; color: #bbb; }
-  .win-stat-val { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; }
+  .win-stat-lbl { font-size: 9px; letter-spacing: 2.5px; color: var(--text-muted); }
+  .win-stat-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px; font-weight: 700;
+    color: var(--text);
+    transition: var(--transition);
+  }
 
   /* ── ANIMATIONS ── */
   @keyframes winPop {
@@ -270,19 +349,22 @@
 
   <div id="header">
     <div id="title">Okay FreeCell</div>
-    <div id="header-stats">
-      <div class="stat-col">
-        <div class="stat-lbl">MOVES</div>
-        <div class="stat-val muted" id="move-count">0</div>
+    <div id="header-right">
+      <div id="header-stats">
+        <div class="stat-col">
+          <div class="stat-lbl">MOVES</div>
+          <div class="stat-val muted" id="move-count">0</div>
+        </div>
+        <div class="stat-col">
+          <div class="stat-lbl">WINS</div>
+          <div class="stat-val" id="hdr-wins">0</div>
+        </div>
+        <div class="stat-col">
+          <div class="stat-lbl">STREAK</div>
+          <div class="stat-val" id="hdr-streak">0</div>
+        </div>
       </div>
-      <div class="stat-col">
-        <div class="stat-lbl">WINS</div>
-        <div class="stat-val" id="hdr-wins">0</div>
-      </div>
-      <div class="stat-col">
-        <div class="stat-lbl">STREAK</div>
-        <div class="stat-val" id="hdr-streak">0</div>
-      </div>
+      <button id="btn-theme" aria-label="Toggle night mode" title="Toggle night mode">◐</button>
     </div>
   </div>
 
@@ -293,9 +375,9 @@
 
   <div id="tableau"></div>
 
-</div><!-- #app -->
+</div>
 
-<!-- Fixed bottom controls -->
+<!-- Fixed footer -->
 <div id="footer">
   <div id="controls">
     <button class="btn" id="btn-undo" disabled>&#8617; Undo</button>
@@ -328,23 +410,42 @@
 <script>
 'use strict';
 
-const SUITS    = ['♠','♥','♦','♣'];
-const RANKS    = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-const RV       = {A:1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,J:11,Q:12,K:13};
-const isRed    = s => s==='♥'||s==='♦';
+const SUITS     = ['♠','♥','♦','♣'];
+const RANKS     = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const RV        = {A:1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,J:11,Q:12,K:13};
+const isRed     = s => s==='♥'||s==='♦';
 const SAVE_KEY  = 'okayfreecell_v3';
 const STATS_KEY = 'okayfreecell_stats_v1';
+const THEME_KEY = 'okayfreecell_theme';
 
 let state, hist, moves, won, autoPlay, autoTimer, CW, CH, OFF;
 let initialDeal = null;
 let shakeId     = null;
 
-// ── Win / streak stats (persisted separately) ────────────────────────────────
-// streak breaks only when the player has made ≥1 move in a game and
-// then abandons it by pressing New Game without winning.
+// ── Theme ────────────────────────────────────────────────────────────────────
+let darkMode = false;
+
+function loadTheme() {
+  darkMode = localStorage.getItem(THEME_KEY) === 'dark';
+  applyTheme();
+}
+
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+  document.getElementById('btn-theme').textContent = darkMode ? '◑' : '◐';
+}
+
+function toggleTheme() {
+  darkMode = !darkMode;
+  applyTheme();
+  try { localStorage.setItem(THEME_KEY, darkMode ? 'dark' : 'light'); } catch(e) {}
+  // Re-render so JS-injected card colours update too
+  render();
+}
+
+// ── Win / streak stats ────────────────────────────────────────────────────────
 let totalWins  = 0;
 let streak     = 0;
-let gameActive = false; // true once the first move of a deal is made
 
 function loadStats() {
   try {
@@ -357,24 +458,16 @@ function loadStats() {
 }
 
 function saveStats() {
-  try {
-    localStorage.setItem(STATS_KEY, JSON.stringify({ totalWins, streak }));
-  } catch(e) {}
+  try { localStorage.setItem(STATS_KEY, JSON.stringify({ totalWins, streak })); } catch(e) {}
 }
 
 function recordWin() {
-  totalWins++;
-  streak++;
-  gameActive = false;
-  saveStats();
-  renderStats();
+  totalWins++; streak++;
+  saveStats(); renderStats();
 }
 
-// Called before abandoning an in-progress game (New Game while moves > 0 and not won)
 function breakStreak() {
-  streak = 0;
-  saveStats();
-  renderStats();
+  streak = 0; saveStats(); renderStats();
 }
 
 function renderStats() {
@@ -398,16 +491,14 @@ function deal() {
   return c;
 }
 function canPlace(lo,hi) {
-  if(!lo)return true;
-  return isRed(lo.suit)!==isRed(hi.suit)&&RV[lo.rank]===RV[hi.rank]+1;
+  if(!lo) return true;
+  return isRed(lo.suit)!==isRed(hi.suit) && RV[lo.rank]===RV[hi.rank]+1;
 }
 function validSeq(cs) {
   for(let i=1;i<cs.length;i++) if(!canPlace(cs[i-1],cs[i])) return false;
   return true;
 }
-function maxMove(efc,ec,toEmpty) {
-  return (efc+1)*Math.pow(2,toEmpty?Math.max(0,ec-1):ec);
-}
+function maxMove(efc,ec,toEmpty) { return (efc+1)*Math.pow(2,toEmpty?Math.max(0,ec-1):ec); }
 function snap() {
   return {
     tab:state.tab.map(c=>[...c]),
@@ -416,57 +507,48 @@ function snap() {
   };
 }
 function isSafe(card,found) {
-  const r=RV[card.rank]; if(r<=2)return true;
+  const r=RV[card.rank]; if(r<=2) return true;
   return isRed(card.suit)
-    ? (found['♠'].length>=r-1&&found['♣'].length>=r-1)
-    : (found['♥'].length>=r-1&&found['♦'].length>=r-1);
+    ? (found['♠'].length>=r-1 && found['♣'].length>=r-1)
+    : (found['♥'].length>=r-1 && found['♦'].length>=r-1);
 }
 function findAuto() {
   for(let i=0;i<8;i++){
-    const col=state.tab[i];if(!col.length)continue;
+    const col=state.tab[i]; if(!col.length) continue;
     const c=col[col.length-1];
-    if(RV[c.rank]===state.found[c.suit].length+1&&isSafe(c,state.found))return{src:'tab',idx:i,card:c};
+    if(RV[c.rank]===state.found[c.suit].length+1 && isSafe(c,state.found)) return{src:'tab',idx:i,card:c};
   }
   for(let i=0;i<4;i++){
-    const c=state.fc[i];if(!c)continue;
-    if(RV[c.rank]===state.found[c.suit].length+1&&isSafe(c,state.found))return{src:'fc',idx:i,card:c};
+    const c=state.fc[i]; if(!c) continue;
+    if(RV[c.rank]===state.found[c.suit].length+1 && isSafe(c,state.found)) return{src:'fc',idx:i,card:c};
   }
   return null;
 }
-function totalFound() {
-  return Object.values(state.found).reduce((s,p)=>s+p.length,0);
-}
+function totalFound() { return Object.values(state.found).reduce((s,p)=>s+p.length,0); }
 
 // ── Persistence ──────────────────────────────────────────────────────────────
 function saveGame() {
-  try {
-    localStorage.setItem(SAVE_KEY,JSON.stringify({state,hist,moves,won,initialDeal,gameActive}));
-  } catch(e) {}
+  try { localStorage.setItem(SAVE_KEY,JSON.stringify({state,hist,moves,won,initialDeal})); } catch(e) {}
 }
 function loadGame() {
   try {
     const raw=localStorage.getItem(SAVE_KEY);
-    if(!raw)return false;
+    if(!raw) return false;
     const s=JSON.parse(raw);
-    if(!s.state||!s.initialDeal)return false;
+    if(!s.state||!s.initialDeal) return false;
     state=s.state; hist=s.hist||[]; moves=s.moves||0;
     won=s.won||false; initialDeal=s.initialDeal;
-    gameActive=s.gameActive||false;
     return true;
-  } catch(e){return false;}
+  } catch(e){ return false; }
 }
 function commit(next) {
-  hist.push(snap());
-  state=next; moves++;
-  gameActive=true; // first move marks game as in-progress
+  hist.push(snap()); state=next; moves++;
   saveGame(); render(); checkWin();
 }
 function checkWin() {
   if(totalFound()===52){
     won=true; autoPlay=false;
-    recordWin();
-    saveGame();
-    // Update overlay text before showing
+    recordWin(); saveGame();
     document.getElementById('win-moves').textContent=`Completed in ${moves} moves`;
     renderStats();
     document.getElementById('win-overlay').classList.add('show');
@@ -475,29 +557,26 @@ function checkWin() {
 
 // ── Game control ─────────────────────────────────────────────────────────────
 function undo() {
-  if(!hist.length)return;
+  if(!hist.length) return;
   state=hist.pop(); moves=Math.max(0,moves-1);
   stopAuto(); saveGame(); render();
 }
 
 function newGame() {
-  // Break streak only if player had actually started playing and didn't win
-  if(gameActive && !won) breakStreak();
-
+  if(moves > 0 && !won) breakStreak();
   const tab=deal();
   initialDeal=tab.map(c=>[...c]);
   state={tab,fc:[null,null,null,null],found:{'♠':[],'♥':[],'♦':[],'♣':[]}};
-  hist=[]; moves=0; won=false; shakeId=null; gameActive=false;
+  hist=[]; moves=0; won=false; shakeId=null;
   stopAuto(); saveGame();
   document.getElementById('win-overlay').classList.remove('show');
   render();
 }
 
 function restartDeal() {
-  if(!initialDeal)return;
-  // Restart is NOT abandonment — same deal, streak safe
+  if(!initialDeal) return;
   state={tab:initialDeal.map(c=>[...c]),fc:[null,null,null,null],found:{'♠':[],'♥':[],'♦':[],'♣':[]}};
-  hist=[]; moves=0; won=false; shakeId=null; gameActive=false;
+  hist=[]; moves=0; won=false; shakeId=null;
   stopAuto(); saveGame();
   document.getElementById('win-overlay').classList.remove('show');
   render();
@@ -506,12 +585,12 @@ function restartDeal() {
 function stopAuto() { autoPlay=false; clearTimeout(autoTimer); }
 
 function tickAuto() {
-  if(!autoPlay)return;
+  if(!autoPlay) return;
   const mv=findAuto();
-  if(!mv){stopAuto();render();return;}
-  const nt=state.tab.map(c=>[...c]),nf=[...state.fc];
+  if(!mv){ stopAuto(); render(); return; }
+  const nt=state.tab.map(c=>[...c]), nf=[...state.fc];
   const nfd=Object.fromEntries(Object.entries(state.found).map(([k,v])=>[k,[...v]]));
-  if(mv.src==='tab')nt[mv.idx].pop(); else nf[mv.idx]=null;
+  if(mv.src==='tab') nt[mv.idx].pop(); else nf[mv.idx]=null;
   nfd[mv.card.suit].push(mv.card);
   commit({tab:nt,fc:nf,found:nfd});
   if(autoPlay) autoTimer=setTimeout(tickAuto,220);
@@ -519,24 +598,23 @@ function tickAuto() {
 
 // ── Smart single-tap move ────────────────────────────────────────────────────
 function smartMove(src,col,ci,fi) {
-  if(won)return;
+  if(won) return;
   let cards;
   if(src==='tab'){
     const column=state.tab[col];
-    if(!column.length||ci>=column.length)return;
+    if(!column.length||ci>=column.length) return;
     cards=column.slice(ci);
-    if(cards.length>1&&!validSeq(cards)){shakeId=cards[0].id;render();return;}
+    if(cards.length>1&&!validSeq(cards)){ shakeId=cards[0].id; render(); return; }
   } else {
-    if(!state.fc[fi])return;
+    if(!state.fc[fi]) return;
     cards=[state.fc[fi]];
   }
   const card=cards[0];
-  const nt =()=>state.tab.map(c=>[...c]);
-  const nf =()=>[...state.fc];
-  const nfd=()=>Object.fromEntries(Object.entries(state.found).map(([k,v])=>[k,[...v]]));
-  function removeCards(t,f){ if(src==='tab')t[col].splice(ci); else f[fi]=null; }
+  const nt  = ()=>state.tab.map(c=>[...c]);
+  const nf  = ()=>[...state.fc];
+  const nfd = ()=>Object.fromEntries(Object.entries(state.found).map(([k,v])=>[k,[...v]]));
+  function removeCards(t,f){ if(src==='tab') t[col].splice(ci); else f[fi]=null; }
 
-  // 1. Foundation
   if(cards.length===1){
     const pile=state.found[card.suit];
     if(RV[card.rank]===pile.length+1){
@@ -548,37 +626,31 @@ function smartMove(src,col,ci,fi) {
   const efc=state.fc.filter(c=>!c).length;
   const ec =state.tab.filter(c=>!c.length).length;
 
-  // 2. Non-empty tableau columns
   for(let i=0;i<8;i++){
-    if(src==='tab'&&i===col)continue;
-    const tcol=state.tab[i]; if(!tcol.length)continue;
+    if(src==='tab'&&i===col) continue;
+    const tcol=state.tab[i]; if(!tcol.length) continue;
     if(canPlace(tcol[tcol.length-1],card)&&cards.length<=maxMove(efc,ec,false)){
-      const t=nt(),f=nf();
-      removeCards(t,f); t[i].push(...cards);
+      const t=nt(),f=nf(); removeCards(t,f); t[i].push(...cards);
       commit({tab:t,fc:f,found:state.found}); return;
     }
   }
 
-  // 3. Empty tableau columns
   const srcIsEmpty=src==='tab'&&ci===0&&state.tab[col].length===cards.length;
   if(!srcIsEmpty){
     for(let i=0;i<8;i++){
-      if(src==='tab'&&i===col)continue;
-      if(state.tab[i].length)continue;
+      if(src==='tab'&&i===col) continue;
+      if(state.tab[i].length) continue;
       if(cards.length<=maxMove(efc,Math.max(0,ec-1),false)){
-        const t=nt(),f=nf();
-        removeCards(t,f); t[i].push(...cards);
+        const t=nt(),f=nf(); removeCards(t,f); t[i].push(...cards);
         commit({tab:t,fc:f,found:state.found}); return;
       }
     }
   }
 
-  // 4. Free cell
   if(cards.length===1){
     for(let i=0;i<4;i++){
       if(!state.fc[i]){
-        const t=nt(),f=nf();
-        removeCards(t,f); f[i]=card;
+        const t=nt(),f=nf(); removeCards(t,f); f[i]=card;
         commit({tab:t,fc:f,found:state.found}); return;
       }
     }
@@ -588,14 +660,19 @@ function smartMove(src,col,ci,fi) {
 
 // ── Rendering ────────────────────────────────────────────────────────────────
 function calcSizes() {
-  const w=window.innerWidth;
-  const avail=w-16-14;
+  const avail=window.innerWidth-16-14;
   CW=Math.max(42,Math.min(104,Math.floor(avail/8)));
   CH=Math.round(CW*1.58);
   OFF=Math.round(CW*0.42);
 }
 
-function cardColor(suit) { return isRed(suit)?'#c0392b':'#000'; }
+function getVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function cardColor(suit) {
+  return isRed(suit) ? getVar('--red') : getVar('--black-suit');
+}
 
 function makeCard(card,top,zIdx) {
   const el=document.createElement('div');
@@ -624,7 +701,7 @@ function makeSlot(label,labelColor) {
   el.className='slot';
   const radius=Math.max(3,Math.round(CW*0.07));
   el.style.cssText=`width:${CW}px;height:${CH}px;border-radius:${radius}px;`;
-  if(label) el.innerHTML=`<span style="color:${labelColor||'#ddd'};font-size:${CW*0.38}px;font-family:'Space Mono',monospace">${label}</span>`;
+  if(label) el.innerHTML=`<span style="color:${labelColor||getVar('--border-slot')};font-size:${CW*0.38}px;font-family:'Space Mono',monospace">${label}</span>`;
   return el;
 }
 
@@ -641,9 +718,7 @@ function render() {
       const el=makeCard(card,0,1);
       el.addEventListener('click',e=>{e.stopPropagation();smartMove('fc',null,null,fi);});
       wrap.appendChild(el);
-    } else {
-      wrap.appendChild(makeSlot());
-    }
+    } else { wrap.appendChild(makeSlot()); }
     fcRow.appendChild(wrap);
   });
 
@@ -657,12 +732,15 @@ function render() {
     wrap.style.cssText=`position:relative;width:${CW}px;height:${CH}px;flex-shrink:0`;
     if(top){ const el=makeCard(top,0,1); wrap.appendChild(el); }
     else {
-      const lc=isRed(suit)?'rgba(192,57,43,0.35)':'rgba(0,0,0,0.18)';
+      const lc=isRed(suit)
+        ? (darkMode?'rgba(224,85,85,0.3)':'rgba(192,57,43,0.35)')
+        : (darkMode?'rgba(232,232,232,0.18)':'rgba(0,0,0,0.18)');
       wrap.appendChild(makeSlot(suit,lc));
     }
     if(pile.length>0){
       const badge=document.createElement('div');
-      badge.style.cssText=`position:absolute;bottom:3px;right:4px;font-size:${Math.max(8,CW*0.14)}px;font-weight:700;color:rgba(0,0,0,0.2);pointer-events:none;z-index:10;font-family:'Space Mono',monospace`;
+      const badgeColor=getVar('--text-badge');
+      badge.style.cssText=`position:absolute;bottom:3px;right:4px;font-size:${Math.max(8,CW*0.14)}px;font-weight:700;color:${badgeColor};pointer-events:none;z-index:10;font-family:'Space Mono',monospace`;
       badge.textContent=pile.length;
       wrap.appendChild(badge);
     }
@@ -691,24 +769,17 @@ function render() {
     tabEl.appendChild(wrap);
   });
 
-  // Win overlay
   if(won) document.getElementById('win-overlay').classList.add('show');
 
-  // Button / text sizing
+  // Sizing
   const bfs=Math.max(9,CW*0.145);
   const bpad=`7px ${Math.round(CW*0.20)}px`;
   document.querySelectorAll('.btn').forEach(b=>{b.style.fontSize=bfs+'px';b.style.padding=bpad;});
   document.getElementById('hint').style.fontSize=Math.max(8,CW*0.115)+'px';
   document.getElementById('win-title').style.fontSize=Math.max(26,CW*0.58)+'px';
   document.getElementById('win-moves').style.fontSize=Math.max(9,CW*0.14)+'px';
-
-  // Stat column font sizing
-  document.querySelectorAll('.stat-val').forEach(el=>{
-    el.style.fontSize=Math.max(12,CW*0.22)+'px';
-  });
-  document.querySelectorAll('.stat-lbl').forEach(el=>{
-    el.style.fontSize=Math.max(8,CW*0.115)+'px';
-  });
+  document.querySelectorAll('.stat-val').forEach(el=>{ el.style.fontSize=Math.max(12,CW*0.22)+'px'; });
+  document.querySelectorAll('.stat-lbl').forEach(el=>{ el.style.fontSize=Math.max(8,CW*0.115)+'px'; });
 
   document.getElementById('btn-undo').disabled=!hist.length;
   document.getElementById('btn-restart').disabled=!initialDeal;
@@ -726,19 +797,21 @@ function render() {
 }
 
 // ── Event wiring ─────────────────────────────────────────────────────────────
-document.getElementById('btn-undo').addEventListener('click',undo);
-document.getElementById('btn-auto').addEventListener('click',()=>{
-  if(autoPlay){stopAuto();render();}
-  else{autoPlay=true;render();autoTimer=setTimeout(tickAuto,220);}
+document.getElementById('btn-theme').addEventListener('click', toggleTheme);
+document.getElementById('btn-undo').addEventListener('click', undo);
+document.getElementById('btn-auto').addEventListener('click', ()=>{
+  if(autoPlay){ stopAuto(); render(); }
+  else{ autoPlay=true; render(); autoTimer=setTimeout(tickAuto,220); }
 });
-document.getElementById('btn-restart').addEventListener('click',restartDeal);
-document.getElementById('btn-new').addEventListener('click',newGame);
-document.getElementById('btn-play-again').addEventListener('click',newGame);
+document.getElementById('btn-restart').addEventListener('click', restartDeal);
+document.getElementById('btn-new').addEventListener('click', newGame);
+document.getElementById('btn-play-again').addEventListener('click', newGame);
 
-window.addEventListener('resize',()=>{calcSizes();render();});
+window.addEventListener('resize',()=>{ calcSizes(); render(); });
 
 // ── Boot ─────────────────────────────────────────────────────────────────────
 calcSizes();
+loadTheme();
 loadStats();
 if(!loadGame()) newGame();
 else render();
