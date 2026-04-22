@@ -300,43 +300,62 @@ function scramble(word) {
 }
 
 // ── WORD FETCHING ─────────────────────────────────────────
-async function fetchRandomWords() {
-  const prompt =
-    'Give me exactly 2 common 5-letter English words and 2 common 6-letter English words. ' +
-    'Rules: real dictionary words only, no proper nouns, no plurals of proper nouns, all four words must be different, ' +
-    'choose them completely at random — surprise me every time. ' +
-    'Respond ONLY with a valid JSON array of 4 lowercase strings, like: ["brave","frost","castle","jungle"]. ' +
-    'The first two entries must be 5-letter words, the last two must be 6-letter words. ' +
-    'No other text, no markdown, no explanation.';
+// Loads the full dwyl english-words alpha list from GitHub,
+// filters to 5- and 6-letter words, then picks randomly.
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      messages: [{ role: 'user', content: prompt }]
-    })
-  });
+let wordCache = null; // { five: string[], six: string[] }
 
-  if (!res.ok) throw new Error('API error ' + res.status);
+async function loadWordList() {
+  if (wordCache) return wordCache;
 
-  const data = await res.json();
-  const text = data.content.map(b => b.text || '').join('').trim();
+  // Fetch both lists in parallel:
+  // 1. Scrabble dictionary — ensures words are valid
+  // 2. Google's 10k most common words — ensures words are familiar
+  const [scrabbleRes, commonRes] = await Promise.all([
+    fetch('https://raw.githubusercontent.com/redbo/scrabble/refs/heads/master/dictionary.txt'),
+    fetch('https://raw.githubusercontent.com/first20hours/google-10000-english/refs/heads/master/google-10000-english-no-swears.txt'),
+  ]);
 
-  // Strip any accidental markdown fences
-  const clean = text.replace(/```[a-z]*\n?/gi, '').trim();
-  const arr   = JSON.parse(clean);
+  if (!scrabbleRes.ok) throw new Error('Scrabble list fetch failed: ' + scrabbleRes.status);
+  if (!commonRes.ok)   throw new Error('Common list fetch failed: '   + commonRes.status);
 
-  if (!Array.isArray(arr) || arr.length !== 4) throw new Error('Unexpected response shape');
+  const [scrabbleText, commonText] = await Promise.all([
+    scrabbleRes.text(),
+    commonRes.text(),
+  ]);
 
-  // Validate lengths
-  const [w1, w2, w3, w4] = arr;
-  if (w1.length !== 5 || w2.length !== 5 || w3.length !== 6 || w4.length !== 6) {
-    throw new Error('Word lengths wrong: ' + JSON.stringify(arr));
+  // Build a Set of common words for fast lookup
+  const commonSet = new Set(
+    commonText.split('\n').map(w => w.trim().toLowerCase()).filter(Boolean)
+  );
+
+  const five = [], six = [];
+  for (let raw of scrabbleText.split('\n')) {
+    const w = raw.trim().toLowerCase();
+    if (!commonSet.has(w)) continue; // skip obscure words
+    if (w.length === 5) five.push(w);
+    else if (w.length === 6) six.push(w);
   }
 
-  return arr.map(w => w.toLowerCase().trim());
+  wordCache = { five, six };
+  return wordCache;
+}
+
+function pickN(arr, n) {
+  // Partial Fisher-Yates — only shuffle as far as needed
+  const a = arr.slice();
+  const result = [];
+  for (let i = 0; i < n; i++) {
+    const j = i + Math.floor(Math.random() * (a.length - i));
+    [a[i], a[j]] = [a[j], a[i]];
+    result.push(a[i]);
+  }
+  return result;
+}
+
+async function fetchRandomWords() {
+  const { five, six } = await loadWordList();
+  return [...pickN(five, 2), ...pickN(six, 2)];
 }
 
 // ── LOADING HELPERS ───────────────────────────────────────
