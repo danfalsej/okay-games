@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Okay Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --bg:       #ffffff;
+      --ink:      #000000;
+      --mid:      #000000;
+      --faint:    #000000;
+      --border:   #000000;
+      --rule:     #000000;
+    }
+
+    body.dark {
+      --bg:       #000000;
+      --ink:      #ffffff;
+      --mid:      #ffffff;
+      --faint:    #ffffff;
+      --border:   #ffffff;
+      --rule:     #ffffff;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Space Mono', monospace;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    /* ── WRAPPER ── */
+    .wrap {
+      width: 100%;
+      max-width: 460px;
+      padding: 28px 18px 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── HEADER ── */
+    .hdr {
+      width: 100%;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 11px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .hdr-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(22px, 6vw, 30px);
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      line-height: 1;
+      color: var(--ink);
+    }
+
+    .hdr-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+
+    .hdr-rule {
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: var(--ink);
+      text-align: right;
+      line-height: 1.7;
+    }
+
+    /* ── DARK MODE TOGGLE ── */
+    .dm-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--ink);
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 3px 7px;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .dm-toggle:hover  { background: var(--ink); color: var(--bg); }
+    .dm-toggle:active { opacity: 0.7; }
+
+    /* ── TAGLINE ── */
+    .tagline {
+      width: 100%;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--ink);
+      text-transform: uppercase;
+      margin-bottom: 28px;
+      padding-top: 6px;
+    }
+
+    /* ── SECTION LABEL ── */
+    .section-lbl {
+      width: 100%;
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: var(--ink);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    /* ── GAME CARDS ── */
+    .games-list {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .game-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-decoration: none;
+      color: var(--ink);
+      border: 1px solid var(--border);
+      padding: 16px 18px;
+      transition: background 0.12s ease, color 0.12s ease;
+      animation: fadeUp 0.45s ease both;
+    }
+
+    .game-card:nth-child(1) { animation-delay: 0.1s; }
+    .game-card:nth-child(2) { animation-delay: 0.2s; }
+    .game-card:nth-child(3) { animation-delay: 0.3s; }
+
+    .game-card:hover  { background: var(--ink); color: var(--bg); }
+    .game-card:active { background: var(--ink); color: var(--bg); opacity: 0.8; }
+
+    .card-left {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .card-num {
+      font-size: 9px;
+      letter-spacing: 2.5px;
+      color: var(--ink);
+    }
+
+    .card-name {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(18px, 5vw, 22px);
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      line-height: 1.1;
+    }
+
+    .card-desc {
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      color: var(--ink);
+      line-height: 1.6;
+      margin-top: 2px;
+    }
+
+    .card-arrow {
+      font-size: 20px;
+      flex-shrink: 0;
+      margin-left: 16px;
+      transition: transform 0.15s ease;
+    }
+
+    .game-card:hover .card-arrow { transform: translateX(4px); }
+
+    /* ── FOOTER ── */
+    footer {
+      width: 100%;
+      border-top: 1px solid var(--border);
+      margin-top: 32px;
+      padding-top: 16px;
+    }
+
+    .footer-text {
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--ink);
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    /* ── ANIMATION ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrap">
+
+    <div class="hdr">
+      <div class="hdr-title">Okay Games</div>
+      <div class="hdr-right">
+        <div class="hdr-rule">free to play<br>no downloads &middot; no ads</div>
+        <button class="dm-toggle" id="dm-btn" onclick="toggleDark()" aria-label="Toggle dark mode">Dark Mode</button>
+      </div>
+    </div>
+
+    <div class="tagline">No ads, no downloads, not that much fun.</div>
+
+    <div class="section-lbl">Available Now &mdash; 2 Games</div>
+
+    <div class="games-list">
+
+      <a class="game-card" href="okay_blitz.html">
+        <div class="card-left">
+          <div class="card-num">01</div>
+          <div class="card-name">Okay Blitz 21</div>
+          <div class="card-desc">Race the clock to hit 21.<br>A card game as exciting as the name implies.</div>
+        </div>
+        <div class="card-arrow">&#8594;</div>
+      </a>
+
+      <a class="game-card" href="okay_FreeCell.html">
+        <div class="card-left">
+          <div class="card-num">02</div>
+          <div class="card-name">Okay FreeCell</div>
+          <div class="card-desc">Classic FreeCell solitaire.<br>Every deal is winnable &mdash; whether you are is another matter.</div>
+        </div>
+        <div class="card-arrow">&#8594;</div>
+      </a>
+
+    </div>
+
+    <footer>
+      <div class="footer-text">
+        OKAY GAMES &mdash; ALL GAMES FREE, FOREVER<br>
+        MADE WITH ADEQUATE EFFORT
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    const btn = document.getElementById('dm-btn');
+
+    // Restore preference
+    if (localStorage.getItem('okayDark') === '1') {
+      document.body.classList.add('dark');
+      btn.textContent = 'Light Mode';
+    }
+
+    function toggleDark() {
+      const isDark = document.body.classList.toggle('dark');
+      btn.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+      localStorage.setItem('okayDark', isDark ? '1' : '0');
+    }
+  </script>
+
+</body>
+</html>
