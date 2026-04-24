@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Okay Solitaire</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:            #2d6a4f;
+    --bg-card:       #ffffff;
+    --bg-card-sel:   #f0f0f0;
+    --bg-footer:     #245c43;
+    --bg-overlay:    rgba(20,50,35,0.93);
+    --bg-win-box:    #ffffff;
+    --border:        #d8d8d8;
+    --border-slot:   rgba(255,255,255,0.30);
+    --border-hdr:    rgba(255,255,255,0.30);
+    --border-win:    #000000;
+    --border-footer: rgba(0,0,0,0.25);
+    --border-sel:    #000000;
+    --border-stats:  #e8e8e8;
+    --text:          #ffffff;
+    --text-muted:    rgba(255,255,255,0.45);
+    --text-hint:     rgba(255,255,255,0.30);
+    --text-moves:    #999999;
+    --btn-bg:        rgba(255,255,255,0.12);
+    --btn-border:    rgba(255,255,255,0.55);
+    --btn-text:      #ffffff;
+    --btn-hover:     rgba(255,255,255,0.22);
+    --btn-solid-bg:  #ffffff;
+    --btn-solid-txt: #2d6a4f;
+    --btn-solid-hov: #dddddd;
+    --red:           #c0392b;
+    --blk:           #000000;
+    --back:          #1e1e1e;
+    --back-inner:    rgba(255,255,255,0.07);
+    --tr: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+  }
+
+  [data-theme="dark"] {
+    --bg:            #1a3d2b;
+    --bg-card:       #ffffff;
+    --bg-card-sel:   #f0f0f0;
+    --bg-footer:     #142e20;
+    --bg-overlay:    rgba(10,25,17,0.93);
+    --bg-win-box:    #1f3a2a;
+    --border:        #d8d8d8;
+    --border-slot:   rgba(255,255,255,0.18);
+    --border-hdr:    rgba(255,255,255,0.20);
+    --border-win:    #e8e8e8;
+    --border-footer: rgba(0,0,0,0.40);
+    --border-sel:    #000000;
+    --border-stats:  #2e2e2e;
+    --text:          #e8e8e8;
+    --text-muted:    rgba(255,255,255,0.30);
+    --text-hint:     rgba(255,255,255,0.18);
+    --text-moves:    #666666;
+    --btn-bg:        rgba(255,255,255,0.08);
+    --btn-border:    rgba(255,255,255,0.35);
+    --btn-text:      #e8e8e8;
+    --btn-hover:     rgba(255,255,255,0.15);
+    --btn-solid-bg:  #e8e8e8;
+    --btn-solid-txt: #1a3d2b;
+    --btn-solid-hov: #cccccc;
+    --red:           #c0392b;
+    --blk:           #000000;
+    --back:          #1e1e1e;
+    --back-inner:    rgba(255,255,255,0.07);
+  }
+
+  html, body {
+    min-height: 100%; background: var(--bg);
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    font-family: 'Space Mono', monospace;
+    transition: var(--tr);
+  }
+
+  #app {
+    min-height: 100vh; background: var(--bg);
+    display: flex; flex-direction: column; align-items: center;
+    padding: 16px 6px 88px;
+    user-select: none; touch-action: manipulation;
+    transition: var(--tr);
+  }
+
+  /* ── HEADER ── */
+  #header {
+    width: 100%;
+    border-bottom: 2px solid var(--border-hdr);
+    padding-bottom: 11px; margin-bottom: 14px;
+    display: flex; justify-content: space-between;
+    align-items: flex-end; gap: 12px;
+    transition: var(--tr);
+  }
+  #title {
+    font-family: 'Playfair Display', serif; font-weight: 900;
+    color: var(--text); letter-spacing: -0.5px; line-height: 1; flex-shrink: 0;
+  }
+  #header-right { display: flex; align-items: flex-end; gap: 16px; }
+  #header-stats { display: flex; gap: 18px; align-items: flex-end; }
+  .stat-col { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+  .stat-lbl { font-size: 9px; letter-spacing: 2.5px; color: var(--text-muted); line-height: 1; }
+  .stat-val { font-family: 'Space Mono', monospace; font-weight: 700; color: var(--text); line-height: 1; }
+  .stat-val.muted { color: var(--text-muted); font-weight: 400; }
+
+  #btn-theme {
+    background: none; border: none; cursor: pointer;
+    padding: 0 0 2px; line-height: 1; font-size: 16px;
+    opacity: 0.45; transition: opacity 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    align-self: flex-end; flex-shrink: 0;
+  }
+  #btn-theme:hover { opacity: 0.9; }
+
+  /* ── GAME BOARD ── */
+  #top-row {
+    display: flex; align-items: flex-start;
+    gap: 2px; margin-bottom: 6px;
+  }
+  .top-spacer { flex: 1; min-width: 4px; }
+  #found-row { display: flex; gap: 2px; }
+  #tableau { display: flex; gap: 2px; align-items: flex-start; }
+  .col-wrap { position: relative; flex-shrink: 0; }
+
+  /* ── SLOTS ── */
+  .slot {
+    background: var(--bg); border: 1.5px dashed var(--border-slot);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+    position: absolute; top: 0; left: 0;
+    font-family: 'Space Mono', monospace; line-height: 1;
+    transition: var(--tr);
+  }
+
+  /* ── CARDS ── */
+  .card {
+    cursor: pointer; position: absolute; left: 0;
+    background: var(--bg-card); border: 1.5px solid var(--border);
+    display: flex; flex-direction: column; justify-content: space-between;
+    flex-shrink: 0; transition: border-color 0.08s, background 0.25s;
+  }
+  .card.sel {
+    border: 2px solid var(--border-sel) !important;
+    background: var(--bg-card-sel);
+  }
+  .card.back {
+    background: #3d6ea8;
+    border-color: #3d6ea8;
+    cursor: default;
+  }
+  .card.back.flippable { cursor: pointer; }
+  .card-corner { font-family: 'Space Mono', monospace; font-weight: 700; line-height: 1.1; }
+  .card-corner-bot { transform: rotate(180deg); text-align: right; }
+  .card-pip {
+    position: absolute; left: 0; right: 0;
+    text-align: center; line-height: 1; pointer-events: none; opacity: 0.9;
+  }
+
+  /* ── FOOTER ── */
+  #footer {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--bg-footer);
+    border-top: 1px solid var(--border-footer);
+    display: flex; flex-direction: column; align-items: center;
+    padding: 9px 12px calc(12px + env(safe-area-inset-bottom));
+    z-index: 100; transition: var(--tr);
+  }
+  #controls {
+    display: flex; align-items: center; gap: 7px;
+    justify-content: center; width: 100%; flex-wrap: nowrap;
+  }
+  #hint {
+    color: var(--text-hint); font-family: 'Space Mono', monospace;
+    text-align: center; margin-top: 6px; letter-spacing: 1px;
+  }
+
+  /* ── DEAL TOGGLE ── */
+  .deal-grp { display: flex; }
+  .deal-btn {
+    font-family: 'Space Mono', monospace; letter-spacing: 1px;
+    text-transform: uppercase; cursor: pointer;
+    border: 1px solid var(--btn-border);
+    background: var(--btn-bg); color: var(--btn-text);
+    outline: none; -webkit-tap-highlight-color: transparent;
+    transition: background 0.08s, color 0.08s, border-color 0.25s;
+    white-space: nowrap;
+  }
+  .deal-btn:first-child { border-right: none; }
+  .deal-btn.on {
+    background: var(--btn-solid-bg);
+    color: var(--btn-solid-txt);
+    border-color: var(--btn-solid-bg);
+  }
+  .deal-btn.on + .deal-btn { border-left-color: var(--btn-border); }
+
+  /* ── BUTTONS ── */
+  .btn {
+    font-family: 'Space Mono', monospace; font-weight: 400;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    cursor: pointer; user-select: none;
+    border: 1px solid var(--btn-border);
+    background: var(--btn-bg); color: var(--btn-text);
+    outline: none; -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: background 0.08s, color 0.08s, opacity 0.12s, border-color 0.25s;
+    white-space: nowrap;
+  }
+  .btn:active { background: var(--btn-hover); }
+  .btn:disabled { cursor: not-allowed; opacity: 0.25; }
+  #btn-new { background: var(--btn-solid-bg); color: var(--btn-solid-txt); border-color: var(--btn-solid-bg); }
+  #btn-new:active { background: var(--btn-solid-hov); }
+
+  /* ── WIN OVERLAY ── */
+  #win-overlay {
+    display: none; position: fixed; inset: 0;
+    background: var(--bg-overlay);
+    align-items: center; justify-content: center; z-index: 9999;
+  }
+  #win-overlay.show { display: flex; }
+  #win-box {
+    background: var(--bg-win-box); border: 2px solid var(--border-win);
+    padding: 36px 48px; text-align: center; max-width: 90vw;
+    animation: winPop 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+    transition: var(--tr);
+  }
+  #win-title {
+    font-family: 'Playfair Display', serif; font-weight: 900;
+    color: var(--text); margin-bottom: 8px; letter-spacing: 6px;
+  }
+  #win-moves { font-family: 'Space Mono', monospace; color: var(--text-moves); letter-spacing: 2px; margin-bottom: 16px; }
+  #win-stats {
+    display: flex; justify-content: center; gap: 32px;
+    margin-bottom: 28px; padding-top: 16px;
+    border-top: 1px solid var(--border-stats);
+  }
+  .ws-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .ws-lbl { font-size: 9px; letter-spacing: 2.5px; color: var(--text-muted); }
+  .ws-val { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--text); }
+
+  /* Buttons inside overlays always use hard contrast (boxes are white/dark card, not felt) */
+  #win-box .btn, #confirm-box .btn {
+    background: #ffffff;
+    color: #1a1a1a;
+    border-color: #1a1a1a;
+  }
+  #win-box .btn:active, #confirm-box .btn:active { background: #eeeeee; }
+  #confirm-ok {
+    background: #1a1a1a !important;
+    color: #ffffff !important;
+    border-color: #1a1a1a !important;
+  }
+  #confirm-ok:active { background: #444 !important; }
+  [data-theme="dark"] #win-box .btn, [data-theme="dark"] #confirm-box .btn {
+    background: #2a2a2a;
+    color: #e8e8e8;
+    border-color: #e8e8e8;
+  }
+  [data-theme="dark"] #confirm-ok {
+    background: #e8e8e8 !important;
+    color: #1a1a1a !important;
+    border-color: #e8e8e8 !important;
+  }
+  [data-theme="dark"] .ws-lbl { color: #888; }
+  [data-theme="dark"] .ws-val { color: #e8e8e8; }
+  [data-theme="dark"] #win-title { color: #e8e8e8; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes winPop {
+    0%  { transform: scale(0.8); opacity: 0; }
+    70% { transform: scale(1.03); }
+    100%{ transform: scale(1); opacity: 1; }
+  }
+  @keyframes shake {
+    0%,100%{ transform:translateX(0) }
+    20%{ transform:translateX(-7px) }
+    40%{ transform:translateX(7px) }
+    60%{ transform:translateX(-4px) }
+    80%{ transform:translateX(3px) }
+  }
+  .shake { animation: shake 0.34s ease !important; }
+
+  /* ── CONFIRM OVERLAY ── */
+  #confirm-overlay {
+    display: none; position: fixed; inset: 0;
+    background: var(--bg-overlay);
+    align-items: center; justify-content: center; z-index: 10000;
+  }
+  #confirm-overlay.show { display: flex; }
+  #confirm-box {
+    background: var(--bg-win-box); border: 2px solid var(--border-win);
+    padding: 28px 36px; text-align: center; max-width: 88vw;
+    animation: winPop 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+    transition: var(--tr);
+  }
+  #confirm-title {
+    font-family: 'Playfair Display', serif; font-weight: 900;
+    font-size: 20px; color: var(--text); letter-spacing: 4px; margin-bottom: 12px;
+  }
+  #confirm-msg {
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    color: var(--text-moves); letter-spacing: 0.5px; margin-bottom: 22px; line-height: 1.8;
+  }
+  #confirm-msg strong { color: var(--text); font-weight: 700; }
+  #confirm-btns { display: flex; gap: 10px; justify-content: center; }
+  #confirm-ok { background: var(--btn-solid-bg); color: var(--btn-solid-txt); border-color: var(--btn-solid-bg); }
+  #confirm-ok:active { background: var(--btn-solid-hov); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="header">
+    <div id="title">Okay Solitaire</div>
+    <div id="header-right">
+      <div id="header-stats">
+        <div class="stat-col">
+          <div class="stat-lbl">MOVES</div>
+          <div class="stat-val muted" id="hdr-moves">0</div>
+        </div>
+        <div class="stat-col">
+          <div class="stat-lbl">WINS</div>
+          <div class="stat-val" id="hdr-wins">0</div>
+        </div>
+        <div class="stat-col">
+          <div class="stat-lbl">STREAK</div>
+          <div class="stat-val" id="hdr-streak">0</div>
+        </div>
+      </div>
+      <button id="btn-theme" aria-label="Toggle night mode">&#9680;</button>
+    </div>
+  </div>
+
+  <div id="top-row">
+    <div id="found-row"></div>
+    <div class="top-spacer"></div>
+    <div id="waste-wrap" style="flex-shrink:0;position:relative;overflow:visible;margin-right:10px"></div>
+    <div id="stock-wrap" style="flex-shrink:0;position:relative"></div>
+  </div>
+
+  <div id="tableau"></div>
+
+</div>
+
+<div id="footer">
+  <div id="controls">
+    <button class="btn" id="btn-undo" disabled>&#8617; Undo</button>
+    <div class="deal-grp">
+      <button class="deal-btn on" id="d1" onclick="setDeal(1)">Deal 1</button>
+      <button class="deal-btn" id="d3" onclick="setDeal(3)">Deal 3</button>
+    </div>
+    <button class="btn" id="btn-restart">&#8635; Restart</button>
+    <button class="btn" id="btn-new">New Game</button>
+  </div>
+  <div id="hint">Tap any card to move it automatically</div>
+</div>
+
+<div id="win-overlay">
+  <div id="win-box">
+    <div id="win-title">YOU WIN</div>
+    <div id="win-moves"></div>
+    <div id="win-stats">
+      <div class="ws-col"><div class="ws-lbl">WINS</div><div class="ws-val" id="w-wins">0</div></div>
+      <div class="ws-col"><div class="ws-lbl">STREAK</div><div class="ws-val" id="w-streak">0</div></div>
+    </div>
+    <button class="btn" id="btn-again">Play Again</button>
+  </div>
+</div>
+
+<div id="confirm-overlay">
+  <div id="confirm-box">
+    <div id="confirm-title">RESET STREAK?</div>
+    <div id="confirm-msg">Starting a new game will reset<br>your win streak of <strong id="confirm-streak">0</strong>.</div>
+    <div id="confirm-btns">
+      <button class="btn" id="confirm-cancel">Cancel</button>
+      <button class="btn" id="confirm-ok">New Game</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ── CONSTANTS ────────────────────────────────────────────────────────────────
+const SUITS = ['♠','♥','♦','♣'];
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const RV    = {A:1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,J:11,Q:12,K:13};
+const isRed = s => s==='♥'||s==='♦';
+
+const SAVE_KEY  = 'okaysol_v1';
+const STATS_KEY = 'okaysol_stats_v1';
+const THEME_KEY = 'okayfreecell_theme'; // share theme pref with FreeCell
+
+// ── SIZING ───────────────────────────────────────────────────────────────────
+let CW, CH, OFF_D, OFF_U, FAN;
+
+function calcSizes() {
+  CW    = Math.max(40, Math.min(88, Math.floor((window.innerWidth - 24) / 7)));
+  CH    = Math.round(CW * 1.58);
+  OFF_D = Math.max(16, Math.round(CW * 0.26));  // face-down overlap
+  OFF_U = Math.max(28, Math.round(CW * 0.44));  // face-up overlap
+  FAN   = Math.max(14, Math.round(CW * 0.22));  // deal-3 waste fan
+}
+
+// ── THEME ────────────────────────────────────────────────────────────────────
+let dark = false;
+
+function loadTheme() {
+  dark = localStorage.getItem(THEME_KEY) === 'dark';
+  applyTheme();
+}
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  document.getElementById('btn-theme').textContent = dark ? '◑' : '◐';
+}
+function toggleTheme() {
+  dark = !dark; applyTheme();
+  try { localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light'); } catch(e) {}
+  render();
+}
+
+// ── STATS ────────────────────────────────────────────────────────────────────
+let wins = 0, streak = 0;
+
+function loadStats() {
+  try { const s = JSON.parse(localStorage.getItem(STATS_KEY)||'{}'); wins=s.wins||0; streak=s.streak||0; } catch(e) {}
+}
+function saveStats() {
+  try { localStorage.setItem(STATS_KEY, JSON.stringify({wins, streak})); } catch(e) {}
+}
+function recordWin()  { wins++; streak++;          saveStats(); showStats(); }
+function breakStreak(){ streak = 0;                saveStats(); showStats(); }
+function showStats() {
+  document.getElementById('hdr-wins').textContent   = wins;
+  document.getElementById('hdr-streak').textContent = streak;
+  document.getElementById('w-wins').textContent     = wins;
+  document.getElementById('w-streak').textContent   = streak;
+}
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let state, hist, moves, won, dealMode, initialDeal;
+let sel = null; // {from:'stock'|'waste'|'found'|'tab', col, ci, suitKey, cards:[]}
+
+// ── DECK ─────────────────────────────────────────────────────────────────────
+function mkDeck() {
+  return SUITS.flatMap(s => RANKS.map(r => ({suit:s, rank:r, id:`${r}${s}`, up:false})));
+}
+function shuffle(a) {
+  const b = [...a];
+  for (let i = b.length-1; i > 0; i--) { const j = 0|Math.random()*(i+1); [b[i],b[j]]=[b[j],b[i]]; }
+  return b;
+}
+
+// ── RULES ────────────────────────────────────────────────────────────────────
+function canFoundation(card, foundations) {
+  const p = foundations[card.suit];
+  return p.length===0 ? card.rank==='A' : RV[card.rank]===p.length+1;
+}
+function canTableau(card, col) {
+  if (!col.length) return card.rank==='K';
+  const t = col[col.length-1];
+  return t.up && isRed(t.suit)!==isRed(card.suit) && RV[t.rank]===RV[card.rank]+1;
+}
+function validSeq(cards) {
+  for (let i = 1; i < cards.length; i++) {
+    if (!cards[i].up) return false;
+    if (isRed(cards[i-1].suit)===isRed(cards[i].suit)) return false;
+    if (RV[cards[i-1].rank] !== RV[cards[i].rank]+1) return false;
+  }
+  return true;
+}
+
+// ── SNAPSHOT / HISTORY ───────────────────────────────────────────────────────
+function clone(c) { return {...c}; }
+function snap() {
+  return {
+    stock:       state.stock.map(clone),
+    waste:       state.waste.map(clone),
+    foundations: Object.fromEntries(Object.entries(state.foundations).map(([k,v])=>[k,v.map(clone)])),
+    tableau:     state.tableau.map(col => col.map(clone))
+  };
+}
+
+function commit(next) {
+  hist.push(snap());
+  state = next;
+  moves++;
+  saveGame();
+  render();
+  checkWin();
+}
+
+// ── PERSISTENCE ──────────────────────────────────────────────────────────────
+function saveGame() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({state,hist,moves,won,dealMode,initialDeal}));
+  } catch(e) {}
+}
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const s = JSON.parse(raw);
+    if (!s.state || !s.initialDeal) return false;
+    state=s.state; hist=s.hist||[]; moves=s.moves||0;
+    won=s.won||false; dealMode=s.dealMode||1; initialDeal=s.initialDeal;
+    return true;
+  } catch(e) { return false; }
+}
+function checkWin() {
+  if (Object.values(state.foundations).every(p => p.length===13)) {
+    won = true;
+    recordWin(); saveGame();
+    document.getElementById('win-moves').textContent = `Completed in ${moves} moves`;
+    document.getElementById('win-overlay').classList.add('show');
+  }
+}
+
+// ── GAME SETUP ───────────────────────────────────────────────────────────────
+function dealCards() {
+  const deck = shuffle(mkDeck());
+  const tab = Array.from({length:7}, () => []);
+  let idx = 0;
+  for (let col = 0; col < 7; col++) {
+    for (let row = 0; row <= col; row++) {
+      tab[col].push({...deck[idx++], up: row===col});
+    }
+  }
+  const stock = deck.slice(idx).map(c => ({...c, up:false}));
+  initialDeal = { tab: tab.map(col=>col.map(clone)), stock: stock.map(clone) };
+  state = {
+    stock, waste: [],
+    foundations: {'♠':[],'♥':[],'♦':[],'♣':[]},
+    tableau: tab
+  };
+  hist=[]; moves=0; won=false; sel=null;
+  document.getElementById('win-overlay').classList.remove('show');
+  saveGame(); render();
+}
+
+function restartDeal() {
+  if (!initialDeal) return;
+  state = {
+    stock: initialDeal.stock.map(clone),
+    waste: [],
+    foundations: {'♠':[],'♥':[],'♦':[],'♣':[]},
+    tableau: initialDeal.tab.map(col=>col.map(clone))
+  };
+  hist=[]; moves=0; won=false; sel=null;
+  document.getElementById('win-overlay').classList.remove('show');
+  saveGame(); render();
+}
+
+function newGame() {
+  if (moves > 0 && !won) breakStreak();
+  dealCards();
+}
+
+function setDeal(n) {
+  if (n === dealMode && moves === 0) {
+    // same mode, nothing to do
+    document.getElementById('d1').classList.toggle('on', n===1);
+    document.getElementById('d3').classList.toggle('on', n===3);
+    return;
+  }
+  const doSetDeal = () => {
+    dealMode = n;
+    document.getElementById('d1').classList.toggle('on', n===1);
+    document.getElementById('d3').classList.toggle('on', n===3);
+    if (moves > 0 && !won) breakStreak();
+    dealCards();
+  };
+  maybeConfirm(doSetDeal);
+}
+
+function undo() {
+  if (!hist.length) return;
+  state = hist.pop(); moves = Math.max(0, moves-1);
+  sel = null; saveGame(); render();
+}
+
+// ── STOCK FLIP ───────────────────────────────────────────────────────────────
+function flipStock() {
+  if (won) return;
+  sel = null;
+  const ns = snap();
+  if (ns.stock.length > 0) {
+    const n = Math.min(dealMode, ns.stock.length);
+    const flipped = ns.stock.splice(ns.stock.length - n, n);
+    flipped.forEach(c => { c.up = true; });
+    ns.waste.push(...flipped);
+  } else {
+    // Reset: reverse waste back to stock
+    ns.stock = ns.waste.reverse().map(c => ({...c, up:false}));
+    ns.waste = [];
+  }
+  commit(ns);
+}
+
+// ── REMOVE SELECTION FROM SNAPSHOT ───────────────────────────────────────────
+function removeSel(ns) {
+  if (sel.from === 'waste') {
+    ns.waste = ns.waste.slice(0, -1);
+  } else if (sel.from === 'tab') {
+    ns.tableau[sel.col] = ns.tableau[sel.col].slice(0, sel.ci);
+    // Auto-flip newly exposed face-down card
+    const col = ns.tableau[sel.col];
+    if (col.length && !col[col.length-1].up) col[col.length-1].up = true;
+  } else if (sel.from === 'found') {
+    ns.foundations[sel.suitKey] = ns.foundations[sel.suitKey].slice(0, -1);
+  }
+}
+
+// ── MOVE SELECTION TO TARGET ──────────────────────────────────────────────────
+function moveSelTo(targetType, targetArg) {
+  if (!sel || won) return false;
+  const ns = snap();
+  const card = sel.cards[0];
+
+  if (targetType === 'found') {
+    if (sel.cards.length !== 1) return false;
+    const suit = SUITS[targetArg];
+    if (card.suit !== suit) return false;
+    if (!canFoundation(card, ns.foundations)) return false;
+    removeSel(ns);
+    ns.foundations[suit].push({...card, up:true});
+    sel = null; commit(ns); return true;
+  }
+
+  if (targetType === 'tab') {
+    const col = ns.tableau[targetArg];
+    if (!canTableau(card, col)) return false;
+    removeSel(ns);
+    ns.tableau[targetArg].push(...sel.cards.map(clone));
+    sel = null; commit(ns); return true;
+  }
+
+  return false;
+}
+
+// ── INTERACTION HANDLERS ──────────────────────────────────────────────────────
+function onStock() {
+  sel = null;
+  flipStock();
+}
+
+// ── AUTO-MOVE ─────────────────────────────────────────────────────────────────
+// Given a selection object, find the best valid destination and move there.
+// Returns true if a move was made.
+function tryAutoMove(selection) {
+  const ns = snap();
+  const card = selection.cards[0];
+
+  // 1. Try foundation (single cards only)
+  if (selection.cards.length === 1) {
+    for (let si = 0; si < SUITS.length; si++) {
+      const suit = SUITS[si];
+      if (card.suit === suit && canFoundation(card, ns.foundations)) {
+        sel = selection;
+        return moveSelTo('found', si);
+      }
+    }
+  }
+
+  // 2. Try tableau — prefer non-empty columns first, then empty
+  const cols = state.tableau.map((col, i) => i);
+  const nonEmpty = cols.filter(i => state.tableau[i].length > 0);
+  const empty    = cols.filter(i => state.tableau[i].length === 0);
+
+  for (const i of [...nonEmpty, ...empty]) {
+    if (selection.from === 'tab' && selection.col === i) continue; // skip own column
+    if (canTableau(card, state.tableau[i])) {
+      sel = selection;
+      return moveSelTo('tab', i);
+    }
+  }
+
+  return false;
+}
+
+function onWaste() {
+  if (won) return;
+  if (!state.waste.length) { sel=null; render(); return; }
+  const card = state.waste[state.waste.length-1];
+  const selection = { from:'waste', col:null, ci:state.waste.length-1, cards:[{...card}] };
+  if (!tryAutoMove(selection)) {
+    // No valid move — briefly flash selected state as feedback
+    sel = selection; render();
+    setTimeout(() => { if (sel && sel.from==='waste') { sel=null; render(); } }, 350);
+  }
+}
+
+function onFound(si) {
+  if (won) return;
+  if (sel) {
+    const ok = moveSelTo('found', si);
+    if (!ok) { sel=null; render(); }
+  } else {
+    // Select top of foundation to move back to tableau
+    const suit = SUITS[si];
+    const pile = state.foundations[suit];
+    if (pile.length) {
+      const selection = { from:'found', col:null, ci:pile.length-1, suitKey:suit, cards:[{...pile[pile.length-1]}] };
+      if (!tryAutoMove(selection)) {
+        sel = selection; render();
+        setTimeout(() => { if (sel && sel.from==='found') { sel=null; render(); } }, 350);
+      }
+    }
+  }
+}
+
+function onTabCard(col, ci) {
+  if (won) return;
+  const column = state.tableau[col];
+  const card = column[ci];
+
+  if (!card.up) {
+    // Only the exposed (last) face-down card can be flipped
+    if (ci === column.length-1) {
+      sel = null;
+      const ns = snap();
+      ns.tableau[col][ci] = {...ns.tableau[col][ci], up:true};
+      commit(ns);
+    }
+    return;
+  }
+
+  const cards = column.slice(ci).map(clone);
+  if (!validSeq(cards)) { sel=null; render(); return; }
+
+  const selection = { from:'tab', col, ci, cards };
+  if (!tryAutoMove(selection)) {
+    // No valid destination — flash selected as feedback
+    sel = selection; render();
+    setTimeout(() => { if (sel && sel.from==='tab' && sel.col===col && sel.ci===ci) { sel=null; render(); } }, 350);
+  }
+}
+
+function onTabEmpty(col) {
+  if (won) return;
+  if (sel) {
+    const ok = moveSelTo('tab', col);
+    if (!ok) { sel=null; render(); }
+  }
+}
+
+function isSelected(card) {
+  return sel ? sel.cards.some(c => c.id===card.id) : false;
+}
+
+// ── RENDERING ────────────────────────────────────────────────────────────────
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function makeSlot(onClick, label, labelColor) {
+  const el = document.createElement('div');
+  el.className = 'slot';
+  const r = Math.max(3, Math.round(CW*0.07));
+  el.style.cssText = `width:${CW}px;height:${CH}px;border-radius:${r}px;`;
+  if (label) {
+    const span = document.createElement('span');
+    span.textContent = label;
+    span.style.cssText = `color:${labelColor||cssVar('--border-slot')};font-size:${Math.round(CW*0.36)}px;font-family:'Space Mono',monospace`;
+    el.appendChild(span);
+  }
+  if (onClick) el.addEventListener('click', e => { e.stopPropagation(); onClick(); });
+  return el;
+}
+
+function makeCardEl(card, top, z, onClick) {
+  const el = document.createElement('div');
+  const faceDown = !card.up;
+  el.className = 'card' + (faceDown ? ' back' : '') + ((!faceDown && isSelected(card)) ? ' sel' : '');
+  const r = Math.max(3, Math.round(CW*0.07));
+  const p = Math.max(2, Math.round(CW*0.07));
+
+  if (faceDown) {
+    el.style.cssText = `width:${CW}px;height:${CH}px;top:${top}px;z-index:${z};border-radius:${r}px;overflow:hidden;background:#3d6ea8;border-color:#3d6ea8;`;
+    // Build "OK" repeating text grid via canvas-free inline SVG
+    const cellW = 16, cellH = 12;
+    const cols2 = Math.ceil(70 / cellW) + 1;
+    const rows2 = Math.ceil(110 / cellH) + 1;
+    let texts = '';
+    for (let row = 0; row < rows2; row++) {
+      for (let col = 0; col < cols2; col++) {
+        const x = col * cellW + (row % 2 === 0 ? 0 : cellW / 2);
+        const y = row * cellH;
+        texts += `<text x="${x}" y="${y}" font-family="'Space Mono',monospace" font-size="7" font-weight="700" fill="rgba(255,255,255,0.18)" letter-spacing="1">${col % 2 === 0 ? 'OK' : 'OK'}</text>`;
+      }
+    }
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('viewBox','0 0 70 110');
+    svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;';
+    svg.innerHTML = `
+      <rect width="70" height="110" fill="#3d6ea8"/>
+      ${texts}
+      <rect x="3" y="3" width="64" height="104" rx="2" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1.2"/>
+    `;
+    el.appendChild(svg);
+    if (card.flippable) el.classList.add('flippable');
+  } else {
+    el.style.cssText = `width:${CW}px;height:${CH}px;top:${top}px;z-index:${z};border-radius:${r}px;padding:${p}px;`;
+    const col = isRed(card.suit) ? cssVar('--red') : cssVar('--blk');
+    const rf = Math.max(12, CW*0.38);
+    const sf = Math.max(10, CW*0.28);
+    const bf = Math.max(18, CW*0.54);
+    const g  = Math.max(1,  CW*0.04);
+    el.innerHTML =
+      `<div class="card-corner" style="color:${col};display:flex;align-items:baseline;gap:${g}px">` +
+        `<span style="font-size:${rf}px;line-height:1">${card.rank}</span>` +
+        `<span style="font-size:${sf}px;line-height:1">${card.suit}</span>` +
+      `</div>` +
+      `<div class="card-pip" style="font-size:${bf}px;color:${col};top:50%;transform:translateY(-50%)">${card.suit}</div>` +
+      `<div class="card-corner card-corner-bot" style="color:${col};display:flex;align-items:baseline;gap:${g}px">` +
+        `<span style="font-size:${rf}px;line-height:1">${card.rank}</span>` +
+        `<span style="font-size:${sf}px;line-height:1">${card.suit}</span>` +
+      `</div>`;
+  }
+
+  if (onClick) el.addEventListener('click', e => { e.stopPropagation(); onClick(); });
+  return el;
+}
+
+function render() {
+  const totalW = 7 * CW + 12;
+  document.getElementById('header').style.width      = totalW + 'px';
+  document.getElementById('top-row').style.width     = totalW + 'px';
+  document.getElementById('tableau').style.width     = totalW + 'px';
+  document.getElementById('title').style.fontSize    = Math.max(16, CW*0.36) + 'px';
+  document.getElementById('hdr-moves').textContent   = moves;
+
+  // Stat font sizes
+  document.querySelectorAll('.stat-val').forEach(e => e.style.fontSize = Math.max(11, CW*0.20)+'px');
+  document.querySelectorAll('.stat-lbl').forEach(e => e.style.fontSize = Math.max(8,  CW*0.10)+'px');
+
+  // ── STOCK ──
+  const sw = document.getElementById('stock-wrap');
+  sw.innerHTML = '';
+  sw.style.cssText = `width:${CW}px;height:${CH}px;flex-shrink:0;position:relative`;
+
+  if (state.stock.length) {
+    const el = makeCardEl({up:false, rank:'', suit:'', id:'__stock'}, 0, 1, onStock);
+    el.style.position = 'absolute';
+    sw.appendChild(el);
+  } else {
+    const sl = makeSlot(onStock, '\u21BA', cssVar('--text-muted'));
+    sl.style.cssText += ';cursor:pointer';
+    sw.appendChild(sl);
+  }
+
+  // ── WASTE ──
+  const ww = document.getElementById('waste-wrap');
+  ww.innerHTML = '';
+  ww.style.cssText = `width:${CW}px;height:${CH}px;flex-shrink:0;position:relative;overflow:visible`;
+
+  if (!state.waste.length) {
+    ww.appendChild(makeSlot(null));
+  } else if (dealMode === 1) {
+    const card = state.waste[state.waste.length-1];
+    const el = makeCardEl(card, 0, 1, onWaste);
+    el.style.position = 'absolute';
+    ww.appendChild(el);
+  } else {
+    // Deal 3: fan cards evenly across spacer — bottom near foundation, top at waste-wrap position
+    const n    = state.waste.length;
+    const show = Math.min(3, n);
+    // spacer = CW wide (see layout math), spread bottom card CW+4 to the left
+    const spread = Math.round((CW + 4) * 0.9);
+    for (let i = 0; i < show; i++) {
+      const cardIdx = n - show + i;
+      const card    = state.waste[cardIdx];
+      const isTop   = (i === show-1);
+      const el      = makeCardEl(card, 0, i+1, isTop ? onWaste : null);
+      el.style.position = 'absolute';
+      // top card (i=show-1) at left=0; cards evenly spaced to the left
+      const offset = show === 1 ? 0 : -Math.round((show-1-i) * spread / (show-1));
+      el.style.left = `${offset}px`;
+      if (!isTop) el.style.cursor = 'default';
+      ww.appendChild(el);
+    }
+  }
+
+  // ── FOUNDATIONS ──
+  const fr = document.getElementById('found-row');
+  fr.innerHTML = '';
+  SUITS.forEach((suit, si) => {
+    const pile = state.foundations[suit];
+    const wrap = document.createElement('div');
+    wrap.style.cssText = `position:relative;width:${CW}px;height:${CH}px;flex-shrink:0`;
+
+    if (pile.length) {
+      const card = pile[pile.length-1];
+      const el = makeCardEl(card, 0, 1, () => onFound(si));
+      el.style.position = 'absolute';
+      wrap.appendChild(el);
+    } else {
+      const lc = isRed(suit)
+        ? 'rgba(192,57,43,0.35)'
+        : (dark ? 'rgba(232,232,232,0.18)' : 'rgba(0,0,0,0.18)');
+      const sl = makeSlot(() => onFound(si), suit, lc);
+      wrap.appendChild(sl);
+    }
+    fr.appendChild(wrap);
+  });
+
+  // ── TABLEAU ──
+  const tab = document.getElementById('tableau');
+  tab.innerHTML = '';
+
+  state.tableau.forEach((col, ci) => {
+    // Calculate y positions for each card
+    const ys = [0];
+    for (let i = 0; i < col.length-1; i++) {
+      ys.push(ys[i] + (col[i].up ? OFF_U : OFF_D));
+    }
+    const totalH = col.length === 0 ? CH : ys[col.length-1] + CH;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'col-wrap';
+    wrap.style.cssText = `width:${CW}px;height:${totalH}px;flex-shrink:0`;
+
+    if (!col.length) {
+      const sl = makeSlot(() => onTabEmpty(ci));
+      sl.style.cssText += ';position:absolute;top:0;left:0';
+      wrap.appendChild(sl);
+    } else {
+      col.forEach((card, idx) => {
+        const isLast = idx === col.length-1;
+        const el = makeCardEl(
+          {...card, flippable: !card.up && isLast},
+          ys[idx], idx+1,
+          () => onTabCard(ci, idx)
+        );
+        // Mark all cards in selected sequence
+        if (!card.up && isLast) el.classList.add('flippable');
+        wrap.appendChild(el);
+      });
+    }
+    tab.appendChild(wrap);
+  });
+
+  // ── FOOTER BUTTONS ──
+  const bfs  = Math.max(9, CW*0.138);
+  const bpad = `7px ${Math.round(CW*0.18)}px`;
+  const dpad = `7px ${Math.round(CW*0.13)}px`;
+  const dfs  = Math.max(8, CW*0.12);
+  document.querySelectorAll('.btn').forEach(b  => { b.style.fontSize=bfs+'px'; b.style.padding=bpad; });
+  document.querySelectorAll('.deal-btn').forEach(b => { b.style.fontSize=dfs+'px'; b.style.padding=dpad; });
+  document.getElementById('hint').style.fontSize = Math.max(8, CW*0.10) + 'px';
+  document.getElementById('btn-undo').disabled    = !hist.length;
+  document.getElementById('btn-restart').disabled = !initialDeal;
+
+  // ── WIN OVERLAY SIZING ──
+  document.getElementById('win-title').style.fontSize = Math.max(24, CW*0.56) + 'px';
+  document.getElementById('win-moves').style.fontSize = Math.max(9,  CW*0.13) + 'px';
+
+  if (won) document.getElementById('win-overlay').classList.add('show');
+  showStats();
+}
+
+// ── CONFIRMATION DIALOG ───────────────────────────────────────────────────────
+let pendingAction = null;
+
+function maybeConfirm(action) {
+  if (streak > 0 && moves > 0 && !won) {
+    document.getElementById('confirm-streak').textContent = streak;
+    document.getElementById('confirm-overlay').classList.add('show');
+    pendingAction = action;
+  } else {
+    action();
+  }
+}
+
+// ── EVENT WIRING ─────────────────────────────────────────────────────────────
+document.getElementById('btn-theme').addEventListener('click', toggleTheme);
+document.getElementById('btn-undo').addEventListener('click', undo);
+document.getElementById('btn-restart').addEventListener('click', restartDeal);
+document.getElementById('btn-new').addEventListener('click', () => maybeConfirm(newGame));
+document.getElementById('btn-again').addEventListener('click', newGame);
+document.getElementById('confirm-cancel').addEventListener('click', () => {
+  document.getElementById('confirm-overlay').classList.remove('show');
+  pendingAction = null;
+});
+document.getElementById('confirm-ok').addEventListener('click', () => {
+  document.getElementById('confirm-overlay').classList.remove('show');
+  if (pendingAction) { pendingAction(); pendingAction = null; }
+});
+window.addEventListener('resize', () => { calcSizes(); render(); });
+
+// ── BOOT ─────────────────────────────────────────────────────────────────────
+calcSizes();
+loadTheme();
+loadStats();
+
+if (loadGame()) {
+  document.getElementById('d1').classList.toggle('on', dealMode===1);
+  document.getElementById('d3').classList.toggle('on', dealMode===3);
+  render();
+} else {
+  dealMode = 1;
+  dealCards();
+}
+</script>
+</body>
+</html>
