@@ -1,0 +1,382 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2685.4">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px Courier; -webkit-text-stroke: #000000}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px Courier; -webkit-text-stroke: #000000; min-height: 16.0px}
+    span.s1 {font-kerning: none}
+  </style>
+</head>
+<body>
+<p class="p1"><span class="s1">&lt;!DOCTYPE html&gt;</span></p>
+<p class="p1"><span class="s1">&lt;html lang="en"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;head&gt;</span></p>
+<p class="p1"><span class="s1">&lt;meta charset="UTF-8"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;title&gt;Okay Anagram&lt;/title&gt;</span></p>
+<p class="p1"><span class="s1">&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;style&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">body{</span></p>
+<p class="p1"><span class="s1">margin:0;</span></p>
+<p class="p1"><span class="s1">background:#fff;</span></p>
+<p class="p1"><span class="s1">color:#000;</span></p>
+<p class="p1"><span class="s1">font-family:Georgia,serif;</span></p>
+<p class="p1"><span class="s1">display:flex;</span></p>
+<p class="p1"><span class="s1">flex-direction:column;</span></p>
+<p class="p1"><span class="s1">align-items:center;</span></p>
+<p class="p1"><span class="s1">padding:24px 16px 40px;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">h1{</span></p>
+<p class="p1"><span class="s1">letter-spacing:6px;</span></p>
+<p class="p1"><span class="s1">margin-bottom:6px;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">.subtitle{</span></p>
+<p class="p1"><span class="s1">font-size:13px;</span></p>
+<p class="p1"><span class="s1">color:#777;</span></p>
+<p class="p1"><span class="s1">letter-spacing:1px;</span></p>
+<p class="p1"><span class="s1">margin-bottom:20px;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">.score{</span></p>
+<p class="p1"><span class="s1">width:100%;</span></p>
+<p class="p1"><span class="s1">max-width:420px;</span></p>
+<p class="p1"><span class="s1">display:flex;</span></p>
+<p class="p1"><span class="s1">justify-content:space-between;</span></p>
+<p class="p1"><span class="s1">font-size:13px;</span></p>
+<p class="p1"><span class="s1">margin-bottom:10px;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">.progress{</span></p>
+<p class="p1"><span class="s1">height:2px;</span></p>
+<p class="p1"><span class="s1">background:#e8e8e8;</span></p>
+<p class="p1"><span class="s1">width:100%;</span></p>
+<p class="p1"><span class="s1">max-width:420px;</span></p>
+<p class="p1"><span class="s1">margin-bottom:16px;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">.bar{</span></p>
+<p class="p1"><span class="s1">height:100%;</span></p>
+<p class="p1"><span class="s1">background:#000;</span></p>
+<p class="p1"><span class="s1">width:0%;</span></p>
+<p class="p1"><span class="s1">transition:width .4s;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">#grid{</span></p>
+<p class="p1"><span class="s1">display:grid;</span></p>
+<p class="p1"><span class="s1">grid-template-columns:repeat(3,70px);</span></p>
+<p class="p1"><span class="s1">grid-template-rows:repeat(3,70px);</span></p>
+<p class="p1"><span class="s1">gap:8px;</span></p>
+<p class="p1"><span class="s1">margin-bottom:14px;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">.cell{</span></p>
+<p class="p1"><span class="s1">display:flex;</span></p>
+<p class="p1"><span class="s1">align-items:center;</span></p>
+<p class="p1"><span class="s1">justify-content:center;</span></p>
+<p class="p1"><span class="s1">border:1px solid #000;</span></p>
+<p class="p1"><span class="s1">font-weight:bold;</span></p>
+<p class="p1"><span class="s1">font-size:20px;</span></p>
+<p class="p1"><span class="s1">cursor:pointer;</span></p>
+<p class="p1"><span class="s1">user-select:none;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">.center{</span></p>
+<p class="p1"><span class="s1">background:#000;</span></p>
+<p class="p1"><span class="s1">color:#fff;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">.input{</span></p>
+<p class="p1"><span class="s1">font-size:24px;</span></p>
+<p class="p1"><span class="s1">letter-spacing:6px;</span></p>
+<p class="p1"><span class="s1">border-bottom:2px solid #000;</span></p>
+<p class="p1"><span class="s1">min-width:200px;</span></p>
+<p class="p1"><span class="s1">text-align:center;</span></p>
+<p class="p1"><span class="s1">padding:4px 0;</span></p>
+<p class="p1"><span class="s1">margin-bottom:10px;</span></p>
+<p class="p1"><span class="s1">min-height:34px;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">.msg{</span></p>
+<p class="p1"><span class="s1">height:20px;</span></p>
+<p class="p1"><span class="s1">font-size:13px;</span></p>
+<p class="p1"><span class="s1">margin-bottom:8px;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">.buttons{</span></p>
+<p class="p1"><span class="s1">display:flex;</span></p>
+<p class="p1"><span class="s1">gap:8px;</span></p>
+<p class="p1"><span class="s1">margin-bottom:24px;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">button{</span></p>
+<p class="p1"><span class="s1">background:#fff;</span></p>
+<p class="p1"><span class="s1">border:1px solid #000;</span></p>
+<p class="p1"><span class="s1">padding:6px 12px;</span></p>
+<p class="p1"><span class="s1">font-family:Georgia;</span></p>
+<p class="p1"><span class="s1">font-size:11px;</span></p>
+<p class="p1"><span class="s1">letter-spacing:2px;</span></p>
+<p class="p1"><span class="s1">cursor:pointer;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">button.primary{</span></p>
+<p class="p1"><span class="s1">background:#000;</span></p>
+<p class="p1"><span class="s1">color:#fff;</span></p>
+<p class="p1"><span class="s1">border:none;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">.words{</span></p>
+<p class="p1"><span class="s1">max-width:420px;</span></p>
+<p class="p1"><span class="s1">display:flex;</span></p>
+<p class="p1"><span class="s1">flex-wrap:wrap;</span></p>
+<p class="p1"><span class="s1">gap:6px;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">.tag{</span></p>
+<p class="p1"><span class="s1">border:1px solid #000;</span></p>
+<p class="p1"><span class="s1">padding:3px 9px;</span></p>
+<p class="p1"><span class="s1">font-size:12px;</span></p>
+<p class="p1"><span class="s1">letter-spacing:1px;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">.rank{</span></p>
+<p class="p1"><span class="s1">font-size:11px;</span></p>
+<p class="p1"><span class="s1">letter-spacing:2px;</span></p>
+<p class="p1"><span class="s1">color:#777;</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;/style&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/head&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;body&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;h1&gt;OKAY ANAGRAM&lt;/h1&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div class="subtitle"&gt;Make words · center letter required · 4 letters minimum&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;div class="score"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div&gt;Score: &lt;strong id="score"&gt;0&lt;/strong&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;div&gt;&lt;span id="found"&gt;0&lt;/span&gt;/&lt;span id="total"&gt;0&lt;/span&gt; words&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;div class="progress"&gt;&lt;div class="bar" id="bar"&gt;&lt;/div&gt;&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;div id="grid"&gt;&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;div class="input" id="input"&gt;&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;div class="msg" id="msg"&gt;&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;div class="buttons"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;button onclick="shuffleLetters()"&gt;SHUFFLE&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1">&lt;button class="primary" onclick="submit()"&gt;ENTER&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1">&lt;button onclick="newGame()"&gt;NEW GAME&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;div class="rank" id="rank"&gt;&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;div class="words" id="words"&gt;&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;script&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">const VOWELS=['a','e','i','o','u']</span></p>
+<p class="p1"><span class="s1">const CONSONANTS='bcdfghjklmnpqrstvwxyz'.split('')</span></p>
+<p class="p1"><span class="s1">const RANKS=[</span></p>
+<p class="p1"><span class="s1">[0,'Beginner'],[0.04,'Nice'],[0.12,'Solid'],</span></p>
+<p class="p1"><span class="s1">[0.25,'Good'],[0.45,'Great'],[0.65,'Amazing'],[0.90,'Genius']</span></p>
+<p class="p1"><span class="s1">]</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">let wordSet=[]</span></p>
+<p class="p1"><span class="s1">let letters=[]</span></p>
+<p class="p1"><span class="s1">let keyLetter=''</span></p>
+<p class="p1"><span class="s1">let valid=[]</span></p>
+<p class="p1"><span class="s1">let found=[]</span></p>
+<p class="p1"><span class="s1">let score=0</span></p>
+<p class="p1"><span class="s1">let input=''</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function shuffle(a){</span></p>
+<p class="p1"><span class="s1">return a.sort(()=&gt;Math.random()-0.5)</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function flash(t){</span></p>
+<p class="p1"><span class="s1">document.getElementById("msg").textContent=t</span></p>
+<p class="p1"><span class="s1">setTimeout(()=&gt;document.getElementById("msg").textContent="",1800)</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">async function loadWords(){</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">const res=await fetch("https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt")</span></p>
+<p class="p1"><span class="s1">const text=await res.text()</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">wordSet=text.split("\n")</span></p>
+<p class="p1"><span class="s1">.map(w=&gt;w.trim().toLowerCase())</span></p>
+<p class="p1"><span class="s1">.filter(w=&gt;{</span></p>
+<p class="p1"><span class="s1">if(w.length&lt;4||w.length&gt;10)return false</span></p>
+<p class="p1"><span class="s1">if(!/^[a-z]+$/.test(w))return false</span></p>
+<p class="p1"><span class="s1">return new Set(w).size&lt;=7</span></p>
+<p class="p1"><span class="s1">})</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">newGame()</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function newGame(){</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">let best=null</span></p>
+<p class="p1"><span class="s1">let bestN=0</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">for(let attempt=0;attempt&lt;80 &amp;&amp; bestN&lt;30;attempt++){</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">const nv=2+Math.floor(Math.random()*2)</span></p>
+<p class="p1"><span class="s1">const ls=[...shuffle([...VOWELS]).slice(0,nv),...shuffle([...CONSONANTS]).slice(0,7-nv)]</span></p>
+<p class="p1"><span class="s1">const k=ls[Math.floor(Math.random()*7)]</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">const lset=new Set(ls)</span></p>
+<p class="p1"><span class="s1">const v=[]</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">for(const w of wordSet){</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">let ok=true</span></p>
+<p class="p1"><span class="s1">let hasK=false</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">for(const c of w){</span></p>
+<p class="p1"><span class="s1">if(!lset.has(c)){ok=false;break}</span></p>
+<p class="p1"><span class="s1">if(c===k)hasK=true</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">if(ok &amp;&amp; hasK)v.push(w)</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">if(v.length&gt;bestN){</span></p>
+<p class="p1"><span class="s1">bestN=v.length</span></p>
+<p class="p1"><span class="s1">best={letters:ls,key:k,valid:v}</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">letters=best.letters</span></p>
+<p class="p1"><span class="s1">keyLetter=best.key</span></p>
+<p class="p1"><span class="s1">valid=best.valid</span></p>
+<p class="p1"><span class="s1">found=[]</span></p>
+<p class="p1"><span class="s1">score=0</span></p>
+<p class="p1"><span class="s1">input=''</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">render()</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function render(){</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">const grid=document.getElementById("grid")</span></p>
+<p class="p1"><span class="s1">grid.innerHTML=""</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">const ring=letters.filter(l=&gt;l!==keyLetter)</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">const layout=[ring[0],ring[1],ring[2],ring[3],keyLetter,ring[4],ring[5]]</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">layout.forEach((l,i)=&gt;{</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">const d=document.createElement("div")</span></p>
+<p class="p1"><span class="s1">d.className="cell"+(l===keyLetter?" center":"")</span></p>
+<p class="p1"><span class="s1">d.textContent=l.toUpperCase()</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">d.onclick=()=&gt;addLetter(l)</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">grid.appendChild(d)</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">})</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">document.getElementById("input").textContent=input.toUpperCase()</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">document.getElementById("score").textContent=score</span></p>
+<p class="p1"><span class="s1">document.getElementById("found").textContent=found.length</span></p>
+<p class="p1"><span class="s1">document.getElementById("total").textContent=valid.length</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">const maxScore=valid.reduce((s,w)=&gt;s+(w.length===4?1:w.length),0)</span></p>
+<p class="p1"><span class="s1">const pct=maxScore?score/maxScore:0</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">document.getElementById("bar").style.width=Math.min(pct*100,100)+"%"</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">const rank=RANKS.reduce((r,[t,n])=&gt;pct&gt;=t?n:r,"Beginner")</span></p>
+<p class="p1"><span class="s1">document.getElementById("rank").textContent=rank.toUpperCase()</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">const words=document.getElementById("words")</span></p>
+<p class="p1"><span class="s1">words.innerHTML=""</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">found.forEach(w=&gt;{</span></p>
+<p class="p1"><span class="s1">const t=document.createElement("span")</span></p>
+<p class="p1"><span class="s1">t.className="tag"</span></p>
+<p class="p1"><span class="s1">t.textContent=w.toUpperCase()</span></p>
+<p class="p1"><span class="s1">words.appendChild(t)</span></p>
+<p class="p1"><span class="s1">})</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function addLetter(l){</span></p>
+<p class="p1"><span class="s1">input+=l</span></p>
+<p class="p1"><span class="s1">render()</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function submit(){</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">const w=input.toLowerCase().trim()</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">if(w.length&lt;4){flash("4 letters minimum");return}</span></p>
+<p class="p1"><span class="s1">if(!w.includes(keyLetter)){flash("Must include "+keyLetter.toUpperCase());return}</span></p>
+<p class="p1"><span class="s1">if([...w].some(c=&gt;!letters.includes(c))){flash("Invalid letters");return}</span></p>
+<p class="p1"><span class="s1">if(found.includes(w)){flash("Already found");return}</span></p>
+<p class="p1"><span class="s1">if(!valid.includes(w)){flash("Not a word");return}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">const pts=w.length===4?1:w.length</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">found.push(w)</span></p>
+<p class="p1"><span class="s1">found.sort()</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">score+=pts</span></p>
+<p class="p1"><span class="s1">input=""</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">flash("+"+pts)</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">render()</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">function shuffleLetters(){</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">const ring=shuffle(letters.filter(l=&gt;l!==keyLetter))</span></p>
+<p class="p1"><span class="s1">letters=[...ring,keyLetter]</span></p>
+<p class="p1"><span class="s1">render()</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">document.addEventListener("keydown",e=&gt;{</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">if(e.key==="Enter")submit()</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">else if(e.key==="Backspace"){</span></p>
+<p class="p1"><span class="s1">input=input.slice(0,-1)</span></p>
+<p class="p1"><span class="s1">render()</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">else if(/^[a-zA-Z]$/.test(e.key)){</span></p>
+<p class="p1"><span class="s1">input+=e.key.toLowerCase()</span></p>
+<p class="p1"><span class="s1">render()</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">})</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">loadWords()</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;/script&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;/body&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/html&gt;</span></p>
+</body>
+</html>
