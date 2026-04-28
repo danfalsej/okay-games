@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Okay FreeCell</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── THEME TOKENS ── */
+:root {
+–bg:           #2d5c3e;
+–bg-card:      #fffdf8;
+–bg-card-sel:  #f5f3ee;
+–bg-footer:    #223a2c;
+–bg-overlay:   rgba(14,28,18,0.88);
+–bg-win-box:   #faf8f3;
+
+```
+--border:       #dedad2;
+--border-slot:  rgba(240,237,230,0.2);
+--border-hdr:   rgba(240,237,230,0.2);
+--border-win:   #1a1a18;
+--border-footer:rgba(0,0,0,0.22);
+--border-sel:   #1a1a18;
+--border-win-stat: #e4e0d8;
+
+--text:         #f0ede6;
+--text-muted:   rgba(240,237,230,0.42);
+--text-hint:    rgba(240,237,230,0.26);
+--text-moves:   rgba(240,237,230,0.48);
+--text-badge:   rgba(26,26,24,0.18);
+
+--text-box:     #1a1a18;
+--text-muted-box: #9e9890;
+--text-moves-box: #9e9890;
+
+--btn-bg:       #faf8f3;
+--btn-border:   #1a1a18;
+--btn-text:     #1a1a18;
+--btn-bg-hover: #edeae3;
+--btn-solid-bg: #1a1a18;
+--btn-solid-text: #f2efe8;
+--btn-solid-hover:#333330;
+--btn-active-bg:#1a1a18;
+--btn-active-text:#f2efe8;
+
+--red:          #b82828;
+--black-suit:   #1a1a18;
+
+--card-shadow: 0 1px 4px rgba(0,0,0,0.22), 0 1px 2px rgba(0,0,0,0.14);
+--card-shadow-sel: 0 0 0 2px #1a1a18, 0 4px 14px rgba(0,0,0,0.28);
+
+--transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+```
+
+}
+
+[data-theme=“dark”] {
+–bg:           #1a1917;
+–bg-card:      #ffffff;
+–bg-card-sel:  #f0ede6;
+–bg-footer:    #1a1917;
+–bg-overlay:   rgba(18,17,15,0.95);
+–bg-win-box:   #242320;
+
+```
+--border:       #383530;
+--border-slot:  #2e2b26;
+--border-hdr:   #e8e4dc;
+--border-win:   #e8e4dc;
+--border-footer:#272522;
+--border-sel:   #e8e4dc;
+--border-win-stat: #2e2b26;
+
+--text:         #e8e4dc;
+--text-muted:   #57524a;
+--text-hint:    #3a3730;
+--text-moves:   #666058;
+--text-badge:   rgba(232,228,220,0.18);
+
+--btn-bg:       #242320;
+--btn-border:   #e8e4dc;
+--btn-text:     #e8e4dc;
+--btn-bg-hover: #2e2b26;
+--btn-solid-bg: #e8e4dc;
+--btn-solid-text: #1a1917;
+--btn-solid-hover:#d4d0c8;
+--btn-active-bg:#e8e4dc;
+--btn-active-text:#1a1917;
+
+--text-box:     #e8e4dc;
+--text-muted-box: #666058;
+--text-moves-box: #666058;
+
+--red:          #e04848;
+--black-suit:   #1a1a18;
+
+--card-shadow: 0 1px 4px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.2);
+--card-shadow-sel: 0 0 0 2px #e8e4dc, 0 4px 16px rgba(0,0,0,0.4);
+```
+
+}
+
+html, body {
+min-height: 100%;
+background: var(–bg);
+overscroll-behavior: none;
+-webkit-tap-highlight-color: transparent;
+touch-action: manipulation;
+font-family: ‘Space Mono’, monospace;
+transition: var(–transition);
+}
+
+#app {
+min-height: 100vh;
+background: var(–bg);
+background-image: url(“data:image/svg+xml,%3Csvg xmlns=‘http://www.w3.org/2000/svg’ width=‘250’ height=‘250’%3E%3Cfilter id=‘n’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.72’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3CfeColorMatrix type=‘saturate’ values=‘0’/%3E%3C/filter%3E%3Crect width=‘250’ height=‘250’ filter=‘url(%23n)’ opacity=‘0.055’/%3E%3C/svg%3E”);
+display: flex; flex-direction: column; align-items: center;
+padding: 16px 6px 90px;
+user-select: none; touch-action: manipulation;
+transition: var(–transition);
+}
+
+/* ── HEADER ── */
+#header {
+width: 100%; max-width: 860px;
+border-bottom: 2px solid var(–border-hdr);
+padding-bottom: 11px; margin-bottom: 16px;
+display: flex; justify-content: space-between;
+align-items: flex-end; gap: 12px;
+transition: var(–transition);
+}
+
+#title {
+font-family: ‘Playfair Display’, serif;
+font-weight: 900;
+color: var(–text);
+letter-spacing: -0.5px; line-height: 1; flex-shrink: 0;
+transition: var(–transition);
+}
+
+#header-right {
+display: flex;
+align-items: flex-end;
+gap: 16px;
+}
+
+#header-stats {
+display: flex;
+gap: 20px;
+align-items: flex-end;
+}
+
+.stat-col {
+display: flex; flex-direction: column;
+align-items: flex-end; gap: 2px;
+}
+
+.stat-lbl {
+font-size: 9px; letter-spacing: 2.5px;
+color: var(–text-muted); line-height: 1;
+transition: var(–transition);
+}
+
+.stat-val {
+font-family: ‘Space Mono’, monospace;
+font-size: 14px; font-weight: 700;
+color: var(–text); line-height: 1;
+transition: var(–transition);
+}
+
+.stat-val.muted { color: var(–text-muted); font-weight: 400; }
+
+/* ── THEME TOGGLE ── */
+#btn-theme {
+background: none;
+border: none;
+cursor: pointer;
+padding: 0 0 2px;
+line-height: 1;
+font-size: 16px;
+opacity: 0.45;
+transition: opacity 0.15s;
+-webkit-tap-highlight-color: transparent;
+flex-shrink: 0;
+/* vertically align with stat labels at bottom */
+align-self: flex-end;
+}
+#btn-theme:hover { opacity: 0.9; }
+#btn-theme:active { opacity: 1; }
+
+#btn-home {
+font-family: ‘Space Mono’, monospace;
+font-size: 10px; font-weight: 400;
+letter-spacing: 1.5px; text-transform: uppercase;
+color: var(–text-muted);
+text-decoration: none;
+opacity: 0.7;
+align-self: flex-end;
+padding: 0 0 2px;
+line-height: 1;
+transition: opacity 0.15s, color 0.25s;
+}
+#btn-home:hover  { opacity: 1; color: var(–text); }
+#btn-home:active { opacity: 1; }
+
+/* ── LAYOUT ── */
+#top-row {
+display: flex; justify-content: center; align-items: flex-start;
+margin-bottom: 8px; gap: 16px;
+width: 100%; max-width: 860px;
+}
+
+#fc-row, #found-row { display: flex; gap: 2px; }
+#tableau { display: flex; gap: 2px; align-items: flex-start; }
+.col-wrap { position: relative; flex-shrink: 0; }
+
+/* ── SLOTS ── */
+.slot {
+background: transparent;
+border: 1.5px dashed var(–border-slot);
+display: flex; align-items: center; justify-content: center;
+cursor: pointer; flex-shrink: 0;
+position: absolute; top: 0; left: 0;
+font-family: ‘Space Mono’, monospace; line-height: 1;
+transition: border-color 0.25s;
+}
+
+/* ── CARDS ── */
+.card {
+cursor: pointer;
+position: absolute; left: 0;
+background: var(–bg-card);
+border: 1.5px solid var(–border);
+border-radius: 4px;
+display: flex; flex-direction: column; justify-content: space-between;
+flex-shrink: 0;
+box-shadow: var(–card-shadow);
+transition: border-color 0.08s, background 0.25s, box-shadow 0.12s;
+}
+
+.card.selected {
+border-color: var(–border-sel);
+background: var(–bg-card-sel);
+box-shadow: var(–card-shadow-sel);
+z-index: 999 !important;
+}
+
+.card-corner {
+font-family: ‘DM Sans’, sans-serif;
+font-weight: 700; line-height: 1.1;
+}
+.card-corner-bot { transform: rotate(180deg); text-align: right; }
+
+.card-suit-big {
+position: absolute; left: 0; right: 0;
+text-align: center; line-height: 1;
+opacity: 0.9; pointer-events: none;
+}
+
+/* ── FIXED FOOTER ── */
+#footer {
+position: fixed; bottom: 0; left: 0; right: 0;
+background: var(–bg-footer);
+border-top: 1px solid var(–border-footer);
+box-shadow: 0 -2px 12px rgba(0,0,0,0.07);
+display: flex; flex-direction: column; align-items: center;
+padding: 10px 12px calc(14px + env(safe-area-inset-bottom));
+z-index: 100;
+transition: var(–transition);
+}
+
+#controls {
+display: flex; align-items: center; gap: 8px;
+flex-wrap: nowrap; justify-content: center;
+width: 100%; max-width: 860px;
+}
+
+#hint {
+color: var(–text-hint);
+font-family: ‘Space Mono’, monospace;
+text-align: center; margin-top: 7px; letter-spacing: 1px;
+transition: var(–transition);
+}
+
+/* ── BUTTONS ── */
+.btn {
+font-family: ‘Space Mono’, monospace;
+font-weight: 400; letter-spacing: 1.5px; text-transform: uppercase;
+cursor: pointer; user-select: none;
+border: 1px solid var(–btn-border);
+border-radius: 4px;
+background: var(–btn-bg);
+color: var(–btn-text);
+outline: none;
+-webkit-tap-highlight-color: transparent;
+touch-action: manipulation;
+transition: background 0.08s, color 0.08s, opacity 0.12s, border-color 0.25s;
+white-space: nowrap;
+}
+.btn:active  { background: var(–btn-bg-hover); }
+.btn:disabled{ cursor: not-allowed; opacity: 0.25; }
+
+#btn-auto.active {
+background: var(–btn-active-bg);
+color: var(–btn-active-text);
+}
+#btn-new {
+background: var(–btn-solid-bg);
+color: var(–btn-solid-text);
+border-color: var(–btn-solid-bg);
+}
+#btn-new:active { background: var(–btn-solid-hover); }
+
+/* ── WIN OVERLAY ── */
+#win-overlay {
+display: none; position: fixed; inset: 0;
+background: var(–bg-overlay);
+align-items: center; justify-content: center;
+z-index: 9999;
+transition: var(–transition);
+}
+#win-overlay.show { display: flex; }
+
+#win-box {
+background: var(–bg-win-box);
+border: 2px solid var(–border-win);
+padding: 36px 48px; text-align: center;
+animation: winPop 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+max-width: 90vw;
+transition: var(–transition);
+}
+
+#win-title {
+font-family: ‘Playfair Display’, serif; font-weight: 900;
+color: var(–text-box); margin-bottom: 8px; letter-spacing: 6px;
+transition: var(–transition);
+}
+
+#win-moves {
+font-family: ‘Space Mono’, monospace;
+color: var(–text-moves-box);
+letter-spacing: 2px; margin-bottom: 16px; font-size: 11px;
+transition: var(–transition);
+}
+
+#win-stats {
+display: flex; justify-content: center; gap: 32px;
+margin-bottom: 28px; padding-top: 16px;
+border-top: 1px solid var(–border-win-stat);
+transition: var(–transition);
+}
+
+.win-stat-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.win-stat-lbl { font-size: 9px; letter-spacing: 2.5px; color: var(–text-muted-box); }
+.win-stat-val {
+font-family: ‘Playfair Display’, serif;
+font-size: 28px; font-weight: 700;
+color: var(–text-box);
+transition: var(–transition);
+}
+
+/* ── ANIMATIONS ── */
+@keyframes winPop {
+0%   { transform: scale(0.8); opacity: 0; }
+70%  { transform: scale(1.03); }
+100% { transform: scale(1); opacity: 1; }
+}
+@keyframes autoShimmer {
+0%,100% { opacity: 1; }
+50%     { opacity: 0.5; }
+}
+@keyframes shake {
+0%,100%{ transform:translateX(0) }
+18%{ transform:translateX(-5px) }
+36%{ transform:translateX(5px) }
+54%{ transform:translateX(-4px) }
+72%{ transform:translateX(3px) }
+88%{ transform:translateX(-2px) }
+}
+.shake { animation: shake 0.36s ease !important; }
+#btn-auto.active { animation: autoShimmer 0.9s ease-in-out infinite; }
+</style>
+
+</head>
+<body>
+<div id="app">
+
+  <div id="header">
+    <div id="title">Okay FreeCell</div>
+    <div id="header-right">
+      <div id="header-stats">
+        <div class="stat-col">
+          <div class="stat-lbl">MOVES</div>
+          <div class="stat-val muted" id="move-count">0</div>
+        </div>
+        <div class="stat-col">
+          <div class="stat-lbl">WINS</div>
+          <div class="stat-val" id="hdr-wins">0</div>
+        </div>
+        <div class="stat-col">
+          <div class="stat-lbl">STREAK</div>
+          <div class="stat-val" id="hdr-streak">0</div>
+        </div>
+      </div>
+      <button id="btn-theme" aria-label="Toggle night mode" title="Toggle night mode">◐</button>
+      <a href="index.html" id="btn-home" title="Home">&#8592; Home</a>
+    </div>
+  </div>
+
+  <div id="top-row">
+    <div id="fc-row"></div>
+    <div id="found-row"></div>
+  </div>
+
+  <div id="tableau"></div>
+
+</div>
+
+<!-- Fixed footer -->
+
+<div id="footer">
+  <div id="controls">
+    <button class="btn" id="btn-undo" disabled>&#8617; Undo</button>
+    <button class="btn" id="btn-auto" disabled>&#10022; Auto</button>
+    <button class="btn" id="btn-restart">&#8635; Restart</button>
+    <button class="btn" id="btn-new">New Game</button>
+  </div>
+  <div id="hint">Tap a card to auto-move &middot; Tap a run to move as a group</div>
+</div>
+
+<!-- Streak warning overlay -->
+
+<div id="streak-overlay" style="display:none;position:fixed;inset:0;background:var(--bg-overlay);align-items:center;justify-content:center;z-index:9998;transition:var(--transition)">
+  <div id="streak-box" style="background:var(--bg-win-box);border:2px solid var(--border-win);padding:32px 40px;text-align:center;max-width:90vw;animation:winPop 0.35s cubic-bezier(0.175,0.885,0.32,1.275);transition:var(--transition)">
+    <div id="streak-title" style="font-family:'Playfair Display',serif;font-weight:900;color:var(--text);letter-spacing:4px;margin-bottom:10px;font-size:22px;transition:var(--transition)">BREAK STREAK?</div>
+    <div id="streak-msg" style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1.5px;color:var(--text-moves);margin-bottom:24px;line-height:1.7;transition:var(--transition)"></div>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button class="btn" id="btn-streak-cancel">Cancel</button>
+      <button class="btn" id="btn-streak-confirm" style="background:var(--btn-solid-bg);color:var(--btn-solid-text);border-color:var(--btn-solid-bg)">New Game</button>
+    </div>
+  </div>
+</div>
+
+<!-- Win overlay -->
+
+<div id="win-overlay">
+  <div id="win-box">
+    <div id="win-title">YOU WIN</div>
+    <div id="win-moves"></div>
+    <div id="win-stats">
+      <div class="win-stat-col">
+        <div class="win-stat-lbl">WINS</div>
+        <div class="win-stat-val" id="win-total">0</div>
+      </div>
+      <div class="win-stat-col">
+        <div class="win-stat-lbl">STREAK</div>
+        <div class="win-stat-val" id="win-streak">0</div>
+      </div>
+    </div>
+    <button class="btn" id="btn-play-again">Play Again</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const SUITS     = ['♠','♥','♦','♣'];
+const RANKS     = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const RV        = {A:1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,J:11,Q:12,K:13};
+const isRed     = s => s==='♥'||s==='♦';
+const SAVE_KEY  = 'okayfreecell_v3';
+const STATS_KEY = 'okayfreecell_stats_v1';
+const THEME_KEY = 'okayfreecell_theme';
+
+let state, hist, moves, won, autoPlay, autoTimer, CW, CH, OFF;
+let initialDeal = null;
+let shakeId     = null;
+
+// ── Theme ────────────────────────────────────────────────────────────────────
+let darkMode = false;
+
+function loadTheme() {
+  darkMode = localStorage.getItem(THEME_KEY) === 'dark';
+  applyTheme();
+}
+
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+  document.getElementById('btn-theme').textContent = darkMode ? '◑' : '◐';
+}
+
+function toggleTheme() {
+  darkMode = !darkMode;
+  applyTheme();
+  try { localStorage.setItem(THEME_KEY, darkMode ? 'dark' : 'light'); } catch(e) {}
+  // Re-render so JS-injected card colours update too
+  render();
+}
+
+// ── Win / streak stats ────────────────────────────────────────────────────────
+let totalWins  = 0;
+let streak     = 0;
+
+function loadStats() {
+  try {
+    const raw = localStorage.getItem(STATS_KEY);
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    totalWins = s.totalWins || 0;
+    streak    = s.streak    || 0;
+  } catch(e) {}
+}
+
+function saveStats() {
+  try { localStorage.setItem(STATS_KEY, JSON.stringify({ totalWins, streak })); } catch(e) {}
+}
+
+function recordWin() {
+  totalWins++; streak++;
+  saveStats(); renderStats();
+}
+
+function breakStreak() {
+  streak = 0; saveStats(); renderStats();
+}
+
+function renderStats() {
+  document.getElementById('hdr-wins').textContent   = totalWins;
+  document.getElementById('hdr-streak').textContent = streak;
+  document.getElementById('win-total').textContent  = totalWins;
+  document.getElementById('win-streak').textContent = streak;
+}
+
+// ── Deck / game logic ────────────────────────────────────────────────────────
+function mkDeck() { return SUITS.flatMap(s=>RANKS.map(r=>({suit:s,rank:r,id:`${r}${s}`}))); }
+function shuffle(a) {
+  const b=[...a];
+  for(let i=b.length-1;i>0;i--){const j=0|Math.random()*(i+1);[b[i],b[j]]=[b[j],b[i]];}
+  return b;
+}
+function deal() {
+  const d=shuffle(mkDeck());
+  const c=Array.from({length:8},()=>[]);
+  d.forEach((x,i)=>c[i%8].push(x));
+  return c;
+}
+function canPlace(lo,hi) {
+  if(!lo) return true;
+  return isRed(lo.suit)!==isRed(hi.suit) && RV[lo.rank]===RV[hi.rank]+1;
+}
+function validSeq(cs) {
+  for(let i=1;i<cs.length;i++) if(!canPlace(cs[i-1],cs[i])) return false;
+  return true;
+}
+function maxMove(efc,ec,toEmpty) { return (efc+1)*Math.pow(2,toEmpty?Math.max(0,ec-1):ec); }
+function snap() {
+  return {
+    tab:state.tab.map(c=>[...c]),
+    fc:[...state.fc],
+    found:Object.fromEntries(Object.entries(state.found).map(([k,v])=>[k,[...v]]))
+  };
+}
+function isSafe(card,found) {
+  const r=RV[card.rank]; if(r<=2) return true;
+  return isRed(card.suit)
+    ? (found['♠'].length>=r-1 && found['♣'].length>=r-1)
+    : (found['♥'].length>=r-1 && found['♦'].length>=r-1);
+}
+function findAuto() {
+  for(let i=0;i<8;i++){
+    const col=state.tab[i]; if(!col.length) continue;
+    const c=col[col.length-1];
+    if(RV[c.rank]===state.found[c.suit].length+1 && isSafe(c,state.found)) return{src:'tab',idx:i,card:c};
+  }
+  for(let i=0;i<4;i++){
+    const c=state.fc[i]; if(!c) continue;
+    if(RV[c.rank]===state.found[c.suit].length+1 && isSafe(c,state.found)) return{src:'fc',idx:i,card:c};
+  }
+  return null;
+}
+function totalFound() { return Object.values(state.found).reduce((s,p)=>s+p.length,0); }
+
+// ── Persistence ──────────────────────────────────────────────────────────────
+function saveGame() {
+  try { localStorage.setItem(SAVE_KEY,JSON.stringify({state,hist,moves,won,initialDeal})); } catch(e) {}
+}
+function loadGame() {
+  try {
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw) return false;
+    const s=JSON.parse(raw);
+    if(!s.state||!s.initialDeal) return false;
+    state=s.state; hist=s.hist||[]; moves=s.moves||0;
+    won=s.won||false; initialDeal=s.initialDeal;
+    return true;
+  } catch(e){ return false; }
+}
+function commit(next) {
+  hist.push(snap()); state=next; moves++;
+  saveGame(); render(); checkWin();
+}
+function checkWin() {
+  if(totalFound()===52){
+    won=true; autoPlay=false;
+    recordWin(); saveGame();
+    document.getElementById('win-moves').textContent=`Completed in ${moves} moves`;
+    renderStats();
+    document.getElementById('win-overlay').classList.add('show');
+  }
+}
+
+// ── Game control ─────────────────────────────────────────────────────────────
+function undo() {
+  if(!hist.length) return;
+  state=hist.pop(); moves=Math.max(0,moves-1);
+  stopAuto(); saveGame(); render();
+}
+
+function confirmNewGame() {
+  // Streak will break only if there are moves played and the game isn't won
+  if (streak > 0 && moves > 0 && !won) {
+    document.getElementById('streak-msg').textContent =
+      `You have a ${streak}-game win streak.\nStarting a new game will reset it to zero.`;
+    const ov = document.getElementById('streak-overlay');
+    ov.style.display = 'flex';
+  } else {
+    newGame();
+  }
+}
+
+function newGame() {
+  if(moves > 0 && !won) breakStreak();
+  const tab=deal();
+  initialDeal=tab.map(c=>[...c]);
+  state={tab,fc:[null,null,null,null],found:{'♠':[],'♥':[],'♦':[],'♣':[]}};
+  hist=[]; moves=0; won=false; shakeId=null;
+  stopAuto(); saveGame();
+  document.getElementById('win-overlay').classList.remove('show');
+  render();
+}
+
+function restartDeal() {
+  if(!initialDeal) return;
+  state={tab:initialDeal.map(c=>[...c]),fc:[null,null,null,null],found:{'♠':[],'♥':[],'♦':[],'♣':[]}};
+  hist=[]; moves=0; won=false; shakeId=null;
+  stopAuto(); saveGame();
+  document.getElementById('win-overlay').classList.remove('show');
+  render();
+}
+
+function stopAuto() { autoPlay=false; clearTimeout(autoTimer); }
+
+function tickAuto() {
+  if(!autoPlay) return;
+  const mv=findAuto();
+  if(!mv){ stopAuto(); render(); return; }
+  const nt=state.tab.map(c=>[...c]), nf=[...state.fc];
+  const nfd=Object.fromEntries(Object.entries(state.found).map(([k,v])=>[k,[...v]]));
+  if(mv.src==='tab') nt[mv.idx].pop(); else nf[mv.idx]=null;
+  nfd[mv.card.suit].push(mv.card);
+  commit({tab:nt,fc:nf,found:nfd});
+  if(autoPlay) autoTimer=setTimeout(tickAuto,220);
+}
+
+// ── Smart single-tap move ────────────────────────────────────────────────────
+function smartMove(src,col,ci,fi) {
+  if(won) return;
+  let cards;
+  if(src==='tab'){
+    const column=state.tab[col];
+    if(!column.length||ci>=column.length) return;
+    cards=column.slice(ci);
+    if(cards.length>1&&!validSeq(cards)){ shakeId=cards[0].id; render(); return; }
+  } else {
+    if(!state.fc[fi]) return;
+    cards=[state.fc[fi]];
+  }
+  const card=cards[0];
+  const nt  = ()=>state.tab.map(c=>[...c]);
+  const nf  = ()=>[...state.fc];
+  const nfd = ()=>Object.fromEntries(Object.entries(state.found).map(([k,v])=>[k,[...v]]));
+  function removeCards(t,f){ if(src==='tab') t[col].splice(ci); else f[fi]=null; }
+
+  if(cards.length===1){
+    const pile=state.found[card.suit];
+    if(RV[card.rank]===pile.length+1){
+      const t=nt(),f=nf(),fd=nfd();
+      removeCards(t,f); fd[card.suit].push(card);
+      commit({tab:t,fc:f,found:fd}); return;
+    }
+  }
+  const efc=state.fc.filter(c=>!c).length;
+  const ec =state.tab.filter(c=>!c.length).length;
+
+  for(let i=0;i<8;i++){
+    if(src==='tab'&&i===col) continue;
+    const tcol=state.tab[i]; if(!tcol.length) continue;
+    if(canPlace(tcol[tcol.length-1],card)&&cards.length<=maxMove(efc,ec,false)){
+      const t=nt(),f=nf(); removeCards(t,f); t[i].push(...cards);
+      commit({tab:t,fc:f,found:state.found}); return;
+    }
+  }
+
+  const srcIsEmpty=src==='tab'&&ci===0&&state.tab[col].length===cards.length;
+  if(!srcIsEmpty){
+    for(let i=0;i<8;i++){
+      if(src==='tab'&&i===col) continue;
+      if(state.tab[i].length) continue;
+      if(cards.length<=maxMove(efc,Math.max(0,ec-1),false)){
+        const t=nt(),f=nf(); removeCards(t,f); t[i].push(...cards);
+        commit({tab:t,fc:f,found:state.found}); return;
+      }
+    }
+  }
+
+  if(cards.length===1){
+    for(let i=0;i<4;i++){
+      if(!state.fc[i]){
+        const t=nt(),f=nf(); removeCards(t,f); f[i]=card;
+        commit({tab:t,fc:f,found:state.found}); return;
+      }
+    }
+  }
+  shakeId=card.id; render();
+}
+
+// ── Rendering ────────────────────────────────────────────────────────────────
+function calcSizes() {
+  const avail=window.innerWidth-16-14;
+  CW=Math.max(42,Math.min(104,Math.floor(avail/8)));
+  CH=Math.round(CW*1.58);
+  OFF=Math.round(CW*0.42);
+}
+
+function getVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function cardColor(suit) {
+  return isRed(suit) ? getVar('--red') : getVar('--black-suit');
+}
+
+function makeCard(card,top,zIdx) {
+  const el=document.createElement('div');
+  el.className='card';
+  if(shakeId===card.id) el.classList.add('shake');
+  const radius=Math.max(3,Math.round(CW*0.07));
+  const pad=Math.max(2,Math.round(CW*0.07));
+  el.style.cssText=`width:${CW}px;height:${CH}px;top:${top}px;z-index:${zIdx};border-radius:${radius}px;padding:${pad}px;`;
+  const col=cardColor(card.suit);
+  const rf=Math.max(11,CW*0.30), sf=Math.max(8,CW*0.21);
+  const gap=Math.max(1,CW*0.05);
+  el.innerHTML=`
+    <div class="card-corner" style="color:${col};display:flex;flex-direction:row;align-items:center;gap:${gap}px">
+      <span style="font-size:${rf}px;line-height:1">${card.rank}</span><span style="font-size:${sf}px;line-height:1">${card.suit}</span>
+    </div>
+    <div style="position:absolute;bottom:${Math.max(6,CW*0.22)}px;left:0;right:0;display:flex;align-items:center;justify-content:center;pointer-events:none"><div style="width:${Math.max(22,CW*0.78)}px;height:${Math.max(22,CW*0.78)}px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:${col};font-size:${Math.max(22,CW*0.78)}px;line-height:1;opacity:0.93">${card.suit}</div></div>`;
+  if(shakeId===card.id) setTimeout(()=>{shakeId=null;},400);
+  return el;
+}
+
+function makeSlot(label,labelColor) {
+  const el=document.createElement('div');
+  el.className='slot';
+  const radius=Math.max(3,Math.round(CW*0.07));
+  el.style.cssText=`width:${CW}px;height:${CH}px;border-radius:${radius}px;`;
+  if(label) el.innerHTML=`<span style="color:${labelColor||getVar('--border-slot')};font-size:${CW*0.38}px;font-family:'Space Mono',monospace">${label}</span>`;
+  return el;
+}
+
+function render() {
+  document.getElementById('title').style.fontSize=Math.max(18,CW*0.40)+'px';
+
+  // Free cells
+  const fcRow=document.getElementById('fc-row');
+  fcRow.innerHTML='';
+  state.fc.forEach((card,fi)=>{
+    const wrap=document.createElement('div');
+    wrap.style.cssText=`position:relative;width:${CW}px;height:${CH}px;flex-shrink:0`;
+    if(card){
+      const el=makeCard(card,0,1);
+      el.addEventListener('click',e=>{e.stopPropagation();smartMove('fc',null,null,fi);});
+      wrap.appendChild(el);
+    } else { wrap.appendChild(makeSlot()); }
+    fcRow.appendChild(wrap);
+  });
+
+  // Foundations
+  const foundRow=document.getElementById('found-row');
+  foundRow.innerHTML='';
+  SUITS.forEach(suit=>{
+    const pile=state.found[suit];
+    const top=pile.length?pile[pile.length-1]:null;
+    const wrap=document.createElement('div');
+    wrap.style.cssText=`position:relative;width:${CW}px;height:${CH}px;flex-shrink:0`;
+    if(top){ const el=makeCard(top,0,1); wrap.appendChild(el); }
+    else {
+      const lc=isRed(suit)
+        ? (darkMode?'rgba(224,85,85,0.3)':'rgba(240,160,160,0.38)')
+        : (darkMode?'rgba(232,232,232,0.18)':'rgba(240,237,230,0.28)');
+      wrap.appendChild(makeSlot(suit,lc));
+    }
+    if(pile.length>0){
+      const badge=document.createElement('div');
+      const badgeColor=getVar('--text-badge');
+      badge.style.cssText=`position:absolute;bottom:3px;right:4px;font-size:${Math.max(8,CW*0.14)}px;font-weight:700;color:${badgeColor};pointer-events:none;z-index:10;font-family:'Space Mono',monospace`;
+      badge.textContent=pile.length;
+      wrap.appendChild(badge);
+    }
+    foundRow.appendChild(wrap);
+  });
+
+  // Tableau
+  const tabEl=document.getElementById('tableau');
+  tabEl.innerHTML='';
+  state.tab.forEach((col,ci)=>{
+    const h=col.length===0?CH:CH+(col.length-1)*OFF;
+    const wrap=document.createElement('div');
+    wrap.className='col-wrap';
+    wrap.style.cssText=`width:${CW}px;height:${h}px;flex-shrink:0`;
+    if(col.length===0){
+      const sl=makeSlot();
+      sl.style.cssText+=';position:absolute;top:0;left:0';
+      wrap.appendChild(sl);
+    } else {
+      col.forEach((card,idx)=>{
+        const el=makeCard(card,idx*OFF,idx+1);
+        el.addEventListener('click',e=>{e.stopPropagation();smartMove('tab',ci,idx,null);});
+        wrap.appendChild(el);
+      });
+    }
+    tabEl.appendChild(wrap);
+  });
+
+  if(won) document.getElementById('win-overlay').classList.add('show');
+
+  // Sizing
+  const bfs=Math.max(9,CW*0.145);
+  const bpad=`7px ${Math.round(CW*0.20)}px`;
+  document.querySelectorAll('.btn').forEach(b=>{b.style.fontSize=bfs+'px';b.style.padding=bpad;});
+  document.getElementById('hint').style.fontSize=Math.max(8,CW*0.115)+'px';
+  document.getElementById('win-title').style.fontSize=Math.max(26,CW*0.58)+'px';
+  document.getElementById('win-moves').style.fontSize=Math.max(9,CW*0.14)+'px';
+  document.querySelectorAll('.stat-val').forEach(el=>{ el.style.fontSize=Math.max(12,CW*0.22)+'px'; });
+  document.querySelectorAll('.stat-lbl').forEach(el=>{ el.style.fontSize=Math.max(8,CW*0.115)+'px'; });
+
+  document.getElementById('btn-undo').disabled=!hist.length;
+  document.getElementById('btn-restart').disabled=!initialDeal;
+  document.getElementById('move-count').textContent=moves;
+
+  const autoBtn=document.getElementById('btn-auto');
+  const hasMove=!!findAuto();
+  if(autoPlay){
+    autoBtn.textContent='Stop'; autoBtn.classList.add('active'); autoBtn.disabled=false;
+  } else {
+    autoBtn.textContent='\u2736 Auto'; autoBtn.classList.remove('active'); autoBtn.disabled=won||!hasMove;
+  }
+
+  renderStats();
+}
+
+// ── Event wiring ─────────────────────────────────────────────────────────────
+document.getElementById('btn-theme').addEventListener('click', toggleTheme);
+document.getElementById('btn-undo').addEventListener('click', undo);
+document.getElementById('btn-auto').addEventListener('click', ()=>{
+  if(autoPlay){ stopAuto(); render(); }
+  else{ autoPlay=true; render(); autoTimer=setTimeout(tickAuto,220); }
+});
+document.getElementById('btn-restart').addEventListener('click', restartDeal);
+document.getElementById('btn-new').addEventListener('click', confirmNewGame);
+document.getElementById('btn-play-again').addEventListener('click', newGame);
+
+document.getElementById('btn-streak-cancel').addEventListener('click', ()=>{
+  document.getElementById('streak-overlay').style.display = 'none';
+});
+document.getElementById('btn-streak-confirm').addEventListener('click', ()=>{
+  document.getElementById('streak-overlay').style.display = 'none';
+  newGame();
+});
+
+window.addEventListener('resize',()=>{ calcSizes(); render(); });
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+calcSizes();
+loadTheme();
+loadStats();
+if(!loadGame()) newGame();
+else render();
+</script>
+
+</body>
+</html>
