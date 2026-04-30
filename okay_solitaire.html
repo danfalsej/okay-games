@@ -840,6 +840,36 @@ function makeSlot(onClick, label, labelColor) {
   return el;
 }
 
+function makeBackSVG(w, h, r) {
+  const sp = Math.max(6, Math.round(w * 0.115)); // line spacing
+  const lw = Math.max(1, Math.round(sp * 0.22));  // line weight
+
+  // Generate diagonal lines (top-left to bottom-right) across a padded area
+  let lines = '';
+  const pad = h;
+  for (let i = -pad; i < w + pad; i += sp) {
+    lines += `<line x1="${i}" y1="0" x2="${i + h}" y2="${h}"
+      stroke="rgba(255,255,255,0.18)" stroke-width="${lw}" stroke-linecap="square"/>`;
+    lines += `<line x1="${i}" y1="${h}" x2="${i + h}" y2="0"
+      stroke="rgba(255,255,255,0.18)" stroke-width="${lw}" stroke-linecap="square"/>`;
+  }
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"
+    style="position:absolute;inset:0;display:block;border-radius:${r}px">
+    <defs>
+      <radialGradient id="bbg" cx="38%" cy="30%" r="80%">
+        <stop offset="0%" stop-color="#3d6ec0"/>
+        <stop offset="100%" stop-color="#182e6a"/>
+      </radialGradient>
+      <clipPath id="bclip">
+        <rect width="${w}" height="${h}" rx="${r}"/>
+      </clipPath>
+    </defs>
+    <rect width="${w}" height="${h}" fill="url(#bbg)"/>
+    <g clip-path="url(#bclip)">${lines}</g>
+  </svg>`;
+}
+
 function makeCardEl(card, top, z, onClick) {
   const el = document.createElement('div');
   const faceDown = !card.up;
@@ -848,10 +878,9 @@ function makeCardEl(card, top, z, onClick) {
   const p = Math.max(3, Math.round(CW*0.08));
 
   if (faceDown) {
-    el.style.cssText = `width:${CW}px;height:${CH}px;top:${top}px;z-index:${z};border-radius:${r}px;`;
-    const inner = document.createElement('div');
-    inner.style.cssText = `position:absolute;inset:${p*2}px;border:1px solid ${cssVar('--back-inner')};border-radius:${Math.max(2,r-3)}px;`;
-    el.appendChild(inner);
+    el.style.cssText = `width:${CW}px;height:${CH}px;top:${top}px;z-index:${z};` +
+      `border-radius:${r}px;background:none;border-color:transparent;overflow:hidden;`;
+    el.innerHTML = makeBackSVG(CW, CH, r);
     if (card.flippable) el.classList.add('flippable');
   } else {
     el.style.cssText = `width:${CW}px;height:${CH}px;top:${top}px;z-index:${z};border-radius:${r}px;padding:${p}px;`;
