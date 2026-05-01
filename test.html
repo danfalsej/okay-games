@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Okay Solitaire</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── THEME TOKENS (matches FreeCell) ── */
+:root {
+–bg-base:      #1a3828;
+–bg-mid:       #142d20;
+–bg-deep:      #0d1f16;
+–bg-card:      #ffffff;
+–bg-card-sel:  #fffef8;
+–bg-panel:     rgba(10,22,15,0.72);
+–bg-overlay:   rgba(6,14,10,0.82);
+–bg-win-box:   #ffffff;
+–border-card:  rgba(0,0,0,0.07);
+–border-slot:  rgba(255,255,255,0.16);
+–border-win:   rgba(255,255,255,0.12);
+–border-stats: rgba(0,0,0,0.08);
+–text:         rgba(255,255,255,0.92);
+–text-muted:   rgba(255,255,255,0.38);
+–text-hint:    rgba(255,255,255,0.2);
+–text-moves:   rgba(255,255,255,0.5);
+–text-box:     #111a14;
+–text-muted-box:#7a9082;
+–accent:       #f0c040;
+–red:          #e03535;
+–blk:          #1a2820;
+–back-from:    #2a5298;
+–back-to:      #1a3268;
+–back-inner:   rgba(255,255,255,0.12);
+–card-shadow:     0 2px 8px rgba(0,0,0,0.28), 0 1px 3px rgba(0,0,0,0.18);
+–card-shadow-sel: 0 0 0 2.5px #f0c040, 0 6px 24px rgba(240,192,64,0.28), 0 2px 8px rgba(0,0,0,0.3);
+–btn-ghost-bg:     rgba(255,255,255,0.10);
+–btn-ghost-border: rgba(255,255,255,0.18);
+–btn-ghost-text:   rgba(255,255,255,0.88);
+–btn-ghost-hover:  rgba(255,255,255,0.16);
+–btn-primary-bg:   #f0c040;
+–btn-primary-text: #111a14;
+–btn-primary-hover:#f7d060;
+}
+
+[data-theme=“dark”] {
+–bg-base:      #0c1c26;
+–bg-mid:       #091520;
+–bg-deep:      #060e18;
+–bg-panel:     rgba(4,10,18,0.78);
+–bg-overlay:   rgba(2,6,12,0.88);
+–border-slot:  rgba(255,255,255,0.12);
+–red:          #e84848;
+–blk:          #1e2d3d;
+–card-shadow:     0 2px 10px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.3);
+–card-shadow-sel: 0 0 0 2.5px #f0c040, 0 6px 28px rgba(240,192,64,0.25), 0 2px 10px rgba(0,0,0,0.5);
+}
+
+html, body {
+min-height: 100%;
+background: var(–bg-deep);
+overscroll-behavior: none;
+-webkit-tap-highlight-color: transparent;
+touch-action: manipulation;
+font-family: ‘Inter’, system-ui, sans-serif;
+}
+
+#app {
+min-height: 100vh;
+background: radial-gradient(ellipse at 50% 0%, var(–bg-base) 0%, var(–bg-deep) 100%),
+url(“data:image/svg+xml,%3Csvg xmlns=‘http://www.w3.org/2000/svg’ width=‘200’ height=‘200’%3E%3Cfilter id=‘n’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.65’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3CfeColorMatrix type=‘saturate’ values=‘0’/%3E%3C/filter%3E%3Crect width=‘200’ height=‘200’ filter=‘url(%23n)’ opacity=‘0.045’/%3E%3C/svg%3E”);
+display: flex; flex-direction: column; align-items: center;
+padding: 20px 6px 100px;
+user-select: none; touch-action: manipulation;
+}
+
+/* ── HEADER ── */
+#header {
+width: 100%;
+padding-bottom: 14px; margin-bottom: 14px;
+display: flex; justify-content: space-between;
+align-items: center; gap: 12px;
+}
+#title {
+font-family: ‘Playfair Display’, serif; font-weight: 900;
+color: var(–text); letter-spacing: -0.5px; line-height: 1; flex-shrink: 0;
+}
+#header-right { display: flex; align-items: center; gap: 18px; }
+#header-stats { display: flex; gap: 18px; align-items: center; }
+.stat-col { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.stat-lbl {
+font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+color: var(–text-muted); line-height: 1; font-weight: 500;
+}
+.stat-val {
+font-family: ‘Inter’, sans-serif; font-size: 15px; font-weight: 700;
+color: var(–text); line-height: 1;
+}
+.stat-val.muted { color: var(–text-muted); font-weight: 500; }
+
+#btn-theme {
+background: none; border: none; cursor: pointer;
+padding: 6px; line-height: 1; font-size: 17px;
+opacity: 0.4; transition: opacity 0.15s; color: white;
+-webkit-tap-highlight-color: transparent; flex-shrink: 0;
+}
+#btn-theme:hover { opacity: 0.8; }
+
+/* ── GAME BOARD ── */
+#top-row {
+display: flex; align-items: flex-start;
+gap: 3px; margin-bottom: 8px;
+}
+.top-spacer { flex: 1; min-width: 4px; }
+#found-row { display: flex; gap: 3px; }
+#tableau { display: flex; gap: 3px; align-items: flex-start; }
+.col-wrap { position: relative; flex-shrink: 0; }
+
+/* ── SLOTS ── */
+.slot {
+background: rgba(0,0,0,0.15);
+border: 1.5px dashed var(–border-slot);
+border-radius: 10px;
+display: flex; align-items: center; justify-content: center;
+cursor: pointer; flex-shrink: 0;
+position: absolute; top: 0; left: 0;
+line-height: 1;
+transition: border-color 0.2s;
+}
+
+/* ── CARDS ── */
+.card {
+cursor: pointer; position: absolute; left: 0;
+background: var(–bg-card);
+border: 1px solid var(–border-card);
+border-radius: 10px;
+display: flex; flex-direction: column; justify-content: space-between;
+flex-shrink: 0;
+box-shadow: var(–card-shadow);
+transition: box-shadow 0.15s, transform 0.1s;
+overflow: hidden;
+}
+.card::after {
+content: ‘’;
+position: absolute; inset: 0;
+border-radius: inherit;
+background: linear-gradient(160deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0) 40%);
+pointer-events: none;
+}
+.card.sel {
+box-shadow: var(–card-shadow-sel);
+transform: translateY(-2px);
+z-index: 999 !important;
+}
+.card.back {
+background: linear-gradient(145deg, var(–back-from), var(–back-to));
+border-color: transparent;
+cursor: default;
+}
+.card.back.flippable { cursor: pointer; }
+.card-corner { font-family: ‘Inter’, sans-serif; font-weight: 700; line-height: 1.1; }
+.card-corner-bot { transform: rotate(180deg); text-align: right; }
+.card-pip {
+position: absolute; left: 0; right: 0;
+text-align: center; line-height: 1; pointer-events: none;
+}
+
+/* ── FOOTER ── */
+#footer {
+position: fixed; bottom: 0; left: 0; right: 0;
+background: var(–bg-panel);
+backdrop-filter: blur(20px) saturate(1.4);
+-webkit-backdrop-filter: blur(20px) saturate(1.4);
+border-top: 1px solid rgba(255,255,255,0.08);
+display: flex; flex-direction: column; align-items: center;
+padding: 12px 14px calc(16px + env(safe-area-inset-bottom));
+z-index: 100;
+}
+#controls {
+display: flex; align-items: center; gap: 8px;
+justify-content: center; width: 100%; flex-wrap: nowrap;
+}
+#hint {
+color: var(–text-hint); font-family: ‘Inter’, sans-serif; font-weight: 400;
+text-align: center; margin-top: 8px; letter-spacing: 0;
+}
+
+#top-row.right-handed { flex-direction: row-reverse; }
+#top-row.right-handed #found-row { flex-direction: row-reverse; }
+
+/* ── SETTINGS PANEL ── */
+#settings-overlay {
+display: none; position: fixed; inset: 0;
+background: var(–bg-overlay);
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+z-index: 9998; align-items: flex-end; justify-content: center;
+}
+#settings-overlay.show { display: flex; }
+#settings-panel {
+background: #1e3a2a;
+border-top: 1px solid rgba(255,255,255,0.1);
+border-radius: 20px 20px 0 0;
+width: 100%; max-width: 480px;
+padding: 12px 24px calc(28px + env(safe-area-inset-bottom));
+animation: slideUp 0.28s cubic-bezier(0.32,0.72,0,1) both;
+}
+[data-theme=“dark”] #settings-panel { background: #0e1e26; }
+@keyframes slideUp {
+from { transform: translateY(100%); }
+to   { transform: translateY(0); }
+}
+#settings-handle {
+width: 36px; height: 4px; border-radius: 2px;
+background: rgba(255,255,255,0.2);
+margin: 0 auto 20px;
+}
+#settings-title {
+font-family: ‘Playfair Display’, serif; font-weight: 900;
+color: rgba(255,255,255,0.9); font-size: 20px;
+margin-bottom: 22px; letter-spacing: 1px;
+}
+.setting-row {
+display: flex; align-items: center;
+justify-content: space-between;
+margin-bottom: 16px;
+}
+.setting-row:last-child { margin-bottom: 0; }
+.setting-lbl {
+font-family: ‘Inter’, sans-serif; font-weight: 500;
+font-size: 14px; color: rgba(255,255,255,0.7);
+flex-shrink: 0;
+}
+.setting-opts { display: flex; gap: 6px; }
+.opt-btn {
+font-family: ‘Inter’, sans-serif; font-weight: 600;
+font-size: 12px; padding: 6px 14px;
+border-radius: 999px;
+border: 1px solid rgba(255,255,255,0.18);
+background: rgba(255,255,255,0.08);
+color: rgba(255,255,255,0.7);
+cursor: pointer; transition: background 0.12s, color 0.12s, border-color 0.12s;
+white-space: nowrap;
+-webkit-tap-highlight-color: transparent;
+}
+.opt-btn:hover  { background: rgba(255,255,255,0.14); }
+.opt-btn:active { transform: scale(0.95); }
+.opt-btn.active {
+background: var(–btn-primary-bg);
+color: var(–btn-primary-text);
+border-color: transparent;
+}
+
+/* ── SETTINGS BUTTON ── */
+#btn-settings {
+font-size: 16px; padding: 6px 10px;
+opacity: 0.7;
+}
+#btn-settings:hover { opacity: 1; }
+
+/* ── BUTTONS ── */
+.btn {
+font-family: ‘Inter’, sans-serif; font-weight: 600; letter-spacing: 0;
+cursor: pointer; user-select: none;
+border: 1px solid var(–btn-ghost-border);
+border-radius: 999px;
+background: var(–btn-ghost-bg); color: var(–btn-ghost-text);
+outline: none; -webkit-tap-highlight-color: transparent;
+touch-action: manipulation;
+transition: background 0.12s, opacity 0.12s, transform 0.1s;
+white-space: nowrap;
+}
+.btn:hover  { background: var(–btn-ghost-hover); }
+.btn:active { transform: scale(0.96); opacity: 0.85; }
+.btn:disabled { cursor: not-allowed; opacity: 0.22; }
+#btn-new {
+background: var(–btn-primary-bg); color: var(–btn-primary-text);
+border-color: transparent; font-weight: 700;
+}
+#btn-new:hover  { background: var(–btn-primary-hover); }
+#btn-new:active { background: var(–btn-primary-bg); }
+
+#btn-auto.active {
+background: rgba(240,192,64,0.18);
+border-color: rgba(240,192,64,0.4);
+color: var(–accent);
+animation: autoShimmer 1s ease-in-out infinite;
+}
+@keyframes autoShimmer {
+0%,100% { opacity: 1; }
+50%      { opacity: 0.5; }
+}
+
+/* ── WIN OVERLAY ── */
+#win-overlay {
+display: none; position: fixed; inset: 0;
+background: var(–bg-overlay);
+backdrop-filter: blur(12px);
+-webkit-backdrop-filter: blur(12px);
+align-items: center; justify-content: center; z-index: 9999;
+}
+#win-overlay.show { display: flex; }
+#win-box {
+background: var(–bg-win-box);
+border-radius: 24px;
+border: 1px solid var(–border-win);
+padding: 40px 52px; text-align: center; max-width: 90vw;
+animation: winPop 0.45s cubic-bezier(0.175,0.885,0.32,1.275) both;
+box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+}
+#win-title {
+font-family: ‘Playfair Display’, serif; font-weight: 900;
+color: var(–text-box); margin-bottom: 6px; letter-spacing: 4px;
+}
+#win-moves {
+font-family: ‘Inter’, sans-serif; font-weight: 500;
+color: var(–text-muted-box); margin-bottom: 20px;
+}
+#win-stats {
+display: flex; justify-content: center; gap: 36px;
+margin-bottom: 28px; padding-top: 20px;
+border-top: 1px solid var(–border-stats);
+}
+.ws-col { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.ws-lbl { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; color: var(–text-muted-box); }
+.ws-val { font-family: ‘Playfair Display’, serif; font-size: 32px; font-weight: 700; color: var(–text-box); }
+
+#btn-again {
+background: var(–btn-primary-bg); color: var(–btn-primary-text);
+border: none; border-radius: 999px; padding: 12px 32px;
+font-family: ‘Inter’, sans-serif; font-size: 15px; font-weight: 700;
+cursor: pointer; transition: background 0.12s, transform 0.1s;
+}
+#btn-again:hover  { background: var(–btn-primary-hover); }
+#btn-again:active { transform: scale(0.96); }
+
+/* ── ANIMATIONS ── */
+@keyframes winPop {
+0%   { transform: scale(0.78) translateY(12px); opacity: 0; }
+70%  { transform: scale(1.02) translateY(0); }
+100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+@keyframes shake {
+0%,100%{ transform:translateX(0) }
+20%{ transform:translateX(-7px) }
+40%{ transform:translateX(7px) }
+60%{ transform:translateX(-4px) }
+80%{ transform:translateX(3px) }
+}
+.shake { animation: shake 0.34s ease !important; }
+</style>
+
+</head>
+<body>
+<div id="app">
+
+  <div id="header">
+    <div id="title">Okay Solitaire</div>
+    <div id="header-right">
+      <div id="header-stats">
+        <div class="stat-col">
+          <div class="stat-lbl">MOVES</div>
+          <div class="stat-val muted" id="hdr-moves">0</div>
+        </div>
+        <div class="stat-col">
+          <div class="stat-lbl">WINS</div>
+          <div class="stat-val" id="hdr-wins">0</div>
+        </div>
+        <div class="stat-col">
+          <div class="stat-lbl">STREAK</div>
+          <div class="stat-val" id="hdr-streak">0</div>
+        </div>
+      </div>
+      <button id="btn-theme" aria-label="Toggle night mode">&#9680;</button>
+    </div>
+  </div>
+
+  <div id="top-row">
+    <div id="stock-wrap" style="flex-shrink:0;position:relative"></div>
+    <div id="waste-wrap" style="flex-shrink:0;position:relative;overflow:visible"></div>
+    <div class="top-spacer"></div>
+    <div id="found-row"></div>
+  </div>
+
+  <div id="tableau"></div>
+
+</div>
+
+<div id="footer">
+  <div id="controls">
+    <button class="btn" id="btn-undo" disabled>Undo</button>
+    <button class="btn" id="btn-auto" disabled>Auto</button>
+    <button class="btn" id="btn-restart">Restart</button>
+    <button class="btn" id="btn-new">New Game</button>
+    <button class="btn" id="btn-settings" aria-label="Settings">⚙︎</button>
+  </div>
+  <div id="hint">Tap a card to play &middot; tap again to place</div>
+</div>
+
+<div id="settings-overlay">
+  <div id="settings-panel">
+    <div id="settings-handle"></div>
+    <div id="settings-title">Settings</div>
+    <div class="setting-row">
+      <span class="setting-lbl">Hand</span>
+      <div class="setting-opts">
+        <button class="opt-btn" id="opt-left"  onclick="setSetting('hand','left')">Left</button>
+        <button class="opt-btn" id="opt-right" onclick="setSetting('hand','right')">Right</button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <span class="setting-lbl">Theme</span>
+      <div class="setting-opts">
+        <button class="opt-btn" id="opt-light" onclick="setSetting('theme','light')">Light</button>
+        <button class="opt-btn" id="opt-dark"  onclick="setSetting('theme','dark')">Dark</button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <span class="setting-lbl">Deal Mode</span>
+      <div class="setting-opts">
+        <button class="opt-btn" id="opt-d1" onclick="setSetting('deal',1)">Deal 1</button>
+        <button class="opt-btn" id="opt-d3" onclick="setSetting('deal',3)">Deal 3</button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <span class="setting-lbl">Card Size</span>
+      <div class="setting-opts">
+        <button class="opt-btn" id="opt-small"  onclick="setSetting('font','small')">Small</button>
+        <button class="opt-btn" id="opt-normal" onclick="setSetting('font','normal')">Normal</button>
+        <button class="opt-btn" id="opt-large"  onclick="setSetting('font','large')">Large</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="win-overlay">
+  <div id="win-box">
+    <div id="win-title">YOU WIN</div>
+    <div id="win-moves"></div>
+    <div id="win-stats">
+      <div class="ws-col"><div class="ws-lbl">WINS</div><div class="ws-val" id="w-wins">0</div></div>
+      <div class="ws-col"><div class="ws-lbl">STREAK</div><div class="ws-val" id="w-streak">0</div></div>
+    </div>
+    <button class="btn" id="btn-again">Play Again</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ── CONSTANTS ────────────────────────────────────────────────────────────────
+const SUITS = ['♠','♥','♦','♣'];
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const RV    = {A:1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,J:11,Q:12,K:13};
+const isRed = s => s==='♥'||s==='♦';
+
+const SAVE_KEY  = 'okaysol_v1';
+const STATS_KEY = 'okaysol_stats_v1';
+
+const SETTINGS_KEY = 'okaysol_settings_v1';
+
+// ── SETTINGS STATE (declared early so calcSizes can read it) ─────────────────
+let settings = { theme: 'light', deal: 1, font: 'normal', hand: 'left' };
+
+// ── SIZING ───────────────────────────────────────────────────────────────────
+let CW, CH, OFF_D, OFF_U, FAN, fontScale;
+
+const FONT_SCALES = { small: 0.78, normal: 1.0, large: 1.28 };
+const OFF_U_MULT  = { small: 0.36, normal: 0.42, large: 0.54 };
+
+function calcSizes() {
+  const fs = settings.font || 'normal';
+  fontScale = FONT_SCALES[fs];
+  CW    = Math.max(40, Math.min(88, Math.floor((window.innerWidth - 24) / 7)));
+  CH    = Math.round(CW * 1.58);
+  OFF_D = Math.max(9,  Math.round(CW * 0.17));
+  OFF_U = Math.max(18, Math.round(CW * OFF_U_MULT[fs]));
+  FAN   = Math.max(14, Math.round(CW * 0.22));
+}
+
+// ── SETTINGS ─────────────────────────────────────────────────────────────────
+function loadSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    settings = { theme: s.theme||'light', deal: s.deal||1, font: s.font||'normal', hand: s.hand||'left' };
+  } catch(e) {}
+  dealMode = settings.deal;
+  applyTheme();
+  applyHand();
+}
+
+function saveSettings() {
+  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch(e) {}
+}
+
+function setSetting(key, val) {
+  settings[key] = val;
+  saveSettings();
+  if (key === 'theme') { applyTheme(); render(); }
+  if (key === 'deal')  { setDeal(val); }
+  if (key === 'font')  { calcSizes(); render(); }
+  if (key === 'hand')  { applyHand(); render(); }
+  updateSettingsUI();
+}
+
+function updateSettingsUI() {
+  document.getElementById('opt-light').classList.toggle('active',  settings.theme === 'light');
+  document.getElementById('opt-dark').classList.toggle('active',   settings.theme === 'dark');
+  document.getElementById('opt-d1').classList.toggle('active',     settings.deal === 1);
+  document.getElementById('opt-d3').classList.toggle('active',     settings.deal === 3);
+  document.getElementById('opt-small').classList.toggle('active',  settings.font === 'small');
+  document.getElementById('opt-normal').classList.toggle('active', settings.font === 'normal');
+  document.getElementById('opt-large').classList.toggle('active',  settings.font === 'large');
+  document.getElementById('opt-left').classList.toggle('active',   settings.hand === 'left');
+  document.getElementById('opt-right').classList.toggle('active',  settings.hand === 'right');
+}
+
+function applyHand() {
+  document.getElementById('top-row').classList.toggle('right-handed', settings.hand === 'right');
+}
+
+function openSettings()  {
+  updateSettingsUI();
+  document.getElementById('settings-overlay').classList.add('show');
+}
+function closeSettings() { document.getElementById('settings-overlay').classList.remove('show'); }
+
+// ── THEME ─────────────────────────────────────────────────────────────────────
+function applyTheme() {
+  const dark = settings.theme === 'dark';
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  document.getElementById('btn-theme').textContent = dark ? '◑' : '◐';
+}
+function toggleTheme() {
+  settings.theme = settings.theme === 'dark' ? 'light' : 'dark';
+  saveSettings(); applyTheme(); render();
+  updateSettingsUI();
+}
+
+// ── STATS ────────────────────────────────────────────────────────────────────
+let wins = 0, streak = 0;
+
+function loadStats() {
+  try { const s = JSON.parse(localStorage.getItem(STATS_KEY)||'{}'); wins=s.wins||0; streak=s.streak||0; } catch(e) {}
+}
+function saveStats() {
+  try { localStorage.setItem(STATS_KEY, JSON.stringify({wins, streak})); } catch(e) {}
+}
+function recordWin()  { wins++; streak++;          saveStats(); showStats(); }
+function breakStreak(){ streak = 0;                saveStats(); showStats(); }
+function showStats() {
+  document.getElementById('hdr-wins').textContent   = wins;
+  document.getElementById('hdr-streak').textContent = streak;
+  document.getElementById('w-wins').textContent     = wins;
+  document.getElementById('w-streak').textContent   = streak;
+}
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let state, hist, moves, won, dealMode, initialDeal;
+let sel = null; // {from:'stock'|'waste'|'found'|'tab', col, ci, suitKey, cards:[]}
+
+// ── DECK ─────────────────────────────────────────────────────────────────────
+function mkDeck() {
+  return SUITS.flatMap(s => RANKS.map(r => ({suit:s, rank:r, id:`${r}${s}`, up:false})));
+}
+function shuffle(a) {
+  const b = [...a];
+  for (let i = b.length-1; i > 0; i--) { const j = 0|Math.random()*(i+1); [b[i],b[j]]=[b[j],b[i]]; }
+  return b;
+}
+
+// ── RULES ────────────────────────────────────────────────────────────────────
+function canFoundation(card, foundations) {
+  const p = foundations[card.suit];
+  return p.length===0 ? card.rank==='A' : RV[card.rank]===p.length+1;
+}
+function canTableau(card, col) {
+  if (!col.length) return card.rank==='K';
+  const t = col[col.length-1];
+  return t.up && isRed(t.suit)!==isRed(card.suit) && RV[t.rank]===RV[card.rank]+1;
+}
+function validSeq(cards) {
+  for (let i = 1; i < cards.length; i++) {
+    if (!cards[i].up) return false;
+    if (isRed(cards[i-1].suit)===isRed(cards[i].suit)) return false;
+    if (RV[cards[i-1].rank] !== RV[cards[i].rank]+1) return false;
+  }
+  return true;
+}
+
+// ── SNAPSHOT / HISTORY ───────────────────────────────────────────────────────
+function clone(c) { return {...c}; }
+function snap() {
+  return {
+    stock:       state.stock.map(clone),
+    waste:       state.waste.map(clone),
+    foundations: Object.fromEntries(Object.entries(state.foundations).map(([k,v])=>[k,v.map(clone)])),
+    tableau:     state.tableau.map(col => col.map(clone))
+  };
+}
+
+function commit(next) {
+  hist.push(snap());
+  state = next;
+  moves++;
+  saveGame();
+  render();
+  checkWin();
+}
+
+// ── PERSISTENCE ──────────────────────────────────────────────────────────────
+function saveGame() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({state,hist,moves,won,dealMode,initialDeal}));
+  } catch(e) {}
+}
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const s = JSON.parse(raw);
+    if (!s.state || !s.initialDeal) return false;
+    state=s.state; hist=s.hist||[]; moves=s.moves||0;
+    won=s.won||false; dealMode=s.dealMode||1; initialDeal=s.initialDeal;
+    return true;
+  } catch(e) { return false; }
+}
+function checkWin() {
+  if (Object.values(state.foundations).every(p => p.length===13)) {
+    won = true;
+    recordWin(); saveGame();
+    document.getElementById('win-moves').textContent = `Completed in ${moves} moves`;
+    document.getElementById('win-overlay').classList.add('show');
+  }
+}
+
+// ── GAME SETUP ───────────────────────────────────────────────────────────────
+function dealCards() {
+  const deck = shuffle(mkDeck());
+  const tab = Array.from({length:7}, () => []);
+  let idx = 0;
+  for (let col = 0; col < 7; col++) {
+    for (let row = 0; row <= col; row++) {
+      tab[col].push({...deck[idx++], up: row===col});
+    }
+  }
+  const stock = deck.slice(idx).map(c => ({...c, up:false}));
+  initialDeal = { tab: tab.map(col=>col.map(clone)), stock: stock.map(clone) };
+  state = {
+    stock, waste: [],
+    foundations: {'♠':[],'♥':[],'♦':[],'♣':[]},
+    tableau: tab
+  };
+  hist=[]; moves=0; won=false; sel=null;
+  document.getElementById('win-overlay').classList.remove('show');
+  saveGame(); render();
+}
+
+function restartDeal() {
+  if (!initialDeal) return;
+  state = {
+    stock: initialDeal.stock.map(clone),
+    waste: [],
+    foundations: {'♠':[],'♥':[],'♦':[],'♣':[]},
+    tableau: initialDeal.tab.map(col=>col.map(clone))
+  };
+  hist=[]; moves=0; won=false; sel=null;
+  document.getElementById('win-overlay').classList.remove('show');
+  saveGame(); render();
+}
+
+function newGame() {
+  if (moves > 0 && !won) breakStreak();
+  dealCards();
+}
+
+function setDeal(n) {
+  dealMode = n;
+  settings.deal = n;
+  saveSettings();
+  if (moves > 0 && !won) breakStreak();
+  dealCards();
+}
+
+function undo() {
+  if (!hist.length) return;
+  state = hist.pop(); moves = Math.max(0, moves-1);
+  sel = null; saveGame(); render();
+}
+
+// ── AUTO-MOVE ─────────────────────────────────────────────────────────────────
+// Try to send cards to the best destination automatically.
+// Returns true if a move was made.
+function tryAutoMove(fromInfo) {
+  const card = fromInfo.cards[0];
+
+  // 1. Foundation — single cards only
+  if (fromInfo.cards.length === 1) {
+    for (let si = 0; si < SUITS.length; si++) {
+      if (card.suit === SUITS[si] && canFoundation(card, state.foundations)) {
+        sel = fromInfo;
+        if (moveSelTo('found', si)) return true;
+      }
+    }
+  }
+
+  // 2. Best tableau column: prefer non-empty over empty, and highest rank empty
+  let bestCol = -1, bestEmpty = -1;
+  for (let col = 0; col < 7; col++) {
+    if (fromInfo.from === 'tab' && fromInfo.col === col) continue;
+    const column = state.tableau[col];
+    if (canTableau(card, column)) {
+      if (column.length > 0) { bestCol = col; break; } // first non-empty win
+      else if (bestEmpty === -1) bestEmpty = col;
+    }
+  }
+  const target = bestCol !== -1 ? bestCol : bestEmpty;
+  if (target !== -1) {
+    sel = fromInfo;
+    if (moveSelTo('tab', target)) return true;
+  }
+
+  return false;
+}
+
+// ── STOCK FLIP ───────────────────────────────────────────────────────────────
+function flipStock() {
+  if (won) return;
+  sel = null;
+  const ns = snap();
+  if (ns.stock.length > 0) {
+    const n = Math.min(dealMode, ns.stock.length);
+    const flipped = ns.stock.splice(ns.stock.length - n, n);
+    flipped.forEach(c => { c.up = true; });
+    ns.waste.push(...flipped);
+  } else {
+    ns.stock = ns.waste.reverse().map(c => ({...c, up:false}));
+    ns.waste = [];
+  }
+  commit(ns);
+}
+
+// ── REMOVE SELECTION FROM SNAPSHOT ───────────────────────────────────────────
+function removeSel(ns) {
+  if (sel.from === 'waste') {
+    ns.waste = ns.waste.slice(0, -1);
+  } else if (sel.from === 'tab') {
+    ns.tableau[sel.col] = ns.tableau[sel.col].slice(0, sel.ci);
+    const col = ns.tableau[sel.col];
+    if (col.length && !col[col.length-1].up) col[col.length-1].up = true;
+  } else if (sel.from === 'found') {
+    ns.foundations[sel.suitKey] = ns.foundations[sel.suitKey].slice(0, -1);
+  }
+}
+
+// ── MOVE SELECTION TO TARGET ──────────────────────────────────────────────────
+function moveSelTo(targetType, targetArg) {
+  if (!sel || won) return false;
+  const ns = snap();
+  const card = sel.cards[0];
+
+  if (targetType === 'found') {
+    if (sel.cards.length !== 1) return false;
+    const suit = SUITS[targetArg];
+    if (card.suit !== suit) return false;
+    if (!canFoundation(card, ns.foundations)) return false;
+    removeSel(ns);
+    ns.foundations[suit].push({...card, up:true});
+    sel = null; commit(ns); return true;
+  }
+
+  if (targetType === 'tab') {
+    const col = ns.tableau[targetArg];
+    if (!canTableau(card, col)) return false;
+    removeSel(ns);
+    ns.tableau[targetArg].push(...sel.cards.map(clone));
+    sel = null; commit(ns); return true;
+  }
+
+  return false;
+}
+
+// ── INTERACTION HANDLERS ──────────────────────────────────────────────────────
+function onStock() { sel = null; flipStock(); }
+
+function onWaste() {
+  if (won) return;
+  if (!state.waste.length) { sel=null; render(); return; }
+  const card = state.waste[state.waste.length-1];
+  const fromInfo = { from:'waste', col:null, ci:state.waste.length-1, cards:[{...card}] };
+  if (!tryAutoMove(fromInfo)) { sel = fromInfo; render(); }
+}
+
+function onFound(si) {
+  if (won) return;
+  if (sel) {
+    if (!moveSelTo('found', si)) { sel=null; render(); }
+    return;
+  }
+  const suit = SUITS[si];
+  const pile = state.foundations[suit];
+  if (pile.length) {
+    const fromInfo = { from:'found', col:null, ci:pile.length-1, suitKey:suit, cards:[{...pile[pile.length-1]}] };
+    if (!tryAutoMove(fromInfo)) { sel = fromInfo; render(); }
+  }
+}
+
+function onTabCard(col, ci) {
+  if (won) return;
+  const column = state.tableau[col];
+  const card = column[ci];
+
+  if (!card.up) {
+    if (ci === column.length-1) {
+      sel = null;
+      const ns = snap();
+      ns.tableau[col][ci] = {...ns.tableau[col][ci], up:true};
+      commit(ns);
+    }
+    return;
+  }
+
+  if (sel) {
+    if (sel.from==='tab' && sel.col===col && sel.ci===ci) { sel=null; render(); return; }
+    if (!moveSelTo('tab', col)) { sel=null; trySelectTab(col, ci); }
+    return;
+  }
+
+  const fromInfo = { from:'tab', col, ci, cards: column.slice(ci).map(clone) };
+  if (!validSeq(fromInfo.cards)) { render(); return; }
+  if (!tryAutoMove(fromInfo)) { sel = fromInfo; render(); }
+}
+
+function onTabEmpty(col) {
+  if (won) return;
+  if (sel) {
+    if (!moveSelTo('tab', col)) { sel=null; render(); }
+  }
+}
+
+function trySelectTab(col, ci) {
+  const cards = state.tableau[col].slice(ci).map(clone);
+  if (validSeq(cards)) sel = { from:'tab', col, ci, cards };
+  render();
+}
+
+function isSelected(card) {
+  return sel ? sel.cards.some(c => c.id===card.id) : false;
+}
+
+// ── RENDERING ────────────────────────────────────────────────────────────────
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function makeSlot(onClick, label, labelColor) {
+  const el = document.createElement('div');
+  el.className = 'slot';
+  const r = Math.max(8, Math.round(CW*0.10));
+  el.style.cssText = `width:${CW}px;height:${CH}px;border-radius:${r}px;`;
+  if (label) {
+    const span = document.createElement('span');
+    span.textContent = label;
+    span.style.cssText = `color:${labelColor||cssVar('--border-slot')};font-size:${Math.round(CW*0.36)}px;font-family:'Inter',sans-serif`;
+    el.appendChild(span);
+  }
+  if (onClick) el.addEventListener('click', e => { e.stopPropagation(); onClick(); });
+  return el;
+}
+
+function makeBackSVG(w, h, r) {
+  const sp = Math.max(6, Math.round(w * 0.115)); // line spacing
+  const lw = Math.max(1, Math.round(sp * 0.22));  // line weight
+
+  // Generate diagonal lines (top-left to bottom-right) across a padded area
+  let lines = '';
+  const pad = h;
+  for (let i = -pad; i < w + pad; i += sp) {
+    lines += `<line x1="${i}" y1="0" x2="${i + h}" y2="${h}"
+      stroke="rgba(255,255,255,0.18)" stroke-width="${lw}" stroke-linecap="square"/>`;
+    lines += `<line x1="${i}" y1="${h}" x2="${i + h}" y2="0"
+      stroke="rgba(255,255,255,0.18)" stroke-width="${lw}" stroke-linecap="square"/>`;
+  }
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"
+    style="position:absolute;inset:0;display:block;border-radius:${r}px">
+    <defs>
+      <radialGradient id="bbg" cx="38%" cy="30%" r="80%">
+        <stop offset="0%" stop-color="#3d6ec0"/>
+        <stop offset="100%" stop-color="#182e6a"/>
+      </radialGradient>
+      <clipPath id="bclip">
+        <rect width="${w}" height="${h}" rx="${r}"/>
+      </clipPath>
+    </defs>
+    <rect width="${w}" height="${h}" fill="url(#bbg)"/>
+    <g clip-path="url(#bclip)">${lines}</g>
+  </svg>`;
+}
+
+function makeCardEl(card, top, z, onClick) {
+  const el = document.createElement('div');
+  const faceDown = !card.up;
+  el.className = 'card' + (faceDown ? ' back' : '') + ((!faceDown && isSelected(card)) ? ' sel' : '');
+  const r = Math.max(8, Math.round(CW*0.10));
+  const p = Math.max(3, Math.round(CW*0.08));
+
+  if (faceDown) {
+    el.style.cssText = `width:${CW}px;height:${CH}px;top:${top}px;z-index:${z};` +
+      `border-radius:${r}px;background:none;border-color:transparent;overflow:hidden;`;
+    el.innerHTML = makeBackSVG(CW, CH, r);
+    if (card.flippable) el.classList.add('flippable');
+  } else {
+    el.style.cssText = `width:${CW}px;height:${CH}px;top:${top}px;z-index:${z};border-radius:${r}px;padding:${p}px;`;
+    const col = isRed(card.suit) ? cssVar('--red') : cssVar('--blk');
+    const rf = Math.max(10, CW*0.30) * fontScale;
+    const sf = Math.max(8,  CW*0.21) * fontScale;
+    const g  = Math.max(1,  CW*0.05);
+    const iconSz = Math.max(22, CW*0.78) * fontScale;
+    el.innerHTML =
+      `<div class="card-corner" style="color:${col};display:flex;align-items:center;gap:${g}px;font-family:'Inter',sans-serif;font-weight:700">` +
+        `<span style="font-size:${rf}px;line-height:1">${card.rank}</span>` +
+        `<span style="font-size:${sf}px;line-height:1">${card.suit}</span>` +
+      `</div>` +
+      `<div style="position:absolute;bottom:${Math.max(6,CW*0.22)}px;left:0;right:0;display:flex;align-items:center;justify-content:center;pointer-events:none">` +
+        `<div style="width:${iconSz}px;height:${iconSz}px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:${col};font-size:${iconSz}px;line-height:1;opacity:0.93">${card.suit}</div>` +
+      `</div>`;
+  }
+
+  if (onClick) el.addEventListener('click', e => { e.stopPropagation(); onClick(); });
+  return el;
+}
+
+function render() {
+  const totalW = 7 * CW + 18;
+  document.getElementById('header').style.width      = totalW + 'px';
+  document.getElementById('top-row').style.width     = totalW + 'px';
+  document.getElementById('tableau').style.width     = totalW + 'px';
+  document.getElementById('title').style.fontSize    = Math.max(16, CW*0.36) + 'px';
+  document.getElementById('hdr-moves').textContent   = moves;
+
+  document.querySelectorAll('.stat-val').forEach(e => e.style.fontSize = Math.max(11, CW*0.20)+'px');
+  document.querySelectorAll('.stat-lbl').forEach(e => e.style.fontSize = Math.max(8,  CW*0.10)+'px');
+
+  // ── STOCK ──
+  const sw = document.getElementById('stock-wrap');
+  sw.innerHTML = '';
+  sw.style.cssText = `width:${CW}px;height:${CH}px;flex-shrink:0;position:relative`;
+  if (state.stock.length) {
+    const el = makeCardEl({up:false, rank:'', suit:'', id:'__stock'}, 0, 1, onStock);
+    el.style.position = 'absolute';
+    sw.appendChild(el);
+  } else {
+    const sl = makeSlot(onStock, '\u21BA', cssVar('--text-muted'));
+    sl.style.cssText += ';cursor:pointer';
+    sw.appendChild(sl);
+  }
+
+  // ── WASTE ──
+  const ww = document.getElementById('waste-wrap');
+  ww.innerHTML = '';
+  ww.style.cssText = `width:${CW}px;height:${CH}px;flex-shrink:0;position:relative;overflow:visible`;
+  if (!state.waste.length) {
+    ww.appendChild(makeSlot(null));
+  } else if (dealMode === 1) {
+    const card = state.waste[state.waste.length-1];
+    const el = makeCardEl(card, 0, 1, onWaste);
+    el.style.position = 'absolute';
+    ww.appendChild(el);
+  } else {
+    const n = state.waste.length, show = Math.min(3, n);
+    const rightHand = settings.hand === 'right';
+    for (let i = 0; i < show; i++) {
+      const cardIdx = n - show + i, card = state.waste[cardIdx];
+      const isTop = (i === show-1);
+      const el = makeCardEl(card, 0, i+1, isTop ? onWaste : null);
+      el.style.position = 'absolute';
+      // Left mode: fan right (top card rightmost)
+      // Right mode: fan left (top card at 0, older cards at negative offsets)
+      el.style.left = rightHand ? `${(i - (show-1)) * FAN}px` : `${i * FAN}px`;
+      if (!isTop) el.style.cursor = 'default';
+      ww.appendChild(el);
+    }
+  }
+
+  // ── FOUNDATIONS ──
+  const fr = document.getElementById('found-row');
+  fr.innerHTML = '';
+  SUITS.forEach((suit, si) => {
+    const pile = state.foundations[suit];
+    const wrap = document.createElement('div');
+    wrap.style.cssText = `position:relative;width:${CW}px;height:${CH}px;flex-shrink:0`;
+
+    if (pile.length) {
+      const card = pile[pile.length-1];
+      const el = makeCardEl(card, 0, 1, () => onFound(si));
+      el.style.position = 'absolute';
+      wrap.appendChild(el);
+    } else {
+      const lc = isRed(suit) ? 'rgba(224,72,72,0.35)' : 'rgba(255,255,255,0.2)';
+      const sl = makeSlot(() => onFound(si), suit, lc);
+      wrap.appendChild(sl);
+    }
+    fr.appendChild(wrap);
+  });
+
+  // ── TABLEAU ──
+  const tab = document.getElementById('tableau');
+  tab.innerHTML = '';
+  state.tableau.forEach((col, ci) => {
+    const ys = [0];
+    for (let i = 0; i < col.length-1; i++) ys.push(ys[i] + (col[i].up ? OFF_U : OFF_D));
+    const totalH = col.length === 0 ? CH : ys[col.length-1] + CH;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'col-wrap';
+    wrap.style.cssText = `width:${CW}px;height:${totalH}px;flex-shrink:0`;
+
+    if (!col.length) {
+      const sl = makeSlot(() => onTabEmpty(ci));
+      sl.style.cssText += ';position:absolute;top:0;left:0';
+      wrap.appendChild(sl);
+    } else {
+      col.forEach((card, idx) => {
+        const isLast = idx === col.length-1;
+        const el = makeCardEl(
+          {...card, flippable: !card.up && isLast},
+          ys[idx], idx+1,
+          () => onTabCard(ci, idx)
+        );
+        if (!card.up && isLast) el.classList.add('flippable');
+        wrap.appendChild(el);
+      });
+    }
+    tab.appendChild(wrap);
+  });
+
+  // ── FOOTER ──
+  const bfs  = Math.max(9, CW*0.138), bpad = `7px ${Math.round(CW*0.18)}px`;
+  const dpad = `7px ${Math.round(CW*0.13)}px`, dfs = Math.max(8, CW*0.12);
+  document.querySelectorAll('.btn').forEach(b  => { b.style.fontSize=bfs+'px'; b.style.padding=bpad; });
+  document.querySelectorAll('.deal-btn').forEach(b => { b.style.fontSize=dfs+'px'; b.style.padding=dpad; });
+  document.getElementById('hint').style.fontSize = Math.max(8, CW*0.10) + 'px';
+  document.getElementById('btn-undo').disabled    = !hist.length;
+  document.getElementById('btn-restart').disabled = !initialDeal;
+
+  // Auto button: enabled if any face-up top card can go to foundation
+  const hasAutoMove = !won && (
+    (state.waste.length && canFoundation(state.waste[state.waste.length-1], state.foundations)) ||
+    state.tableau.some(col => {
+      const top = col[col.length-1];
+      return col.length && top.up && canFoundation(top, state.foundations);
+    })
+  );
+  const autoBtn = document.getElementById('btn-auto');
+  if (!autoPlaying) autoBtn.disabled = !hasAutoMove;
+  document.getElementById('win-title').style.fontSize = Math.max(24, CW*0.56) + 'px';
+  document.getElementById('win-moves').style.fontSize = Math.max(9,  CW*0.13) + 'px';
+
+  if (won) document.getElementById('win-overlay').classList.add('show');
+  showStats();
+}
+
+// ── AUTO-PLAY TO FOUNDATION ───────────────────────────────────────────────────
+let autoPlaying = false;
+let autoTimer   = null;
+
+function stopAuto() {
+  autoPlaying = false;
+  clearTimeout(autoTimer);
+  autoTimer = null;
+  const btn = document.getElementById('btn-auto');
+  btn.textContent = 'Auto';
+  btn.classList.remove('active');
+}
+
+function tickAuto() {
+  if (!autoPlaying || won) { stopAuto(); render(); return; }
+
+  // Try waste top → foundation
+  if (state.waste.length) {
+    const card = state.waste[state.waste.length - 1];
+    if (canFoundation(card, state.foundations)) {
+      sel = { from:'waste', col:null, ci:state.waste.length-1, cards:[{...card}] };
+      moveSelTo('found', SUITS.indexOf(card.suit));
+      autoTimer = setTimeout(tickAuto, 200);
+      return;
+    }
+  }
+
+  // Try each tableau top → foundation
+  for (let ci = 0; ci < 7; ci++) {
+    const col = state.tableau[ci];
+    if (!col.length) continue;
+    const card = col[col.length - 1];
+    if (!card.up) continue;
+    if (canFoundation(card, state.foundations)) {
+      sel = { from:'tab', col:ci, ci:col.length-1, cards:[{...card}] };
+      moveSelTo('found', SUITS.indexOf(card.suit));
+      autoTimer = setTimeout(tickAuto, 200);
+      return;
+    }
+  }
+
+  // Nothing left to send — stop
+  stopAuto();
+  render();
+}
+
+function toggleAuto() {
+  if (autoPlaying) {
+    stopAuto(); render();
+  } else {
+    autoPlaying = true;
+    const btn = document.getElementById('btn-auto');
+    btn.textContent = 'Stop';
+    btn.classList.add('active');
+    autoTimer = setTimeout(tickAuto, 120);
+  }
+}
+
+// ── EVENT WIRING ─────────────────────────────────────────────────────────────
+document.getElementById('btn-theme').addEventListener('click', toggleTheme);
+document.getElementById('btn-undo').addEventListener('click', undo);
+document.getElementById('btn-auto').addEventListener('click', toggleAuto);
+document.getElementById('btn-restart').addEventListener('click', () => { stopAuto(); restartDeal(); });
+document.getElementById('btn-new').addEventListener('click', () => { stopAuto(); newGame(); });
+document.getElementById('btn-again').addEventListener('click', () => { stopAuto(); newGame(); });
+document.getElementById('btn-settings').addEventListener('click', openSettings);
+document.getElementById('settings-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('settings-overlay')) closeSettings();
+});
+window.addEventListener('resize', () => { calcSizes(); render(); });
+
+// ── BOOT ─────────────────────────────────────────────────────────────────────
+loadSettings();  // sets dealMode + applies theme
+calcSizes();
+loadStats();
+
+if (loadGame()) {
+  render();
+} else {
+  dealCards();
+}
+</script>
+
+</body>
+</html>
