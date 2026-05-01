@@ -286,6 +286,62 @@
   #btn-new:hover  { background: var(--btn-primary-hover); }
   #btn-new:active { background: var(--btn-primary-bg); }
 
+  /* ── STATS PANEL ── */
+  #stats-overlay {
+    display: none; position: fixed; inset: 0;
+    background: var(--bg-overlay);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 9998; align-items: flex-end; justify-content: center;
+  }
+  #stats-overlay.show { display: flex; }
+  #stats-panel {
+    background: #1e3a2a;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 480px;
+    padding: 12px 24px calc(28px + env(safe-area-inset-bottom));
+    animation: winPop 0.28s cubic-bezier(0.32,0.72,0,1) both;
+  }
+  [data-theme="dark"] #stats-panel { background: #0e1e26; }
+  #stats-handle {
+    width: 36px; height: 4px; border-radius: 2px;
+    background: rgba(255,255,255,0.2);
+    margin: 0 auto 20px;
+  }
+  #stats-heading {
+    font-family: 'Playfair Display', serif; font-weight: 900;
+    color: rgba(255,255,255,0.9); font-size: 20px;
+    margin-bottom: 22px; letter-spacing: 1px;
+  }
+  .stats-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stats-cell {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .stats-cell-lbl {
+    font-family: 'Inter', sans-serif; font-weight: 500;
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+  }
+  .stats-cell-val {
+    font-family: 'Playfair Display', serif; font-weight: 700;
+    font-size: 28px; color: rgba(255,255,255,0.9); line-height: 1;
+  }
+  .stats-cell-val.accent { color: var(--accent); }
+  #btn-reset-stats {
+    font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500;
+    color: rgba(255,255,255,0.25); background: none; border: none;
+    cursor: pointer; padding: 4px 0; letter-spacing: 0.5px;
+    transition: color 0.15s;
+  }
+  #btn-reset-stats:hover { color: rgba(255,255,255,0.5); }
+
   /* ── WIN OVERLAY ── */
   #win-overlay {
     display: none; position: fixed; inset: 0;
@@ -409,9 +465,44 @@
     <button class="btn" id="btn-undo" disabled>Undo</button>
     <button class="btn" id="btn-auto" disabled>Auto</button>
     <button class="btn" id="btn-restart">Restart</button>
+    <button class="btn" id="btn-stats">Stats</button>
     <button class="btn" id="btn-new">New Game</button>
   </div>
   <div id="hint">Tap a card to auto-move &middot; Tap a run to move as a group</div>
+</div>
+
+<div id="stats-overlay">
+  <div id="stats-panel">
+    <div id="stats-handle"></div>
+    <div id="stats-heading">Statistics</div>
+    <div class="stats-grid">
+      <div class="stats-cell">
+        <div class="stats-cell-lbl">Wins</div>
+        <div class="stats-cell-val" id="st-wins">0</div>
+      </div>
+      <div class="stats-cell">
+        <div class="stats-cell-lbl">Losses</div>
+        <div class="stats-cell-val" id="st-losses">0</div>
+      </div>
+      <div class="stats-cell">
+        <div class="stats-cell-lbl">Win Streak</div>
+        <div class="stats-cell-val accent" id="st-streak">0</div>
+      </div>
+      <div class="stats-cell">
+        <div class="stats-cell-lbl">Best Streak</div>
+        <div class="stats-cell-val" id="st-best-streak">0</div>
+      </div>
+      <div class="stats-cell">
+        <div class="stats-cell-lbl">Fewest Moves</div>
+        <div class="stats-cell-val" id="st-fewest">—</div>
+      </div>
+      <div class="stats-cell">
+        <div class="stats-cell-lbl">Avg Moves</div>
+        <div class="stats-cell-val" id="st-avg">—</div>
+      </div>
+    </div>
+    <button id="btn-reset-stats">Reset statistics</button>
+  </div>
 </div>
 
 <!-- Streak warning overlay -->
@@ -482,37 +573,74 @@ function toggleTheme() {
 }
 
 // ── Win / streak stats ────────────────────────────────────────────────────────
-let totalWins  = 0;
-let streak     = 0;
+let totalWins     = 0;
+let losses        = 0;
+let streak        = 0;
+let bestStreak    = 0;
+let totalWinMoves = 0;
+let fewestMoves   = null;
 
 function loadStats() {
   try {
     const raw = localStorage.getItem(STATS_KEY);
     if (!raw) return;
     const s = JSON.parse(raw);
-    totalWins = s.totalWins || 0;
-    streak    = s.streak    || 0;
+    totalWins     = s.totalWins     || 0;
+    losses        = s.losses        || 0;
+    streak        = s.streak        || 0;
+    bestStreak    = s.bestStreak    || 0;
+    totalWinMoves = s.totalWinMoves || 0;
+    fewestMoves   = s.fewestMoves   != null ? s.fewestMoves : null;
   } catch(e) {}
 }
 
 function saveStats() {
-  try { localStorage.setItem(STATS_KEY, JSON.stringify({ totalWins, streak })); } catch(e) {}
+  try {
+    localStorage.setItem(STATS_KEY, JSON.stringify(
+      { totalWins, losses, streak, bestStreak, totalWinMoves, fewestMoves }
+    ));
+  } catch(e) {}
 }
 
 function recordWin() {
-  totalWins++; streak++;
+  totalWins++;
+  streak++;
+  totalWinMoves += moves;
+  if (fewestMoves === null || moves < fewestMoves) fewestMoves = moves;
+  if (streak > bestStreak) bestStreak = streak;
   saveStats(); renderStats();
 }
 
 function breakStreak() {
-  streak = 0; saveStats(); renderStats();
+  if (moves > 0) losses++;
+  streak = 0;
+  saveStats(); renderStats();
 }
 
 function renderStats() {
-  document.getElementById('hdr-wins').textContent   = totalWins;
-  document.getElementById('hdr-streak').textContent = streak;
-  document.getElementById('win-total').textContent  = totalWins;
-  document.getElementById('win-streak').textContent = streak;
+  document.getElementById('hdr-wins').textContent    = totalWins;
+  document.getElementById('hdr-streak').textContent  = streak;
+  document.getElementById('win-total').textContent   = totalWins;
+  document.getElementById('win-streak').textContent  = streak;
+  document.getElementById('st-wins').textContent        = totalWins;
+  document.getElementById('st-losses').textContent      = losses;
+  document.getElementById('st-streak').textContent      = streak;
+  document.getElementById('st-best-streak').textContent = bestStreak;
+  document.getElementById('st-fewest').textContent      = fewestMoves !== null ? fewestMoves : '—';
+  document.getElementById('st-avg').textContent         = totalWins > 0 ? Math.round(totalWinMoves / totalWins) : '—';
+}
+
+function openStats()  {
+  renderStats();
+  document.getElementById('stats-overlay').classList.add('show');
+}
+function closeStats() {
+  document.getElementById('stats-overlay').classList.remove('show');
+}
+function resetStats() {
+  totalWins = 0; losses = 0; streak = 0; bestStreak = 0;
+  totalWinMoves = 0; fewestMoves = null;
+  saveStats(); renderStats();
 }
 
 // ── Deck / game logic ────────────────────────────────────────────────────────
@@ -845,6 +973,13 @@ function render() {
 
 // ── Event wiring ─────────────────────────────────────────────────────────────
 document.getElementById('btn-theme').addEventListener('click', toggleTheme);
+document.getElementById('btn-stats').addEventListener('click', openStats);
+document.getElementById('stats-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('stats-overlay')) closeStats();
+});
+document.getElementById('btn-reset-stats').addEventListener('click', () => {
+  if (confirm('Reset all statistics?')) resetStats();
+});
 document.getElementById('btn-undo').addEventListener('click', undo);
 document.getElementById('btn-auto').addEventListener('click', ()=>{
   if(autoPlay){ stopAuto(); render(); }
