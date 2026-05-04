@@ -201,7 +201,43 @@ body{
 }
 .complete-sub{font-size:10px;letter-spacing:3px;color:#999;margin-top:10px}
 
-/* ── ANIMATIONS ── */
+/* ── STATS MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
+  display:flex;align-items:center;justify-content:center;
+  z-index:900;opacity:0;pointer-events:none;
+  transition:opacity .2s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{
+  background:#fff;border:2px solid #000;
+  width:min(420px,92vw);padding:30px 28px 26px;
+  position:relative;
+}
+.modal-title{
+  font-family:'Playfair Display',serif;
+  font-size:22px;font-weight:900;letter-spacing:1px;
+  margin-bottom:22px;border-bottom:1px solid #000;padding-bottom:10px;
+}
+.stat-row{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:10px 0;border-bottom:1px solid #eee;
+}
+.stat-row:last-of-type{border-bottom:none;}
+.stat-label{font-size:10px;letter-spacing:2px;color:#999;text-transform:uppercase;}
+.stat-value{
+  font-family:'Playfair Display',serif;
+  font-size:24px;font-weight:700;
+}
+.stat-value.no-data{font-size:14px;color:#bbb;font-family:'Space Mono',monospace;font-weight:400;}
+.modal-close{
+  position:absolute;top:14px;right:16px;
+  background:none;border:none;font-size:20px;cursor:pointer;
+  color:#999;line-height:1;padding:4px;
+}
+.modal-close:hover{color:#000;}
+.modal-footer{margin-top:20px;display:flex;justify-content:flex-end;gap:8px;}
+
 @keyframes shake{
   0%,100%{transform:translateX(0)}
   20%{transform:translateX(-8px)}
@@ -251,6 +287,10 @@ body{
         <div class="score-lbl">SOLVED</div>
         <div class="score-sm" id="s-solved">0&nbsp;/&nbsp;4</div>
       </div>
+      <div class="score-col" style="align-items:center">
+        <div class="score-lbl">TIME</div>
+        <div class="score-sm" id="s-timer">0:00</div>
+      </div>
       <div class="score-col" style="align-items:flex-end">
         <div class="score-lbl">MAX</div>
         <div class="score-sm" id="s-max">22</div>
@@ -262,6 +302,8 @@ body{
   <div id="puzzles"></div>
 
   <div class="bottom-row">
+    <a href="index.html" style="text-decoration:none;"><button class="btn">🏠 Home</button></a>
+    <button class="btn" onclick="openStats()">📊 Stats</button>
     <button class="btn btn-solid" onclick="newGame()">New Game</button>
   </div>
 
@@ -269,11 +311,97 @@ body{
 
 </div>
 
+<!-- ── STATS MODAL ── -->
+<div class="modal-overlay" id="stats-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeStats()" aria-label="Close">&#x2715;</button>
+    <div class="modal-title">Your Stats</div>
+    <div class="stat-row">
+      <span class="stat-label">Fastest Solve</span>
+      <span class="stat-value" id="st-fastest">—</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Average Solve</span>
+      <span class="stat-value" id="st-average">—</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Total Time Played</span>
+      <span class="stat-value" id="st-total">—</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Rounds Played</span>
+      <span class="stat-value" id="st-rounds">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Total Words Solved</span>
+      <span class="stat-value" id="st-words">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Avg Words per Round</span>
+      <span class="stat-value" id="st-avgwords">—</span>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="clearStats()">Reset Stats</button>
+      <button class="btn btn-solid" onclick="closeStats()">Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
 'use strict';
 
 // ── STATE ─────────────────────────────────────────────────
 let puzzles = [];
+let timerInterval = null;
+let timerSeconds = 0;
+
+// ── STATS ─────────────────────────────────────────────────
+function loadStats() {
+  try { return JSON.parse(localStorage.getItem('jumble_stats')) || { rounds: 0, totalSeconds: 0, fastest: null, times: [], totalWords: 0, wordCounts: [] }; }
+  catch { return { rounds: 0, totalSeconds: 0, fastest: null, times: [], totalWords: 0, wordCounts: [] }; }
+}
+function saveStats(s) { localStorage.setItem('jumble_stats', JSON.stringify(s)); }
+
+function recordRound(seconds, wordsSolved) {
+  const s = loadStats();
+  s.rounds++;
+  s.totalSeconds += seconds;
+  s.times.push(seconds);
+  if (s.fastest === null || seconds < s.fastest) s.fastest = seconds;
+  s.totalWords = (s.totalWords || 0) + wordsSolved;
+  if (!s.wordCounts) s.wordCounts = [];
+  s.wordCounts.push(wordsSolved);
+  saveStats(s);
+}
+
+function fmtTime(sec) {
+  if (sec === null || sec === undefined) return '—';
+  const m = Math.floor(sec / 60), s = sec % 60;
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+function openStats() {
+  const s = loadStats();
+  const avg = s.times.length ? Math.round(s.times.reduce((a,b)=>a+b,0) / s.times.length) : null;
+  const totalWords = s.totalWords || 0;
+  const avgWords = s.rounds > 0 ? (totalWords / s.rounds).toFixed(1) : null;
+  document.getElementById('st-fastest').textContent  = s.fastest !== null ? fmtTime(s.fastest) : '—';
+  document.getElementById('st-average').textContent  = avg !== null ? fmtTime(avg) : '—';
+  document.getElementById('st-total').textContent    = s.totalSeconds > 0 ? fmtTime(s.totalSeconds) : '—';
+  document.getElementById('st-rounds').textContent   = s.rounds;
+  document.getElementById('st-words').textContent    = totalWords;
+  document.getElementById('st-avgwords').textContent = avgWords !== null ? avgWords : '—';
+  document.getElementById('stats-overlay').classList.add('open');
+}
+
+function closeStats() { document.getElementById('stats-overlay').classList.remove('open'); }
+
+function handleOverlayClick(e) { if (e.target === document.getElementById('stats-overlay')) closeStats(); }
+
+function clearStats() {
+  localStorage.removeItem('jumble_stats');
+  openStats();
+}
 
 // ── UTILS ─────────────────────────────────────────────────
 function shuffle(arr) {
@@ -391,6 +519,27 @@ function hideLoading() {
   }, 200));
 }
 
+// ── TIMER ─────────────────────────────────────────────────
+function startTimer() {
+  stopTimer();
+  timerSeconds = 0;
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timerSeconds++;
+    updateTimerDisplay();
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerSeconds / 60);
+  const s = timerSeconds % 60;
+  document.getElementById('s-timer').textContent = m + ':' + String(s).padStart(2, '0');
+}
+
 // ── BOOT ──────────────────────────────────────────────────
 function boot() {
   showLoading('SHUFFLING WORDS');
@@ -434,6 +583,7 @@ async function startNewGame() {
   updateScore();
 
   await hideLoading();
+  startTimer();
 }
 
 // Public wrapper so the button can call it
@@ -626,9 +776,14 @@ function updateScore() {
 
 // ── COMPLETE ──────────────────────────────────────────────
 function showComplete() {
-  const solved   = puzzles.filter(p => p.solved).length;
+  stopTimer();
+  const solved = puzzles.filter(p => p.solved).length;
+  recordRound(timerSeconds, solved);
   const score    = puzzles.filter(p => p.solved).reduce((s, p) => s + p.word.length, 0);
   const maxScore = puzzles.reduce((s, p) => s + p.word.length, 0);
+  const m = Math.floor(timerSeconds / 60);
+  const s = timerSeconds % 60;
+  const timeStr = m + ':' + String(s).padStart(2, '0');
 
   const headline = solved === 4 ? 'PERFECT' : solved >= 2 ? 'WELL DONE' : 'GAME OVER';
   const sub = solved === 4
@@ -639,6 +794,7 @@ function showComplete() {
     <div class="complete">
       <div class="complete-hed">${headline}</div>
       <div class="complete-sub">${sub}</div>
+      <div class="complete-sub" style="margin-top:6px;letter-spacing:2px;">⏱ TIME &mdash; ${timeStr}</div>
       <button class="btn btn-solid" style="margin-top:22px" onclick="newGame()">Play Again</button>
     </div>`;
 }
