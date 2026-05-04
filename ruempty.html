@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Available Rutgers Rooms</title>
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#f6f9fc;margin:0;padding:18px;color:#0b1724}
+  .wrap{max-width:860px;margin:0 auto}
+  header{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+  h1{margin:0;font-size:20px}
+  .controls{display:flex;gap:8px;flex-wrap:wrap}
+  input,select,button{padding:10px;border-radius:8px;border:1px solid #d6e0ea;background:white}
+  button{background:#0b6fb1;color:white;border:0;cursor:pointer}
+  .grid{display:grid;grid-template-columns:1fr 160px;gap:12px;margin-top:12px}
+  .list{background:white;border-radius:10px;padding:12px;min-height:120px;border:1px solid #e6eef6}
+  .small{font-size:13px;color:#38506a}
+  .room{padding:8px;border-bottom:1px solid #eef6fb}
+  .room:last-child{border-bottom:0}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Available Rutgers Rooms</h1>
+      <div class="small">Enter a date & time to find rooms with no scheduled meeting then. Replace the sample JSON URL in script with your SOC JSON endpoint.</div>
+    </header>
+
+    <div class="controls" aria-hidden="false">
+      <input id="date" type="date" />
+      <input id="time" type="time" />
+      <select id="campus">
+        <option value="">Any building</option>
+      </select>
+      <button id="check">Check availability</button>
+      <button id="reload" title="Refetch schedule">Refresh data</button>
+    </div>
+
+    <div class="grid">
+      <div class="list" id="results"><em>Select date/time and press Check.</em></div>
+      <div class="list" id="meta">
+        <div><strong>Data status</strong></div>
+        <div id="status" class="small">Not loaded</div>
+        <hr>
+        <div><strong>Totals</strong></div>
+        <div class="small">Rooms scanned: <span id="totalRooms">—</span></div>
+        <div class="small">Meetings loaded: <span id="totalMeetings">—</span></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/*
+Assumptions about schedule JSON format (adjust parser as needed):
+[
+  {
+    "course": "EXAMPLE 101",
+    "term":"2026Spring",
+    "meetings":[
+      {
+        "building":"WALL",
+        "room":"001",
+        "days":["Mon","Wed","Fri"],
+        "start":"09:00",
+        "end":"09:50",
+        "start_date":"2026-01-15",
+        "end_date":"2026-05-15"
+      },
+      ...
+    ]
+  },
+  ...
+]
+
+Replace SCHEDULE_URL with real endpoint.
+*/
+const SCHEDULE_URL = 'https://example.com/rutgers-soc-term.json'; // <-- replace
+
+const id = s=>document.getElementById(s);
+const campusSel = id('campus');
+const resultsEl = id('results');
+const statusEl = id('status');
+const totalRoomsEl = id('totalRooms');
+const totalMeetingsEl = id('totalMeetings');
+
+let schedule = []; // raw items
+let roomsSet = new Set();
+let meetings = []; // flattened meetings with building,room,start,end,start_date,end_date,days
+
+async function fetchSchedule(){
+  statusEl.textContent = 'Fetching...';
+  try{
+    const r = await fetch(SCHEDULE_URL, {cache:'no-cache'});
+    if(!r.ok) throw new Error('Fetch failed: '+r.status);
+    schedule = await r.json();
+    flattenSchedule();
+    statusEl.textContent = 'Loaded';
+  }catch(e){
+    statusEl.textContent = 'Error loading schedule: '+e.message;
+    console.error(e);
+  }
+}
+
+function flattenSchedule(){
+  roomsSet = new Set();
+  meetings = [];
+  for(const course of schedule){
+    const mlist = course.meetings || course.sections || [];
+    for(const m of mlist){
+      // normalize fields - adapt to your feed's property names
+      const building = (m.building || m.bldg || '').trim();
+      const room = (m.room || m.rm || '').trim();
+      if(!building || !room) continue;
+      roomsSet.add(building+'|'+room);
+      const days = (m.days || m.weekdays || []).map(d=>normalizeDay(d)).filter(Boolean);
+      meetings.push({
+        building, room,
+        days,
+        start: m.start || m.start_time,
+        end: m.end || m.end_time,
+        start_date: m.start_date || m.term_start || null,
+        end_date: m.end_date || m.term_end || null
+      });
+    }
+  }
+  populateCampusSelect();
+  totalRoomsEl.textContent = roomsSet.size;
+  totalMeetingsEl.textContent = meetings.length;
+}
+
+function normalizeDay(d){
+  if(!d) return null;
+  d = d.toString().toLowerCase();
+  if(d.startsWith('m')) return 'Mon';
+  if(d.startsWith('tu')) return 'Tue';
+  if(d.startsWith('w')) return 'Wed';
+  if(d.startsWith('th')) return 'Thu';
+  if(d.startsWith('f')) return 'Fri';
+  if(d.startsWith('sa')) return 'Sat';
+  if(d.startsWith('su')) return 'Sun';
+  // handle abbreviations like 'MWF' or 'TTh'
+  if(d.includes('m') && d.includes('w') && d.includes('f')) return 'Mon'; // conservative
+  return null;
+}
+
+function populateCampusSelect(){
+  // extract buildings
+  const buildings = Array.from(new Set(Array.from(roomsSet).map(r=>r.split('|')[0]))).sort();
+  campusSel.innerHTML = '<option value="">Any building</option>' + buildings.map(b=>`<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`).join('');
+}
+
+function escapeHtml(s){ return (s||'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function parseTimeToMinutes(t){
+  if(!t) return null;
+  // accept "HH:MM" or "H:MM" or "HHMM"
+  const m = t.match(/(\d{1,2}):?(\d{2})/);
+  if(!m) return null;
+  const hh = parseInt(m[1],10), mm = parseInt(m[2],10);
+  return hh*60+mm;
+}
+
+function dateToDayAbbrev(dateStr){
+  const d = new Date(dateStr + 'T00:00:00-04:00');
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  return days[d.getDay()];
+}
+
+function inDateRange(meet, isoDate){
+  if(!meet.start_date && !meet.end_date) return true;
+  const target = isoDate;
+  if(meet.start_date && target < meet.start_date) return false;
+  if(meet.end_date && target > meet.end_date) return false;
+  return true;
+}
+
+function overlaps(targetMin, targetMax, aStartMin, aEndMin){
+  if(aStartMin==null || aEndMin==null) return false;
+  return Math.max(targetMin, aStartMin) < Math.min(targetMax, aEndMin);
+}
+
+function findAvailableRooms(isoDate, timeMinutes, buildingFilter){
+  const targetDay = dateToDayAbbrev(isoDate);
+  // build set of occupied rooms
+  const occupied = new Set();
+  for(const m of meetings){
+    if(buildingFilter && m.building !== buildingFilter) continue;
+    if(!inDateRange(m, isoDate)) continue;
+    if(!m.days || !m.days.length) continue;
+    if(!m.days.includes(targetDay)) continue;
+    const s = parseTimeToMinutes(m.start);
+    const e = parseTimeToMinutes(m.end);
+    if(s==null || e==null) continue;
+    if(overlaps(timeMinutes, timeMinutes+1, s, e)) occupied.add(m.building+'|'+m.room);
+  }
+  // available = roomsSet - occupied
+  const avail = Array.from(roomsSet).filter(r => {
+    if(buildingFilter && !r.startsWith(buildingFilter+'|')) return false;
+    return !occupied.has(r);
+  }).sort();
+  return avail.map(r=>({building:r.split('|')[0],room:r.split('|')[1]}));
+}
+
+// UI handlers
+id('check').addEventListener('click', ()=>{
+  const date = id('date').value;
+  const time = id('time').value;
+  const building = id('campus').value || '';
+  if(!date || !time){ resultsEl.innerHTML = '<em>Please choose a date and time.</em>'; return; }
+  const minutes = parseTimeToMinutes(time);
+  if(minutes==null){ resultsEl.innerHTML = '<em>Invalid time.</em>'; return; }
+  const avail = findAvailableRooms(date, minutes, building);
+  if(avail.length===0){ resultsEl.innerHTML = '<em>No available rooms found.</em>'; return; }
+  resultsEl.innerHTML = avail.map(a=>`<div class="room"><strong>${escapeHtml(a.building)} ${escapeHtml(a.room)}</strong></div>`).join('');
+});
+
+id('reload').addEventListener('click', ()=>fetchSchedule());
+
+// initialize: set default date/time and fetch
+(function init(){
+  const now = new Date();
+  // default to next hour rounded up
+  const dISO = now.toISOString().slice(0,10);
+  id('date').value = dISO;
+  const hh = now.getHours();
+  const mm = now.getMinutes();
+  const nextHour = ((mm>0)?(hh+1):hh)%24;
+  id('time').value = String(nextHour).padStart(2,'0') + ':00';
+  fetchSchedule();
+})();
+</script>
+</body>
+</html>
