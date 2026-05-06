@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Okay FreeCell</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Nunito:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -80,7 +80,7 @@
     overscroll-behavior: none;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-family: 'Nunito', system-ui, sans-serif;
   }
 
   #app {
@@ -103,8 +103,8 @@
   }
 
   #title {
-    font-family: 'Fraunces', serif;
-    font-weight: 900;
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 800;
     color: var(--text);
     letter-spacing: -0.5px; line-height: 1; flex-shrink: 0;
   }
@@ -132,7 +132,7 @@
   }
 
   .stat-val {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Nunito', sans-serif;
     font-size: 15px; font-weight: 700;
     color: var(--text); line-height: 1;
   }
@@ -266,7 +266,7 @@
 
   /* ── BUTTONS ── */
   .btn {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Nunito', sans-serif;
     font-weight: 600; letter-spacing: 0; text-transform: none;
     cursor: pointer; user-select: none;
     border: 1px solid var(--btn-ghost-border);
@@ -323,7 +323,7 @@
     margin: 0 auto 20px;
   }
   #stats-heading {
-    font-family: 'Fraunces', serif; font-weight: 900;
+    font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
     color: rgba(255,255,255,0.9); font-size: 20px;
     margin-bottom: 22px; letter-spacing: 1px;
   }
@@ -338,12 +338,12 @@
     display: flex; flex-direction: column; gap: 4px;
   }
   .stats-cell-lbl {
-    font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 500;
+    font-family: 'Nunito', sans-serif; font-weight: 600;
     font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
     color: rgba(255,255,255,0.4);
   }
   .stats-cell-val {
-    font-family: 'DM Mono', monospace; font-weight: 500;
+    font-family: 'Nunito', sans-serif; font-weight: 700;
     font-size: 28px; color: rgba(255,255,255,0.9); line-height: 1;
   }
   .stats-cell-val.accent { color: var(--accent); }
@@ -377,12 +377,12 @@
   }
 
   #win-title {
-    font-family: 'Fraunces', serif; font-weight: 900;
+    font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
     color: var(--text-box); margin-bottom: 6px; letter-spacing: 4px;
   }
 
   #win-moves {
-    font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 500;
+    font-family: 'Nunito', sans-serif; font-weight: 500;
     color: var(--text-muted-box);
     letter-spacing: 0; margin-bottom: 20px;
   }
@@ -397,11 +397,11 @@
   .win-stat-lbl {
     font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
     font-weight: 600; color: var(--text-muted-box);
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Nunito', sans-serif;
   }
   .win-stat-val {
-    font-family: 'DM Mono', monospace;
-    font-size: 32px; font-weight: 500;
+    font-family: 'Nunito', sans-serif;
+    font-size: 32px; font-weight: 700;
     color: var(--text-box);
   }
 
@@ -562,7 +562,6 @@
     <button class="btn" id="btn-stats">Stats</button>
     <button class="btn" id="btn-new">New Game</button>
   </div>
-  <div id="hint">Tap a card to auto-move &middot; Tap a run to move as a group</div>
 </div>
 
 <div id="stats-overlay">
@@ -602,8 +601,8 @@
 <!-- Streak warning overlay -->
 <div id="streak-overlay" style="display:none;position:fixed;inset:0;background:rgba(6,14,10,0.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);align-items:center;justify-content:center;z-index:9998">
   <div id="streak-box" style="background:#fff;border-radius:24px;padding:36px 48px;text-align:center;max-width:90vw;box-shadow:0 24px 60px rgba(0,0,0,0.4);animation:winPop 0.4s cubic-bezier(0.175,0.885,0.32,1.275) both">
-    <div id="streak-title" style="font-family:'Fraunces',serif;font-weight:900;color:#111a14;letter-spacing:1px;margin-bottom:10px;font-size:22px">End Streak?</div>
-    <div id="streak-msg" style="font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:#7a9082;margin-bottom:28px;line-height:1.6"></div>
+    <div id="streak-title" style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;color:#111a14;letter-spacing:1px;margin-bottom:10px;font-size:22px">End Streak?</div>
+    <div id="streak-msg" style="font-family:'Nunito',sans-serif;font-size:13px;color:#7a9082;margin-bottom:28px;line-height:1.6"></div>
     <div style="display:flex;gap:10px;justify-content:center">
       <button class="btn" id="btn-streak-cancel" style="background:rgba(0,0,0,0.06);border-color:rgba(0,0,0,0.12);color:#111a14">Cancel</button>
       <button class="btn" id="btn-streak-confirm" style="background:#f0c040;border-color:transparent;color:#111a14;font-weight:700">New Game</button>
@@ -1158,7 +1157,7 @@ function spawnScorePop(suit) {
     left:${rect.left + rect.width/2}px;
     top:${rect.top + rect.height*0.3}px;
     transform:translateX(-50%);
-    font-family:'Plus Jakarta Sans',sans-serif;
+    font-family:'Nunito',sans-serif;
     font-size:${Math.max(13,CW*0.22)}px;
     font-weight:700;
     color:${isR ? '#e03535' : '#1a2820'};
@@ -1282,7 +1281,7 @@ function makeCard(card,top,zIdx) {
   const sf=Math.max(8,CW*0.21);
   const gap=Math.max(1,CW*0.05);
   el.innerHTML=`
-    <div class="card-corner" style="color:${col};display:flex;flex-direction:row;align-items:center;gap:${gap}px;font-family:'DM Mono',monospace;font-weight:400">
+    <div class="card-corner" style="color:${col};display:flex;flex-direction:row;align-items:center;gap:${gap}px;font-family:'Inter',sans-serif;font-weight:700">
       <span style="font-size:${rf}px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-0.01em">${card.rank}</span><span style="font-size:${sf}px;line-height:1">${card.suit}</span>
     </div>
     <div style="position:absolute;bottom:${Math.max(6,CW*0.22)}px;left:0;right:0;display:flex;align-items:center;justify-content:center;pointer-events:none"><div style="width:${Math.max(22,CW*0.78)}px;height:${Math.max(22,CW*0.78)}px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:${col};font-size:${Math.max(22,CW*0.78)}px;line-height:1;opacity:0.93">${card.suit}</div></div>`;
@@ -1373,7 +1372,6 @@ function render() {
   const bfs=Math.max(9,CW*0.145);
   const bpad=`7px ${Math.round(CW*0.20)}px`;
   document.querySelectorAll('.btn').forEach(b=>{b.style.fontSize=bfs+'px';b.style.padding=bpad;});
-  document.getElementById('hint').style.fontSize=Math.max(8,CW*0.115)+'px';
   document.getElementById('win-title').style.fontSize=Math.max(26,CW*0.58)+'px';
   document.getElementById('win-moves').style.fontSize=Math.max(9,CW*0.14)+'px';
   document.querySelectorAll('.stat-val').forEach(el=>{ el.style.fontSize=Math.max(12,CW*0.22)+'px'; });
