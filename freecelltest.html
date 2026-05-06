@@ -1282,7 +1282,7 @@ function makeCard(card,top,zIdx) {
   const gap=Math.max(1,CW*0.05);
   el.innerHTML=`
     <div style="position:absolute;top:${pad}px;left:${pad}px;color:${col};font-family:'Inter',sans-serif;font-weight:500;font-size:${rf}px;line-height:1;letter-spacing:-0.01em">${card.rank}</div>
-    <div style="position:absolute;top:${pad}px;right:${pad}px;color:${col};font-family:'Inter',sans-serif;font-weight:500;font-size:${sf}px;line-height:1">${card.suit}</div>
+    <div style="position:absolute;top:${pad}px;right:${pad}px;color:${col};font-family:'Inter',sans-serif;font-weight:500;font-size:${rf}px;line-height:1">${card.suit}</div>
     <div style="position:absolute;bottom:${Math.max(6,CW*0.22)}px;left:0;right:0;display:flex;align-items:center;justify-content:center;pointer-events:none"><div style="width:${Math.max(22,CW*0.78)}px;height:${Math.max(22,CW*0.78)}px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:${col};font-size:${Math.max(22,CW*0.78)}px;line-height:1;opacity:0.93">${card.suit}</div></div>`;
   if(shakeId===card.id) setTimeout(()=>{shakeId=null;},400);
   return el;
