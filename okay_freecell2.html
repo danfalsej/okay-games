@@ -1281,8 +1281,8 @@ function makeCard(card,top,zIdx) {
   const sf=Math.max(8,CW*0.21);
   const gap=Math.max(1,CW*0.05);
   el.innerHTML=`
-    <div class="card-corner" style="color:${col};display:flex;flex-direction:row;align-items:center;gap:${gap}px;font-family:'Inter',sans-serif;font-weight:700">
-      <span style="font-size:${rf}px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-0.01em">${card.rank}</span><span style="font-size:${sf}px;line-height:1">${card.suit}</span>
+    <div class="card-corner" style="color:${col};display:flex;flex-direction:row;align-items:center;gap:${gap}px;font-family:'Inter',sans-serif;font-weight:400">
+      <span style="font-size:${rf}px;line-height:1;letter-spacing:-0.01em">${card.rank}</span><span style="font-size:${sf}px;line-height:1">${card.suit}</span>
     </div>
     <div style="position:absolute;bottom:${Math.max(6,CW*0.22)}px;left:0;right:0;display:flex;align-items:center;justify-content:center;pointer-events:none"><div style="width:${Math.max(22,CW*0.78)}px;height:${Math.max(22,CW*0.78)}px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:${col};font-size:${Math.max(22,CW*0.78)}px;line-height:1;opacity:0.93">${card.suit}</div></div>`;
   if(shakeId===card.id) setTimeout(()=>{shakeId=null;},400);
