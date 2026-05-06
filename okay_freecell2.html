@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Okay FreeCell</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -80,7 +80,7 @@
     overscroll-behavior: none;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   }
 
   #app {
@@ -103,7 +103,7 @@
   }
 
   #title {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Fraunces', serif;
     font-weight: 900;
     color: var(--text);
     letter-spacing: -0.5px; line-height: 1; flex-shrink: 0;
@@ -132,7 +132,7 @@
   }
 
   .stat-val {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 15px; font-weight: 700;
     color: var(--text); line-height: 1;
   }
@@ -187,7 +187,7 @@
 
   /* ── CARDS ── */
   .card {
-    cursor: pointer;
+    cursor: grab;
     position: absolute; left: 0;
     background: var(--bg-card);
     border: 1px solid var(--border-card);
@@ -197,6 +197,19 @@
     box-shadow: var(--card-shadow);
     transition: box-shadow 0.15s, transform 0.1s;
     overflow: hidden;
+    touch-action: none; /* allow pointer events to fire on mobile */
+  }
+
+  body.is-dragging .card        { cursor: grabbing; }
+  body.is-dragging              { cursor: grabbing; user-select: none; }
+
+  /* Drop-zone highlight */
+  .drop-hi {
+    outline: 2.5px solid var(--accent);
+    outline-offset: -2px;
+    border-radius: 10px;
+    background: rgba(240,192,64,0.09) !important;
+    transition: outline 0.08s, background 0.08s;
   }
 
   /* Subtle inner shine */
@@ -253,7 +266,7 @@
 
   /* ── BUTTONS ── */
   .btn {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-weight: 600; letter-spacing: 0; text-transform: none;
     cursor: pointer; user-select: none;
     border: 1px solid var(--btn-ghost-border);
@@ -310,7 +323,7 @@
     margin: 0 auto 20px;
   }
   #stats-heading {
-    font-family: 'Playfair Display', serif; font-weight: 900;
+    font-family: 'Fraunces', serif; font-weight: 900;
     color: rgba(255,255,255,0.9); font-size: 20px;
     margin-bottom: 22px; letter-spacing: 1px;
   }
@@ -325,12 +338,12 @@
     display: flex; flex-direction: column; gap: 4px;
   }
   .stats-cell-lbl {
-    font-family: 'Inter', sans-serif; font-weight: 500;
+    font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 500;
     font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
     color: rgba(255,255,255,0.4);
   }
   .stats-cell-val {
-    font-family: 'Playfair Display', serif; font-weight: 700;
+    font-family: 'DM Mono', monospace; font-weight: 500;
     font-size: 28px; color: rgba(255,255,255,0.9); line-height: 1;
   }
   .stats-cell-val.accent { color: var(--accent); }
@@ -364,12 +377,12 @@
   }
 
   #win-title {
-    font-family: 'Playfair Display', serif; font-weight: 900;
+    font-family: 'Fraunces', serif; font-weight: 900;
     color: var(--text-box); margin-bottom: 6px; letter-spacing: 4px;
   }
 
   #win-moves {
-    font-family: 'Inter', sans-serif; font-weight: 500;
+    font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 500;
     color: var(--text-muted-box);
     letter-spacing: 0; margin-bottom: 20px;
   }
@@ -384,10 +397,11 @@
   .win-stat-lbl {
     font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
     font-weight: 600; color: var(--text-muted-box);
+    font-family: 'Plus Jakarta Sans', sans-serif;
   }
   .win-stat-val {
-    font-family: 'Playfair Display', serif;
-    font-size: 32px; font-weight: 700;
+    font-family: 'DM Mono', monospace;
+    font-size: 32px; font-weight: 500;
     color: var(--text-box);
   }
 
@@ -588,8 +602,8 @@
 <!-- Streak warning overlay -->
 <div id="streak-overlay" style="display:none;position:fixed;inset:0;background:rgba(6,14,10,0.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);align-items:center;justify-content:center;z-index:9998">
   <div id="streak-box" style="background:#fff;border-radius:24px;padding:36px 48px;text-align:center;max-width:90vw;box-shadow:0 24px 60px rgba(0,0,0,0.4);animation:winPop 0.4s cubic-bezier(0.175,0.885,0.32,1.275) both">
-    <div id="streak-title" style="font-family:'Playfair Display',serif;font-weight:900;color:#111a14;letter-spacing:3px;margin-bottom:10px;font-size:22px">End Streak?</div>
-    <div id="streak-msg" style="font-family:'Inter',sans-serif;font-size:13px;color:#7a9082;margin-bottom:28px;line-height:1.6"></div>
+    <div id="streak-title" style="font-family:'Fraunces',serif;font-weight:900;color:#111a14;letter-spacing:1px;margin-bottom:10px;font-size:22px">End Streak?</div>
+    <div id="streak-msg" style="font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:#7a9082;margin-bottom:28px;line-height:1.6"></div>
     <div style="display:flex;gap:10px;justify-content:center">
       <button class="btn" id="btn-streak-cancel" style="background:rgba(0,0,0,0.06);border-color:rgba(0,0,0,0.12);color:#111a14">Cancel</button>
       <button class="btn" id="btn-streak-confirm" style="background:#f0c040;border-color:transparent;color:#111a14;font-weight:700">New Game</button>
@@ -1027,7 +1041,6 @@ function newGame() {
   stopAuto(); saveGame();
   document.getElementById('win-overlay').classList.remove('show');
   render();
-  animateDeal();
 }
 
 function restartDeal() {
@@ -1112,7 +1125,6 @@ function smartMove(src,col,ci,fi) {
       }
     }
   }
-  shakeTable();
   playError();
   shakeId=card.id; render();
 }
@@ -1146,7 +1158,7 @@ function spawnScorePop(suit) {
     left:${rect.left + rect.width/2}px;
     top:${rect.top + rect.height*0.3}px;
     transform:translateX(-50%);
-    font-family:'Plus Jakarta Sans',-apple-system,sans-serif;
+    font-family:'Plus Jakarta Sans',sans-serif;
     font-size:${Math.max(13,CW*0.22)}px;
     font-weight:700;
     color:${isR ? '#e03535' : '#1a2820'};
@@ -1216,15 +1228,15 @@ function applyFlipAnimations() {
     ghost.style.margin     = '0';
     ghost.style.zIndex     = '1000';
     ghost.style.transition = 'none';
-    ghost.style.transform  = `translate(${dx}px,${dy}px) scale(1.06)`;
+    ghost.style.transform  = `translate(${dx}px,${dy}px)`;
 
     el.style.visibility = 'hidden';
     document.body.appendChild(ghost);
 
     void ghost.offsetWidth;
 
-    ghost.style.transition = 'transform 0.28s cubic-bezier(0.34,1.42,0.64,1)';
-    ghost.style.transform  = 'translate(0,0) scale(1)';
+    ghost.style.transition = 'transform 0.2s cubic-bezier(0.25,0.46,0.45,0.94)';
+    ghost.style.transform  = '';
 
     let done = false;
     const finish = () => {
@@ -1234,7 +1246,7 @@ function applyFlipAnimations() {
       el.style.visibility = '';
     };
     ghost.addEventListener('transitionend', finish, { once: true });
-    setTimeout(finish, 420);                 // safety net if transitionend misfires
+    setTimeout(finish, 350);
   });
 }
 
@@ -1270,7 +1282,7 @@ function makeCard(card,top,zIdx) {
   const sf=Math.max(8,CW*0.21);
   const gap=Math.max(1,CW*0.05);
   el.innerHTML=`
-    <div class="card-corner" style="color:${col};display:flex;flex-direction:row;align-items:center;gap:${gap}px;font-family:'Plus Jakarta Sans',-apple-system,sans-serif;font-weight:500">
+    <div class="card-corner" style="color:${col};display:flex;flex-direction:row;align-items:center;gap:${gap}px;font-family:'DM Mono',monospace;font-weight:400">
       <span style="font-size:${rf}px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-0.01em">${card.rank}</span><span style="font-size:${sf}px;line-height:1">${card.suit}</span>
     </div>
     <div style="position:absolute;bottom:${Math.max(6,CW*0.22)}px;left:0;right:0;display:flex;align-items:center;justify-content:center;pointer-events:none"><div style="width:${Math.max(22,CW*0.78)}px;height:${Math.max(22,CW*0.78)}px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:${col};font-size:${Math.max(22,CW*0.78)}px;line-height:1;opacity:0.93">${card.suit}</div></div>`;
@@ -1296,9 +1308,10 @@ function render() {
   state.fc.forEach((card,fi)=>{
     const wrap=document.createElement('div');
     wrap.style.cssText=`position:relative;width:${CW}px;height:${CH}px;flex-shrink:0`;
+    wrap.dataset.drop='fc'; wrap.dataset.fi=fi;
     if(card){
       const el=makeCard(card,0,1);
-      el.addEventListener('click',e=>{e.stopPropagation();spawnRipple(el,e);smartMove('fc',null,null,fi);});
+      el.addEventListener('pointerdown',e=>{e.stopPropagation();initDrag(e,'fc',null,null,fi,el);},{passive:false});
       wrap.appendChild(el);
     } else { wrap.appendChild(makeSlot()); }
     fcRow.appendChild(wrap);
@@ -1312,6 +1325,7 @@ function render() {
     const top=pile.length?pile[pile.length-1]:null;
     const wrap=document.createElement('div');
     wrap.style.cssText=`position:relative;width:${CW}px;height:${CH}px;flex-shrink:0`;
+    wrap.dataset.drop='found'; wrap.dataset.suit=suit;
     if(foundPop.has(suit)) { wrap.classList.add('found-pop'); foundPop.delete(suit); }
     if(top){ const el=makeCard(top,0,1); wrap.appendChild(el); }
     else {
@@ -1338,6 +1352,7 @@ function render() {
     const wrap=document.createElement('div');
     wrap.className='col-wrap';
     wrap.style.cssText=`width:${CW}px;height:${h}px;flex-shrink:0`;
+    wrap.dataset.drop='tab'; wrap.dataset.ci=ci;
     if(col.length===0){
       const sl=makeSlot();
       sl.style.cssText+=';position:absolute;top:0;left:0';
@@ -1345,7 +1360,7 @@ function render() {
     } else {
       col.forEach((card,idx)=>{
         const el=makeCard(card,idx*OFF,idx+1);
-        el.addEventListener('click',e=>{e.stopPropagation();spawnRipple(el,e);smartMove('tab',ci,idx,null);});
+        el.addEventListener('pointerdown',e=>{e.stopPropagation();initDrag(e,'tab',ci,idx,null,el);},{passive:false});
         wrap.appendChild(el);
       });
     }
@@ -1379,6 +1394,189 @@ function render() {
   renderStats();
 }
 
+// ── Drag & Drop ───────────────────────────────────────────────────────────────
+let drag = null;
+const DRAG_THRESH = 7; // px before a press becomes a drag
+
+function initDrag(e, src, col, ci, fi, targetEl) {
+  if (won) return;
+  if (e.button !== undefined && e.button > 0) return; // left/touch only
+  drag = {
+    src, col, ci, fi,
+    px: e.clientX, py: e.clientY,
+    moved: false, ghost: null,
+    offX: 0, offY: 0,
+    cards: null, targetEl
+  };
+  e.preventDefault();
+}
+
+function getDragCards() {
+  const { src, col, ci, fi } = drag;
+  if (src === 'fc') {
+    const c = state.fc[fi];
+    return c ? [c] : null;
+  }
+  const cards = state.tab[col].slice(ci);
+  if (!cards.length) return null;
+  if (cards.length > 1 && !validSeq(cards)) return null;
+  return cards;
+}
+
+function buildDragGhost(cx, cy) {
+  // Dim originals so the destination is obvious
+  drag.cards.forEach(c => {
+    const el = document.querySelector(`[data-card-id="${c.id}"]`);
+    if (el) el.style.opacity = '0.18';
+  });
+
+  const totalH = CH + (drag.cards.length - 1) * OFF;
+  const ghost  = document.createElement('div');
+  ghost.style.cssText =
+    `position:fixed;z-index:2000;pointer-events:none;` +
+    `width:${CW}px;height:${totalH}px;`;
+
+  drag.cards.forEach((card, i) => {
+    const el = makeCard(card, i * OFF, i + 1);
+    el.style.boxShadow = '0 18px 44px rgba(0,0,0,0.5), 0 6px 14px rgba(0,0,0,0.32)';
+    ghost.appendChild(el);
+  });
+
+  // Anchor ghost so the card appears right under the finger/cursor
+  const firstEl = document.querySelector(`[data-card-id="${drag.cards[0].id}"]`);
+  const rect = firstEl
+    ? firstEl.getBoundingClientRect()
+    : { left: cx - CW / 2, top: cy - CH * 0.15 };
+  drag.offX = cx - rect.left;
+  drag.offY = cy - rect.top;
+  ghost.style.left      = (cx - drag.offX) + 'px';
+  ghost.style.top       = (cy - drag.offY) + 'px';
+  ghost.style.transform = 'rotate(2deg) scale(1.06)';
+  ghost.style.transition = 'transform 0.12s ease';
+
+  document.body.appendChild(ghost);
+  drag.ghost = ghost;
+  document.body.classList.add('is-dragging');
+}
+
+function updateDropHighlight(cx, cy) {
+  document.querySelectorAll('.drop-hi').forEach(el => el.classList.remove('drop-hi'));
+  const under = document.elementFromPoint(cx, cy);
+  if (!under) return;
+  const zone = under.closest('[data-drop]');
+  if (zone) zone.classList.add('drop-hi');
+}
+
+function onDragMove(e) {
+  if (!drag) return;
+  const cx = e.clientX, cy = e.clientY;
+
+  if (!drag.moved) {
+    if (Math.abs(cx - drag.px) < DRAG_THRESH &&
+        Math.abs(cy - drag.py) < DRAG_THRESH) return;
+    drag.cards = getDragCards();
+    if (!drag.cards) { drag = null; return; }
+    drag.moved = true;
+    clearHint();
+    buildDragGhost(cx, cy);
+  }
+
+  if (drag.ghost) {
+    drag.ghost.style.left = (cx - drag.offX) + 'px';
+    drag.ghost.style.top  = (cy - drag.offY) + 'px';
+  }
+  updateDropHighlight(cx, cy);
+  e.preventDefault();
+}
+
+function onDragEnd(e) {
+  if (!drag) return;
+  const cx = e.clientX, cy = e.clientY;
+  document.querySelectorAll('.drop-hi').forEach(el => el.classList.remove('drop-hi'));
+  document.body.classList.remove('is-dragging');
+
+  if (!drag.moved) {
+    // Pure tap — behave exactly like the old click handler
+    const { src, col, ci, fi, targetEl } = drag;
+    drag = null;
+    spawnRipple(targetEl, e);
+    smartMove(src, col, ci, fi);
+    return;
+  }
+
+  // Drag ended — find what's under the drop point
+  const { src, col: srcCol, ci, fi: srcFi, cards } = drag;
+  if (drag.ghost) drag.ghost.style.pointerEvents = 'none';
+  const under = document.elementFromPoint(cx, cy);
+  const zone  = under ? under.closest('[data-drop]') : null;
+
+  // Restore dimmed originals
+  cards.forEach(c => {
+    const orig = document.querySelector(`[data-card-id="${c.id}"]`);
+    if (orig) orig.style.opacity = '';
+  });
+  if (drag.ghost) drag.ghost.remove();
+  drag = null;
+
+  if (zone) {
+    attemptDrop(zone, src, srcCol, ci, srcFi, cards);
+  } else {
+    playError();
+  }
+}
+
+function attemptDrop(zone, src, srcCol, ci, srcFi, cards) {
+  const type = zone.dataset.drop;
+  const card = cards[0];
+  const nt  = () => state.tab.map(c => [...c]);
+  const nf  = () => [...state.fc];
+  const nfd = () => Object.fromEntries(
+    Object.entries(state.found).map(([k,v]) => [k,[...v]])
+  );
+  function remove(t, f) {
+    if (src === 'tab') t[srcCol].splice(ci);
+    else f[srcFi] = null;
+  }
+
+  if (type === 'fc') {
+    const fi = +zone.dataset.fi;
+    if (cards.length !== 1 || state.fc[fi] !== null) { playError(); return; }
+    const t = nt(), f = nf(); remove(t,f); f[fi] = card;
+    commit({ tab: t, fc: f, found: state.found });
+
+  } else if (type === 'found') {
+    const suit = zone.dataset.suit;
+    if (cards.length !== 1 || card.suit !== suit ||
+        RV[card.rank] !== state.found[suit].length + 1) {
+      playError(); return;
+    }
+    const t = nt(), f = nf(), fd = nfd(); remove(t,f); fd[suit].push(card);
+    commit({ tab: t, fc: f, found: fd });
+
+  } else if (type === 'tab') {
+    const dstCol = +zone.dataset.ci;
+    if (src === 'tab' && dstCol === srcCol) return;
+    const tcol = state.tab[dstCol];
+    const efc  = state.fc.filter(c => !c).length;
+    const ec   = state.tab.filter(c => !c.length).length;
+    const toEmpty   = tcol.length === 0;
+    const srcIsEmpty = src === 'tab' && ci === 0 &&
+                       state.tab[srcCol].length === cards.length;
+
+    if (toEmpty) {
+      if (srcIsEmpty) return;
+      if (cards.length > maxMove(efc, Math.max(0, ec - 1), false)) {
+        playError(); return;
+      }
+    } else {
+      if (!canPlace(tcol[tcol.length - 1], card)) { playError(); return; }
+      if (cards.length > maxMove(efc, ec, false)) { playError(); return; }
+    }
+    const t = nt(), f = nf(); remove(t,f); t[dstCol].push(...cards);
+    commit({ tab: t, fc: f, found: state.found });
+  }
+}
+
 // ── Event wiring ─────────────────────────────────────────────────────────────
 document.getElementById('btn-theme').addEventListener('click', toggleTheme);
 document.getElementById('btn-sound').addEventListener('click', toggleSound);
@@ -1408,6 +1606,8 @@ document.getElementById('btn-streak-confirm').addEventListener('click', ()=>{
 });
 
 window.addEventListener('resize',()=>{ calcSizes(); render(); });
+document.addEventListener('pointermove', onDragMove, { passive: false });
+document.addEventListener('pointerup',   onDragEnd);
 
 // ── Boot ─────────────────────────────────────────────────────────────────────
 calcSizes();
