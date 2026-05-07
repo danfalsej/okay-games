@@ -97,7 +97,7 @@
   /* ── HEADER ── */
   #header {
     width: 100%; max-width: 860px;
-    padding-bottom: 14px; margin-bottom: 14px;
+    padding-bottom: 8px; margin-bottom: 8px;
     display: flex; justify-content: space-between;
     align-items: center; gap: 12px;
   }
@@ -106,61 +106,71 @@
     font-family: 'Bricolage Grotesque', sans-serif;
     font-weight: 800;
     color: var(--text);
-    letter-spacing: -0.5px; line-height: 1; flex-shrink: 0;
+    letter-spacing: -0.5px; line-height: 1;
   }
 
   #header-right {
     display: flex;
     align-items: center;
-    gap: 18px;
+    justify-content: flex-end;
+    gap: 10px;
   }
 
   #header-stats {
     display: flex;
-    gap: 18px;
     align-items: center;
+    gap: 12px;
   }
 
-  .stat-col {
+  .stat-item {
     display: flex; flex-direction: column;
-    align-items: flex-end; gap: 2px;
+    align-items: center; gap: 2px;
   }
 
   .stat-lbl {
-    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
-    color: var(--text-muted); line-height: 1; font-weight: 500;
+    font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text-muted); line-height: 1; font-weight: 600;
   }
 
   .stat-val {
     font-family: 'Nunito', sans-serif;
-    font-size: 15px; font-weight: 700;
+    font-size: 18px; font-weight: 700;
     color: var(--text); line-height: 1;
+    transition: color 0.4s ease, transform 0.35s ease;
+    display: inline-block;
   }
 
-  .stat-val.muted { color: var(--text-muted); font-weight: 500; }
+  .stat-divider {
+    width: 1px; height: 26px;
+    background: rgba(255,255,255,0.14);
+    flex-shrink: 0;
+  }
 
-  /* ── THEME TOGGLE ── */
-  #btn-theme {
+  /* ── ICON PILL ── */
+  #icon-pill {
+    display: flex; align-items: center;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+  }
+
+  #btn-sound, #btn-theme, #btn-home {
     background: none; border: none; cursor: pointer;
-    padding: 6px; line-height: 1; font-size: 17px;
-    opacity: 0.4; transition: opacity 0.15s;
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 999px;
+    font-size: 13px; color: white;
+    opacity: 0.55; text-decoration: none;
+    transition: opacity 0.15s, background 0.12s;
     -webkit-tap-highlight-color: transparent;
-    flex-shrink: 0; color: white;
+    flex-shrink: 0;
   }
-  #btn-theme:hover { opacity: 0.8; }
-
-  #btn-home {
-    font-family: 'Inter', sans-serif;
-    font-size: 12px; font-weight: 500;
-    color: var(--text-muted);
-    text-decoration: none;
-    opacity: 0.8;
-    padding: 6px 2px;
-    line-height: 1;
-    transition: opacity 0.15s, color 0.2s;
-    letter-spacing: 0;
+  #btn-sound:hover, #btn-theme:hover, #btn-home:hover {
+    opacity: 1; background: rgba(255,255,255,0.1);
   }
-  #btn-home:hover { opacity: 1; color: var(--text); }
+  #btn-sound.muted { opacity: 0.22; }
 
   /* ── LAYOUT ── */
   #top-row {
@@ -525,22 +535,26 @@
     <div id="title">FreeCell</div>
     <div id="header-right">
       <div id="header-stats">
-        <div class="stat-col">
-          <div class="stat-lbl">MOVES</div>
-          <div class="stat-val muted" id="move-count">0</div>
+        <div class="stat-item">
+          <div class="stat-val" id="move-count">0</div>
+          <div class="stat-lbl">Moves</div>
         </div>
-        <div class="stat-col">
-          <div class="stat-lbl">WINS</div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
           <div class="stat-val" id="hdr-wins">0</div>
+          <div class="stat-lbl">Wins</div>
         </div>
-        <div class="stat-col">
-          <div class="stat-lbl">STREAK</div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
           <div class="stat-val" id="hdr-streak">0</div>
+          <div class="stat-lbl">Streak</div>
         </div>
       </div>
-      <button id="btn-sound" aria-label="Toggle sound" title="Toggle sound">♪</button>
-      <button id="btn-theme" aria-label="Toggle night mode" title="Toggle night mode">◐</button>
-      <a href="index.html" id="btn-home" title="Home">&#8592; Home</a>
+      <div id="icon-pill">
+        <button id="btn-sound" aria-label="Toggle sound" title="Toggle sound">♪</button>
+        <button id="btn-theme" aria-label="Toggle night mode" title="Toggle night mode">◐</button>
+        <a href="index.html" id="btn-home" title="Home" aria-label="Home">⌂</a>
+      </div>
     </div>
   </div>
 
@@ -1373,9 +1387,6 @@ function render() {
   document.querySelectorAll('.btn').forEach(b=>{b.style.fontSize=bfs+'px';b.style.padding=bpad;});
   document.getElementById('win-title').style.fontSize=Math.max(26,CW*0.58)+'px';
   document.getElementById('win-moves').style.fontSize=Math.max(9,CW*0.14)+'px';
-  document.querySelectorAll('.stat-val').forEach(el=>{ el.style.fontSize=Math.max(12,CW*0.22)+'px'; });
-  document.querySelectorAll('.stat-lbl').forEach(el=>{ el.style.fontSize=Math.max(8,CW*0.115)+'px'; });
-
   document.getElementById('btn-undo').disabled=!hist.length;
   document.getElementById('btn-restart').disabled=!initialDeal;
   document.getElementById('move-count').textContent=moves;
