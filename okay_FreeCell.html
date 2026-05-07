@@ -57,21 +57,67 @@
   }
 
   [data-theme="dark"] {
-    --bg-base:      #0c1c26;
-    --bg-mid:       #091520;
-    --bg-deep:      #060e18;
+    --bg-base:      #111113;
+    --bg-mid:       #0d0d0f;
+    --bg-deep:      #080809;
 
-    --bg-panel:     rgba(4,10,18,0.78);
-    --bg-overlay:   rgba(2,6,12,0.88);
-    --bg-win-box:   #ffffff;
+    --bg-card:      #1e1e22;
+    --bg-panel:     rgba(8,8,10,0.88);
+    --bg-overlay:   rgba(4,4,6,0.92);
+    --bg-win-box:   #1a1a1e;
 
-    --border-slot:  rgba(255,255,255,0.12);
+    --border-card:  rgba(255,255,255,0.07);
+    --border-slot:  rgba(255,255,255,0.08);
+    --border-win:   rgba(255,255,255,0.1);
+    --border-win-stat: rgba(255,255,255,0.08);
 
-    --red:          #e84848;
-    --black-suit:   #1e2d3d;
+    --text:         rgba(255,255,255,0.92);
+    --text-muted:   rgba(255,255,255,0.35);
+    --text-hint:    rgba(255,255,255,0.18);
+    --text-badge:   rgba(255,255,255,0.25);
 
-    --card-shadow:     0 2px 10px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.3);
-    --card-shadow-sel: 0 0 0 2.5px #f0c040, 0 6px 28px rgba(240,192,64,0.25), 0 2px 10px rgba(0,0,0,0.5);
+    --text-box:     rgba(255,255,255,0.90);
+    --text-muted-box: rgba(255,255,255,0.4);
+    --text-moves-box: rgba(255,255,255,0.4);
+
+    --red:          #e05555;
+    --black-suit:   rgba(255,255,255,0.82);
+
+    --card-shadow:     0 2px 12px rgba(0,0,0,0.6), 0 1px 4px rgba(0,0,0,0.4);
+    --card-shadow-sel: 0 0 0 2.5px #f0c040, 0 6px 28px rgba(240,192,64,0.22), 0 2px 12px rgba(0,0,0,0.6);
+  }
+
+  /* Dark mode card face — warm gradient on dark surface */
+  [data-theme="dark"] .card {
+    background: linear-gradient(170deg, #242428 0%, #1c1c20 100%);
+  }
+
+  /* Dark mode win box and stats panel */
+  [data-theme="dark"] #win-box {
+    background: var(--bg-win-box);
+    border-color: rgba(255,255,255,0.1);
+  }
+
+  [data-theme="dark"] #stats-panel {
+    background: #141416;
+    border-top-color: rgba(255,255,255,0.08);
+  }
+
+  [data-theme="dark"] .stats-cell {
+    background: rgba(255,255,255,0.04);
+    border-color: rgba(255,255,255,0.07);
+  }
+
+  /* Dark mode streak box */
+  [data-theme="dark"] #streak-box {
+    background: #1a1a1e;
+  }
+  [data-theme="dark"] #streak-title { color: rgba(255,255,255,0.9); }
+  [data-theme="dark"] #streak-msg   { color: rgba(255,255,255,0.4); }
+  [data-theme="dark"] #btn-streak-cancel {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.8);
   }
 
   html, body {
