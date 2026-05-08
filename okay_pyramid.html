@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Okay Pyramid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Nunito:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* ── THEME TOKENS ── */
+  :root {
+    --bg-base:      #1a3828;
+    --bg-mid:       #142d20;
+    --bg-deep:      #0d1f16;
+    --bg-panel:     rgba(10,22,15,0.72);
+    --bg-overlay:   rgba(6,14,10,0.82);
+    --bg-win-box:   #ffffff;
+    --border-card:  rgba(0,0,0,0.07);
+    --border-slot:  rgba(255,255,255,0.10);
+    --border-win:   rgba(255,255,255,0.12);
+    --border-win-stat: rgba(0,0,0,0.08);
+    --text:         rgba(255,255,255,0.92);
+    --text-muted:   rgba(255,255,255,0.38);
+    --text-box:     #111a14;
+    --text-muted-box: #7a9082;
+    --accent:       #f0c040;
+    --red:          #be3030;
+    --black-suit:   #1a2820;
+    --btn-ghost-bg:     rgba(255,255,255,0.1);
+    --btn-ghost-border: rgba(255,255,255,0.18);
+    --btn-ghost-text:   rgba(255,255,255,0.88);
+    --btn-ghost-hover:  rgba(255,255,255,0.16);
+    --btn-primary-bg:   #f0c040;
+    --btn-primary-text: #111a14;
+    --btn-primary-hover:#f7d060;
+    --card-shadow:     0 2px 8px rgba(0,0,0,0.28), 0 1px 3px rgba(0,0,0,0.18);
+    --card-shadow-sel: 0 0 0 2.5px #f0c040, 0 6px 24px rgba(240,192,64,0.28), 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  [data-theme="dark"] {
+    --bg-base:      #111113;
+    --bg-mid:       #0d0d0f;
+    --bg-deep:      #080809;
+    --bg-panel:     rgba(8,8,10,0.88);
+    --bg-overlay:   rgba(4,4,6,0.92);
+    --bg-win-box:   #1a1a1e;
+    --border-card:  rgba(255,255,255,0.07);
+    --border-slot:  rgba(255,255,255,0.08);
+    --border-win:   rgba(255,255,255,0.1);
+    --border-win-stat: rgba(255,255,255,0.08);
+    --text-box:     rgba(255,255,255,0.90);
+    --text-muted-box: rgba(255,255,255,0.4);
+    --black-suit:   #1a1a1a;
+    --red:          #e03535;
+    --card-shadow:     0 2px 12px rgba(0,0,0,0.6), 0 1px 4px rgba(0,0,0,0.4);
+    --card-shadow-sel: 0 0 0 2.5px #f0c040, 0 6px 28px rgba(240,192,64,0.22), 0 2px 12px rgba(0,0,0,0.6);
+  }
+  [data-theme="dark"] .card { background: linear-gradient(170deg, #fffef8 0%, #f7f5ee 100%); }
+  [data-theme="dark"] #win-box { background: var(--bg-win-box); border-color: rgba(255,255,255,0.1); }
+  [data-theme="dark"] #stats-panel { background: #141416; border-top-color: rgba(255,255,255,0.08); }
+  [data-theme="dark"] #settings-panel { background: #141416; border-top-color: rgba(255,255,255,0.08); }
+  [data-theme="dark"] .stats-cell { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.07); }
+  [data-theme="dark"] #lose-box { background: var(--bg-win-box); border-color: rgba(255,255,255,0.1); }
+
+  html, body {
+    min-height: 100%;
+    background: var(--bg-base);
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    font-family: 'Nunito', system-ui, sans-serif;
+  }
+
+  #app {
+    min-height: 100vh;
+    background: radial-gradient(ellipse 80% 60% at 50% 20%, var(--bg-base) 0%, var(--bg-deep) 100%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+    display: flex; flex-direction: column; align-items: center;
+    padding: 20px 10px 100px;
+    user-select: none; touch-action: manipulation;
+  }
+
+  /* ── HEADER ── */
+  #header {
+    width: 100%; max-width: 520px;
+    padding-bottom: 8px; margin-bottom: 8px;
+    display: flex; justify-content: space-between;
+    align-items: center; gap: 12px;
+  }
+  #title {
+    font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
+    color: var(--text); letter-spacing: -0.5px; line-height: 1;
+  }
+  #header-right { display: flex; align-items: center; gap: 10px; }
+  #header-stats  { display: flex; align-items: center; gap: 12px; }
+  .stat-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .stat-lbl {
+    font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text-muted); line-height: 1; font-weight: 600;
+  }
+  .stat-val {
+    font-family: 'Nunito', sans-serif; font-size: 18px; font-weight: 700;
+    color: var(--text); line-height: 1;
+    transition: color 0.4s ease, transform 0.35s ease;
+    display: inline-block;
+  }
+  .stat-divider { width: 1px; height: 26px; background: rgba(255,255,255,0.14); flex-shrink: 0; }
+
+  /* ── ICON PILL ── */
+  #icon-pill {
+    display: flex; align-items: center;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 999px; padding: 3px; gap: 2px;
+  }
+  #btn-sound, #btn-theme, #btn-home {
+    background: none; border: none; cursor: pointer;
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 999px; font-size: 13px; color: white;
+    opacity: 0.55; text-decoration: none;
+    transition: opacity 0.15s, background 0.12s;
+    -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+  }
+  #btn-sound:hover, #btn-theme:hover, #btn-home:hover { opacity: 1; background: rgba(255,255,255,0.1); }
+  #btn-sound.muted { opacity: 0.22; }
+
+  /* ── PYRAMID AREA ── */
+  #pyramid-area {
+    width: 100%; max-width: 520px;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 0;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .pyr-row {
+    display: flex;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* ── STOCK / WASTE ROW ── */
+  #bottom-row {
+    width: 100%; max-width: 520px;
+    display: flex; align-items: center;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+
+  #stock-wrap, #waste-wrap {
+    position: relative; flex-shrink: 0;
+  }
+
+  #waste-wrap { overflow: visible; }
+
+  #recycles-label {
+    font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 600;
+    color: rgba(255,255,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+    min-width: 40px;
+  }
+
+  /* ── SLOTS ── */
+  .slot {
+    background: rgba(0,0,0,0.12);
+    border: 1.5px solid rgba(255,255,255,0.1);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.18);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+    line-height: 1; transition: border-color 0.2s;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    cursor: pointer; position: absolute;
+    background: linear-gradient(170deg, #fffef8 0%, #f7f5ee 100%);
+    border: 1px solid var(--border-card);
+    border-radius: 10px;
+    flex-shrink: 0;
+    box-shadow: var(--card-shadow);
+    transition: box-shadow 0.15s, transform 0.1s;
+    overflow: hidden; touch-action: manipulation;
+  }
+  .card::after {
+    content: ''; position: absolute; inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(160deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0) 10%);
+    pointer-events: none;
+  }
+  .card.selected {
+    box-shadow: var(--card-shadow-sel);
+    transform: translateY(-4px);
+    z-index: 50 !important;
+  }
+  .card.unavailable {
+    filter: brightness(0.72);
+    cursor: default;
+  }
+  .card.removed { display: none; }
+
+  @media (hover: hover) {
+    .card:not(.unavailable):not(.selected):hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.18);
+    }
+  }
+  .card:not(.unavailable):active {
+    transform: scale(0.93) translateY(1px) !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.22) !important;
+    transition: transform 0.07s ease, box-shadow 0.07s ease !important;
+  }
+
+  /* ── RIPPLE ── */
+  .ripple {
+    position: absolute; border-radius: 50%;
+    background: rgba(0,0,0,0.09); transform: scale(0);
+    animation: rippleAnim 0.5s ease-out forwards;
+    pointer-events: none; z-index: 20;
+  }
+  @keyframes rippleAnim { to { transform: scale(4.5); opacity: 0; } }
+
+  /* ── MATCH FLASH ── */
+  @keyframes matchFlash {
+    0%   { opacity: 1; transform: scale(1); }
+    40%  { opacity: 0.6; transform: scale(1.06); }
+    100% { opacity: 0; transform: scale(0.85); }
+  }
+  .match-flash { animation: matchFlash 0.32s ease forwards !important; }
+
+  /* ── FOOTER ── */
+  #footer {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--bg-panel);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+    padding: 12px 14px calc(16px + env(safe-area-inset-bottom));
+    z-index: 100;
+  }
+  #controls {
+    display: flex; align-items: center; gap: 8px;
+    justify-content: center; width: 100%; max-width: 520px;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    font-family: 'Nunito', sans-serif; font-weight: 600;
+    cursor: pointer; user-select: none;
+    border: 1px solid var(--btn-ghost-border);
+    border-radius: 999px;
+    background: var(--btn-ghost-bg); color: var(--btn-ghost-text);
+    outline: none; -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: background 0.12s, opacity 0.12s, transform 0.1s;
+    white-space: nowrap;
+  }
+  .btn:hover  { background: var(--btn-ghost-hover); }
+  .btn:active { transform: scale(0.96); opacity: 0.85; }
+  .btn:disabled { cursor: not-allowed; opacity: 0.22; }
+  #btn-new {
+    background: var(--btn-primary-bg); color: var(--btn-primary-text);
+    border-color: transparent; font-weight: 700;
+  }
+  #btn-new:hover  { background: var(--btn-primary-hover); }
+
+  /* ── STATS PANEL ── */
+  #stats-overlay {
+    display: none; position: fixed; inset: 0;
+    background: var(--bg-overlay); backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 9998; align-items: flex-end; justify-content: center;
+  }
+  #stats-overlay.show { display: flex; }
+  #stats-panel {
+    background: #1e3a2a; border-top: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 480px;
+    padding: 12px 24px calc(28px + env(safe-area-inset-bottom));
+    animation: slideUp 0.28s cubic-bezier(0.32,0.72,0,1) both;
+  }
+  #stats-handle {
+    width: 36px; height: 4px; border-radius: 2px;
+    background: rgba(255,255,255,0.2); margin: 0 auto 20px;
+  }
+  #stats-heading {
+    font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
+    color: rgba(255,255,255,0.9); font-size: 20px; margin-bottom: 22px;
+  }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .stats-cell {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .stats-cell-lbl {
+    font-family: 'Nunito', sans-serif; font-weight: 600;
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+  }
+  .stats-cell-val {
+    font-family: 'Nunito', sans-serif; font-weight: 700;
+    font-size: 28px; color: rgba(255,255,255,0.9); line-height: 1;
+  }
+  .stats-cell-val.accent { color: var(--accent); }
+  #btn-reset-stats {
+    font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 500;
+    color: rgba(255,255,255,0.25); background: none; border: none;
+    cursor: pointer; padding: 4px 0; transition: color 0.15s;
+  }
+  #btn-reset-stats:hover { color: rgba(255,255,255,0.5); }
+
+  /* ── SETTINGS PANEL ── */
+  #settings-overlay {
+    display: none; position: fixed; inset: 0;
+    background: var(--bg-overlay); backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 9998; align-items: flex-end; justify-content: center;
+  }
+  #settings-overlay.show { display: flex; }
+  #settings-panel {
+    background: #1e3a2a; border-top: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 480px;
+    padding: 12px 24px calc(28px + env(safe-area-inset-bottom));
+    animation: slideUp 0.28s cubic-bezier(0.32,0.72,0,1) both;
+  }
+  #settings-handle {
+    width: 36px; height: 4px; border-radius: 2px;
+    background: rgba(255,255,255,0.2); margin: 0 auto 20px;
+  }
+  #settings-heading {
+    font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
+    color: rgba(255,255,255,0.9); font-size: 20px; margin-bottom: 22px;
+  }
+  .setting-row {
+    display: flex; align-items: center;
+    justify-content: space-between; margin-bottom: 16px;
+  }
+  .setting-row:last-child { margin-bottom: 0; }
+  .setting-lbl {
+    font-family: 'Nunito', sans-serif; font-weight: 500;
+    font-size: 14px; color: rgba(255,255,255,0.7);
+  }
+  .setting-opts { display: flex; gap: 6px; }
+  .opt-btn {
+    font-family: 'Nunito', sans-serif; font-weight: 600;
+    font-size: 12px; padding: 6px 14px; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7);
+    cursor: pointer; transition: background 0.12s, color 0.12s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .opt-btn:hover  { background: rgba(255,255,255,0.14); }
+  .opt-btn.active { background: var(--btn-primary-bg); color: var(--btn-primary-text); border-color: transparent; }
+
+  /* ── WIN OVERLAY ── */
+  #win-overlay {
+    display: none; position: fixed; inset: 0;
+    background: var(--bg-overlay); backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    align-items: center; justify-content: center; z-index: 9999;
+  }
+  #win-overlay.show { display: flex; }
+  #win-box {
+    background: var(--bg-win-box); border-radius: 24px;
+    border: 1px solid var(--border-win);
+    padding: 40px 52px; text-align: center;
+    animation: winPop 0.45s cubic-bezier(0.175,0.885,0.32,1.275) both;
+    max-width: 90vw; box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+  }
+  #win-title {
+    font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
+    color: var(--text-box); margin-bottom: 6px;
+  }
+  #win-moves {
+    font-family: 'Nunito', sans-serif; font-weight: 500;
+    color: var(--text-muted-box); margin-bottom: 20px;
+  }
+  #win-stats {
+    display: flex; justify-content: center; gap: 36px;
+    margin-bottom: 28px; padding-top: 20px;
+    border-top: 1px solid var(--border-win-stat);
+  }
+  .win-stat-col { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .win-stat-lbl {
+    font-family: 'Nunito', sans-serif; font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase; font-weight: 600; color: var(--text-muted-box);
+  }
+  .win-stat-val { font-family: 'Nunito', sans-serif; font-size: 32px; font-weight: 700; color: var(--text-box); }
+  #btn-play-again {
+    background: var(--btn-primary-bg); color: var(--btn-primary-text);
+    border: none; border-radius: 999px; padding: 12px 32px;
+    font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 700;
+    cursor: pointer; transition: background 0.12s, transform 0.1s;
+  }
+  #btn-play-again:hover  { background: var(--btn-primary-hover); }
+  #btn-play-again:active { transform: scale(0.96); }
+
+  /* ── LOSE OVERLAY ── */
+  #lose-overlay {
+    display: none; position: fixed; inset: 0;
+    background: var(--bg-overlay); backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    align-items: center; justify-content: center; z-index: 9999;
+  }
+  #lose-overlay.show { display: flex; }
+  #lose-box {
+    background: var(--bg-win-box); border-radius: 24px;
+    border: 1px solid var(--border-win);
+    padding: 40px 52px; text-align: center;
+    animation: winPop 0.45s cubic-bezier(0.175,0.885,0.32,1.275) both;
+    max-width: 90vw; box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+  }
+  #lose-title {
+    font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
+    color: var(--text-box); margin-bottom: 6px;
+  }
+  #lose-msg {
+    font-family: 'Nunito', sans-serif; font-weight: 500;
+    color: var(--text-muted-box); margin-bottom: 28px;
+  }
+  #lose-btns { display: flex; gap: 10px; justify-content: center; }
+  #btn-lose-restart {
+    background: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.12);
+    color: var(--text-box); border-radius: 999px; padding: 12px 24px;
+    font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: background 0.12s;
+  }
+  #btn-lose-restart:hover { background: rgba(0,0,0,0.1); }
+  #btn-lose-new {
+    background: var(--btn-primary-bg); color: var(--btn-primary-text);
+    border: none; border-radius: 999px; padding: 12px 24px;
+    font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: background 0.12s;
+  }
+  #btn-lose-new:hover { background: var(--btn-primary-hover); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes winPop {
+    0%   { transform: scale(0.78) translateY(12px); opacity: 0; }
+    70%  { transform: scale(1.02) translateY(0); }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  @keyframes slideUp {
+    0%   { transform: scale(0.78) translateY(12px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  @keyframes foundPop {
+    0%   { transform: scale(1); }
+    45%  { transform: scale(1.11); }
+    100% { transform: scale(1); }
+  }
+  .found-pop { animation: foundPop 0.26s cubic-bezier(0.34,1.56,0.64,1); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="title">Pyramid</div>
+    <div id="header-right">
+      <div id="header-stats">
+        <div class="stat-item">
+          <div class="stat-val" id="hdr-moves">0</div>
+          <div class="stat-lbl">Moves</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-val" id="hdr-wins">0</div>
+          <div class="stat-lbl">Wins</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-val" id="hdr-streak">0</div>
+          <div class="stat-lbl">Streak</div>
+        </div>
+      </div>
+      <div id="icon-pill">
+        <button id="btn-sound" title="Toggle sound">♪</button>
+        <button id="btn-theme" title="Toggle theme">◐</button>
+        <a href="index.html" id="btn-home" title="Home">⌂</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="pyramid-area"></div>
+
+  <div id="bottom-row">
+    <div id="stock-wrap"></div>
+    <div id="recycles-label">∞</div>
+    <div id="waste-wrap"></div>
+  </div>
+</div>
+
+<div id="footer">
+  <div id="controls">
+    <button class="btn" id="btn-undo" disabled>Undo</button>
+    <button class="btn" id="btn-restart">Restart</button>
+    <button class="btn" id="btn-stats">Stats</button>
+    <button class="btn" id="btn-settings">⚙︎</button>
+    <button class="btn" id="btn-new">New Game</button>
+  </div>
+</div>
+
+<div id="stats-overlay">
+  <div id="stats-panel">
+    <div id="stats-handle"></div>
+    <div id="stats-heading">Statistics</div>
+    <div class="stats-grid">
+      <div class="stats-cell"><div class="stats-cell-lbl">Wins</div><div class="stats-cell-val" id="st-wins">0</div></div>
+      <div class="stats-cell"><div class="stats-cell-lbl">Losses</div><div class="stats-cell-val" id="st-losses">0</div></div>
+      <div class="stats-cell"><div class="stats-cell-lbl">Win Streak</div><div class="stats-cell-val accent" id="st-streak">0</div></div>
+      <div class="stats-cell"><div class="stats-cell-lbl">Best Streak</div><div class="stats-cell-val" id="st-best-streak">0</div></div>
+      <div class="stats-cell"><div class="stats-cell-lbl">Fewest Moves</div><div class="stats-cell-val" id="st-fewest">—</div></div>
+      <div class="stats-cell"><div class="stats-cell-lbl">Avg Moves</div><div class="stats-cell-val" id="st-avg">—</div></div>
+    </div>
+    <button id="btn-reset-stats">Reset statistics</button>
+  </div>
+</div>
+
+<div id="settings-overlay">
+  <div id="settings-panel">
+    <div id="settings-handle"></div>
+    <div id="settings-heading">Settings</div>
+    <div class="setting-row">
+      <span class="setting-lbl">Deal Mode</span>
+      <div class="setting-opts">
+        <button class="opt-btn" id="opt-d1" onclick="setSetting('deal',1)">Deal 1</button>
+        <button class="opt-btn" id="opt-d3" onclick="setSetting('deal',3)">Deal 3</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="win-overlay">
+  <div id="win-box">
+    <div id="win-title">You won</div>
+    <div id="win-moves"></div>
+    <div id="win-stats">
+      <div class="win-stat-col"><div class="win-stat-lbl">Wins</div><div class="win-stat-val" id="win-total">0</div></div>
+      <div class="win-stat-col"><div class="win-stat-lbl">Streak</div><div class="win-stat-val" id="win-streak">0</div></div>
+    </div>
+    <button id="btn-play-again">Play Again</button>
+  </div>
+</div>
+
+<div id="lose-overlay">
+  <div id="lose-box">
+    <div id="lose-title">No moves left</div>
+    <div id="lose-msg">The pyramid can't be cleared from here.</div>
+    <div id="lose-btns">
+      <button id="btn-lose-restart">Restart deal</button>
+      <button id="btn-lose-new">New Game</button>
+    </div>
+  </div>
+</div>
+
+<canvas id="confetti-canvas" style="display:none;position:fixed;inset:0;z-index:10001;pointer-events:none"></canvas>
+
+<script>
+'use strict';
+
+// ── CONSTANTS ─────────────────────────────────────────────────────────────────
+const SUITS = ['♠','♥','♦','♣'];
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const RV    = {A:1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,J:11,Q:12,K:13};
+const isRed = s => s==='♥'||s==='♦';
+
+const SAVE_KEY     = 'okaypyramid_v1';
+const STATS_KEY    = 'okaypyramid_stats_v1';
+const SETTINGS_KEY = 'okaypyramid_settings_v1';
+const THEME_KEY    = 'okaypyramid_theme_v1';
+
+// ── SETTINGS ──────────────────────────────────────────────────────────────────
+let settings = { deal: 1 };
+
+function loadSettings() {
+  try { const s = JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}'); settings.deal = s.deal || 1; } catch(e) {}
+}
+function saveSettings() {
+  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch(e) {}
+}
+function setSetting(key, val) {
+  settings[key] = val;
+  saveSettings();
+  updateSettingsUI();
+}
+function updateSettingsUI() {
+  document.getElementById('opt-d1').classList.toggle('active', settings.deal===1);
+  document.getElementById('opt-d3').classList.toggle('active', settings.deal===3);
+}
+function openSettings()  { updateSettingsUI(); document.getElementById('settings-overlay').classList.add('show'); }
+function closeSettings() { document.getElementById('settings-overlay').classList.remove('show'); }
+
+// ── THEME ─────────────────────────────────────────────────────────────────────
+let darkMode = false;
+function loadTheme() {
+  darkMode = localStorage.getItem(THEME_KEY) === 'dark';
+  applyTheme();
+}
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+  document.getElementById('btn-theme').textContent = darkMode ? '◑' : '◐';
+}
+function toggleTheme() {
+  darkMode = !darkMode;
+  try { localStorage.setItem(THEME_KEY, darkMode ? 'dark' : 'light'); } catch(e) {}
+  applyTheme(); render();
+}
+
+// ── SOUND ─────────────────────────────────────────────────────────────────────
+let audioCtx = null, soundEnabled = true;
+function getAudio() {
+  if (!audioCtx) try { audioCtx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e) {}
+  return audioCtx;
+}
+function playTone(freq, type, dur, vol, delay=0) {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudio(); if (!ctx) return;
+    const osc = ctx.createOscillator(), g = ctx.createGain();
+    osc.connect(g); g.connect(ctx.destination);
+    osc.type = type; osc.frequency.value = freq;
+    const t = ctx.currentTime + delay;
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t+dur);
+    osc.start(t); osc.stop(t+dur+0.01);
+  } catch(e) {}
+}
+function playMatch()    { playTone(700,'sine',0.09,0.09); playTone(1050,'sine',0.10,0.08,0.05); }
+function playKing()     { playTone(900,'sine',0.12,0.10); playTone(1350,'sine',0.10,0.07,0.06); }
+function playFlip()     { playTone(360,'sine',0.06,0.06); }
+function playError()    { playTone(200,'sine',0.12,0.07); }
+function playWinSound() { [[523,0],[659,0.11],[784,0.22],[1047,0.38]].forEach(([f,d])=>playTone(f,'sine',0.28,0.13,d)); }
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  const btn = document.getElementById('btn-sound');
+  btn.textContent = soundEnabled ? '♪' : '♩';
+  btn.classList.toggle('muted', !soundEnabled);
+}
+
+// ── CONFETTI ──────────────────────────────────────────────────────────────────
+function launchConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  canvas.style.display = 'block';
+  const ctx = canvas.getContext('2d');
+  const COLORS = ['#f0c040','#be3030','#4ade80','#60a5fa','#f97316','#c084fc','#ffffff'];
+  const particles = Array.from({length:150}, () => ({
+    x: Math.random()*canvas.width, y: -20-Math.random()*140,
+    vx: (Math.random()-0.5)*5.5, vy: 1.8+Math.random()*3.5,
+    color: COLORS[Math.floor(Math.random()*COLORS.length)],
+    w: 7+Math.random()*9, h: 4+Math.random()*5,
+    rot: Math.random()*Math.PI*2, rotV: (Math.random()-0.5)*0.18,
+    shape: Math.random()>0.38?'rect':'circle', alpha: 1,
+  }));
+  const START = performance.now(), DUR = 3400;
+  (function frame(now) {
+    const t = (now-START)/DUR;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    let any = false;
+    particles.forEach(p => {
+      p.x+=p.vx; p.y+=p.vy; p.vy+=0.07; p.rot+=p.rotV;
+      p.alpha = t<0.55 ? 1 : Math.max(0,1-(t-0.55)/0.45);
+      if (p.y<canvas.height+30 && p.alpha>0) {
+        any=true; ctx.save(); ctx.globalAlpha=p.alpha; ctx.fillStyle=p.color;
+        ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+        if (p.shape==='rect') ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+        else { ctx.beginPath(); ctx.arc(0,0,p.w/2,0,Math.PI*2); ctx.fill(); }
+        ctx.restore();
+      }
+    });
+    if (any && now-START<DUR+600) requestAnimationFrame(frame);
+    else { canvas.style.display='none'; }
+  })(performance.now());
+}
+
+// ── RIPPLE ────────────────────────────────────────────────────────────────────
+function spawnRipple(el, e) {
+  const rect = el.getBoundingClientRect();
+  const x = (e.clientX ?? rect.left+rect.width/2) - rect.left;
+  const y = (e.clientY ?? rect.top+rect.height/2) - rect.top;
+  const size = Math.max(rect.width, rect.height)*0.8;
+  const rip = document.createElement('div');
+  rip.className = 'ripple';
+  rip.style.cssText = `width:${size}px;height:${size}px;left:${x-size/2}px;top:${y-size/2}px`;
+  el.appendChild(rip);
+  rip.addEventListener('animationend', ()=>rip.remove(), {once:true});
+}
+
+// ── MOVE COUNTER FLASH ────────────────────────────────────────────────────────
+function flashMoveCount() {
+  const el = document.getElementById('hdr-moves');
+  el.style.transition = 'none';
+  el.style.color = '#f0c040';
+  el.style.transform = 'scale(1.3)';
+  setTimeout(() => {
+    el.style.transition = 'color 0.4s ease, transform 0.35s ease';
+    el.style.color = '';
+    el.style.transform = '';
+  }, 80);
+}
+
+// ── STATS ─────────────────────────────────────────────────────────────────────
+let totalWins=0, losses=0, streak=0, bestStreak=0, totalWinMoves=0, fewestMoves=null;
+
+function loadStats() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STATS_KEY)||'{}');
+    totalWins=s.totalWins||0; losses=s.losses||0; streak=s.streak||0;
+    bestStreak=s.bestStreak||0; totalWinMoves=s.totalWinMoves||0;
+    fewestMoves=s.fewestMoves!=null?s.fewestMoves:null;
+  } catch(e) {}
+}
+function saveStats() {
+  try { localStorage.setItem(STATS_KEY, JSON.stringify({totalWins,losses,streak,bestStreak,totalWinMoves,fewestMoves})); } catch(e) {}
+}
+function recordWin() {
+  totalWins++; streak++; totalWinMoves+=moves;
+  if (fewestMoves===null||moves<fewestMoves) fewestMoves=moves;
+  if (streak>bestStreak) bestStreak=streak;
+  saveStats(); renderStats();
+}
+function breakStreak() {
+  if (moves>0) losses++;
+  streak=0; saveStats(); renderStats();
+}
+function renderStats() {
+  document.getElementById('hdr-wins').textContent   = totalWins;
+  document.getElementById('hdr-streak').textContent = streak;
+  document.getElementById('win-total').textContent  = totalWins;
+  document.getElementById('win-streak').textContent = streak;
+  document.getElementById('st-wins').textContent        = totalWins;
+  document.getElementById('st-losses').textContent      = losses;
+  document.getElementById('st-streak').textContent      = streak;
+  document.getElementById('st-best-streak').textContent = bestStreak;
+  document.getElementById('st-fewest').textContent      = fewestMoves!==null?fewestMoves:'—';
+  document.getElementById('st-avg').textContent         = totalWins>0?Math.round(totalWinMoves/totalWins):'—';
+}
+function openStats()  { renderStats(); document.getElementById('stats-overlay').classList.add('show'); }
+function closeStats() { document.getElementById('stats-overlay').classList.remove('show'); }
+function resetStats() {
+  totalWins=0; losses=0; streak=0; bestStreak=0; totalWinMoves=0; fewestMoves=null;
+  saveStats(); renderStats();
+}
+
+// ── SIZING ────────────────────────────────────────────────────────────────────
+let CW, CH, ROW_OVERLAP;
+
+function calcSizes() {
+  // 7 cards side by side with 2px gaps: pyrWidth = 7*CW + 6*2
+  const avail = Math.min(window.innerWidth - 20, 520);
+  CW = Math.max(28, Math.floor((avail - 12) / 7));
+  CH = Math.round(CW * 1.58);
+  ROW_OVERLAP = Math.round(CH * 0.32);
+}
+
+// ── DECK ──────────────────────────────────────────────────────────────────────
+function mkDeck() {
+  return SUITS.flatMap(s => RANKS.map(r => ({suit:s, rank:r, id:`${r}${s}`})));
+}
+function shuffle(a) {
+  const b = [...a];
+  for (let i=b.length-1;i>0;i--){ const j=0|Math.random()*(i+1);[b[i],b[j]]=[b[j],b[i]]; }
+  return b;
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+// pyramid: 7 rows, pyramid[r][c] = card|null
+// pyramid row 0 = top (1 card), row 6 = base (7 cards)
+// stock: face-down cards
+// waste: face-up drawn cards (top = last element)
+// removed: Set of card ids
+let state, hist, moves, won, lost, initialState;
+let sel = null; // selected card {card, source:'pyramid'|'waste', r, c}
+
+function isAvailable(r, c) {
+  if (!state.pyramid[r][c]) return false;
+  if (state.removed.has(state.pyramid[r][c].id)) return false;
+  if (r === 6) return true;
+  // card below-left is [r+1][c], card below-right is [r+1][c+1]
+  const bl = state.pyramid[r+1][c];
+  const br = state.pyramid[r+1][c+1];
+  const blGone = !bl || state.removed.has(bl.id);
+  const brGone = !br || state.removed.has(br.id);
+  return blGone && brGone;
+}
+
+function wasteTop() {
+  if (!state.waste.length) return null;
+  return state.waste[state.waste.length-1];
+}
+
+function pyramidCleared() {
+  for (let r=0;r<7;r++)
+    for (let c=0;c<=r;c++)
+      if (state.pyramid[r][c] && !state.removed.has(state.pyramid[r][c].id)) return false;
+  return true;
+}
+
+function hasValidMove() {
+  // Collect all available cards
+  const avail = [];
+  for (let r=0;r<7;r++)
+    for (let c=0;c<=r;c++)
+      if (isAvailable(r,c)) avail.push(state.pyramid[r][c]);
+  const wt = wasteTop();
+  if (wt) avail.push(wt);
+
+  // Check for any pair summing to 13, or any King
+  for (let i=0;i<avail.length;i++) {
+    if (RV[avail[i].rank]===13) return true;
+    for (let j=i+1;j<avail.length;j++) {
+      if (RV[avail[i].rank]+RV[avail[j].rank]===13) return true;
+    }
+  }
+  // Can we still draw from stock?
+  if (state.stock.length > 0) return true;
+  return false;
+}
+
+// ── SNAPSHOT / HISTORY ────────────────────────────────────────────────────────
+function snap() {
+  return {
+    pyramid: state.pyramid.map(row => row.map(c => c ? {...c} : null)),
+    stock:   state.stock.map(c=>({...c})),
+    waste:   state.waste.map(c=>({...c})),
+    removed: new Set(state.removed),
+  };
+}
+
+function commit(next, skipCheck) {
+  hist.push(snap());
+  state = next;
+  moves++;
+  saveGame();
+  sel = null;
+  render();
+  flashMoveCount();
+  if (!skipCheck) checkWin();
+}
+
+// ── PERSISTENCE ───────────────────────────────────────────────────────────────
+function saveGame() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      pyramid: state.pyramid,
+      stock:   state.stock,
+      waste:   state.waste,
+      removed: [...state.removed],
+      hist:    hist.map(h=>({...h, removed:[...h.removed], pyramid:h.pyramid, stock:h.stock, waste:h.waste})),
+      moves, won, lost,
+      initialState: initialState ? {
+        pyramid: initialState.pyramid,
+        stock:   initialState.stock,
+      } : null,
+    }));
+  } catch(e) {}
+}
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const s = JSON.parse(raw);
+    if (!s.pyramid || !s.initialState) return false;
+    state = {
+      pyramid: s.pyramid,
+      stock:   s.stock,
+      waste:   s.waste,
+      removed: new Set(s.removed),
+    };
+    hist  = (s.hist||[]).map(h=>({...h, removed:new Set(h.removed)}));
+    moves = s.moves||0;
+    won   = s.won||false;
+    lost  = s.lost||false;
+    initialState = s.initialState;
+    return true;
+  } catch(e) { return false; }
+}
+
+// ── GAME SETUP ────────────────────────────────────────────────────────────────
+function dealCards() {
+  const deck = shuffle(mkDeck());
+  const pyramid = Array.from({length:7}, (_, r) => Array(r+1).fill(null));
+  let idx = 0;
+  for (let r=0;r<7;r++)
+    for (let c=0;c<=r;c++)
+      pyramid[r][c] = deck[idx++];
+  const stock = deck.slice(28);
+  initialState = {
+    pyramid: pyramid.map(row=>row.map(c=>c?{...c}:null)),
+    stock:   stock.map(c=>({...c})),
+  };
+  state = { pyramid, stock, waste: [], removed: new Set() };
+  hist=[]; moves=0; won=false; lost=false; sel=null;
+  document.getElementById('win-overlay').classList.remove('show');
+  document.getElementById('lose-overlay').classList.remove('show');
+  saveGame(); render();
+}
+
+function restartDeal() {
+  if (!initialState) return;
+  state = {
+    pyramid: initialState.pyramid.map(row=>row.map(c=>c?{...c}:null)),
+    stock:   initialState.stock.map(c=>({...c})),
+    waste:   [],
+    removed: new Set(),
+  };
+  hist=[]; moves=0; won=false; lost=false; sel=null;
+  document.getElementById('win-overlay').classList.remove('show');
+  document.getElementById('lose-overlay').classList.remove('show');
+  saveGame(); render();
+}
+
+function newGame() {
+  if (moves>0 && !won && !lost) breakStreak();
+  dealCards();
+}
+
+function undo() {
+  if (!hist.length) return;
+  state = hist.pop();
+  moves = Math.max(0, moves-1);
+  won=false; lost=false; sel=null;
+  document.getElementById('win-overlay').classList.remove('show');
+  document.getElementById('lose-overlay').classList.remove('show');
+  saveGame(); render();
+}
+
+// ── WIN / LOSE ────────────────────────────────────────────────────────────────
+function checkWin() {
+  if (pyramidCleared()) {
+    won = true;
+    recordWin(); saveGame();
+    document.getElementById('win-moves').textContent = `Cleared in ${moves} moves`;
+    renderStats();
+    setTimeout(() => {
+      playWinSound();
+      launchConfetti();
+      document.getElementById('win-overlay').classList.add('show');
+    }, 260);
+    return;
+  }
+  if (!hasValidMove()) {
+    lost = true;
+    breakStreak(); saveGame();
+    setTimeout(() => {
+      playError();
+      document.getElementById('lose-overlay').classList.add('show');
+    }, 200);
+  }
+}
+
+// ── GAME ACTIONS ──────────────────────────────────────────────────────────────
+function flipStock() {
+  if (won||lost) return;
+  const ns = {
+    pyramid: state.pyramid.map(row=>row.map(c=>c?{...c}:null)),
+    stock:   state.stock.map(c=>({...c})),
+    waste:   state.waste.map(c=>({...c})),
+    removed: new Set(state.removed),
+  };
+  if (ns.stock.length > 0) {
+    const n = Math.min(settings.deal, ns.stock.length);
+    const flipped = ns.stock.splice(ns.stock.length-n, n);
+    ns.waste.push(...flipped);
+    playFlip();
+  } else if (ns.waste.length > 0) {
+    // Recycle
+    ns.stock = [...ns.waste].reverse();
+    ns.waste = [];
+    playFlip();
+  }
+  commit(ns, false);
+}
+
+function tryRemove(card, source, r, c, e, el) {
+  if (won||lost) return;
+  spawnRipple(el, e);
+
+  // King: remove alone
+  if (RV[card.rank]===13) {
+    const ns = {
+      pyramid: state.pyramid.map(row=>row.map(c=>c?{...c}:null)),
+      stock:   state.stock.map(c=>({...c})),
+      waste:   state.waste.map(c=>({...c})),
+      removed: new Set(state.removed),
+    };
+    ns.removed.add(card.id);
+    if (source==='waste') ns.waste.pop();
+    playKing();
+    commit(ns);
+    return;
+  }
+
+  // If something already selected, try to match
+  if (sel) {
+    if (sel.card.id === card.id) {
+      // Deselect
+      sel = null; render(); return;
+    }
+    if (RV[sel.card.rank] + RV[card.rank] === 13) {
+      // Match!
+      const ns = {
+        pyramid: state.pyramid.map(row=>row.map(c=>c?{...c}:null)),
+        stock:   state.stock.map(c=>({...c})),
+        waste:   state.waste.map(c=>({...c})),
+        removed: new Set(state.removed),
+      };
+      ns.removed.add(sel.card.id);
+      ns.removed.add(card.id);
+      if (sel.source==='waste') ns.waste.pop();
+      if (source==='waste')     ns.waste.pop();
+      playMatch();
+      commit(ns);
+    } else {
+      // No match — deselect and select new card instead
+      playError();
+      sel = { card, source, r, c };
+      render();
+    }
+    return;
+  }
+
+  // Nothing selected — select this card
+  sel = { card, source, r, c };
+  render();
+}
+
+// ── RENDERING ─────────────────────────────────────────────────────────────────
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function makeCardEl(card, available, selectedFlag) {
+  const el = document.createElement('div');
+  el.className = 'card';
+  if (!available) el.classList.add('unavailable');
+  if (selectedFlag) el.classList.add('selected');
+
+  el.style.width  = CW+'px';
+  el.style.height = CH+'px';
+  el.style.position = 'absolute';
+
+  const col = isRed(card.suit) ? cssVar('--red') : cssVar('--black-suit');
+  const p   = Math.max(3, Math.round(CW*0.08));
+  const rf  = Math.max(10, CW*0.38);
+  const sf  = Math.max(8,  CW*0.22);
+  const iconSz = Math.max(20, CW*0.72);
+
+  el.innerHTML =
+    `<div style="position:absolute;top:${p}px;left:${p}px;color:${col};font-family:'Inter',sans-serif;font-weight:500;font-size:${rf}px;line-height:1;letter-spacing:-0.01em">${card.rank}</div>` +
+    `<div style="position:absolute;top:${p+(rf-sf)/2}px;right:${p}px;color:${col};font-family:'Inter',sans-serif;font-weight:500;font-size:${sf}px;line-height:1">${card.suit}</div>` +
+    `<div style="position:absolute;bottom:${Math.max(4,CW*0.18)}px;left:0;right:0;display:flex;align-items:center;justify-content:center;pointer-events:none">` +
+      `<div style="color:${col};font-size:${iconSz}px;line-height:1;opacity:0.93">${card.suit}</div>` +
+    `</div>`;
+
+  return el;
+}
+
+function makeStockBack() {
+  const el = document.createElement('div');
+  el.style.cssText = `width:${CW}px;height:${CH}px;position:absolute;top:0;left:0;border-radius:${Math.round(CW*0.10)}px;overflow:hidden;cursor:pointer;`;
+  const r = Math.round(CW*0.10);
+  const sp = Math.max(5, Math.round(CW*0.11));
+  const lw = Math.max(1, Math.round(sp*0.22));
+  let lines='';
+  for (let i=-CH; i<CW+CH; i+=sp) {
+    lines+=`<line x1="${i}" y1="0" x2="${i+CH}" y2="${CH}" stroke="rgba(255,255,255,0.18)" stroke-width="${lw}"/>`;
+    lines+=`<line x1="${i}" y1="${CH}" x2="${i+CH}" y2="0" stroke="rgba(255,255,255,0.18)" stroke-width="${lw}"/>`;
+  }
+  el.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" width="${CW}" height="${CH}" style="display:block">
+    <defs><radialGradient id="bg2" cx="38%" cy="30%" r="80%"><stop offset="0%" stop-color="#3d6ec0"/><stop offset="100%" stop-color="#182e6a"/></radialGradient>
+    <clipPath id="bc2"><rect width="${CW}" height="${CH}" rx="${r}"/></clipPath></defs>
+    <rect width="${CW}" height="${CH}" fill="url(#bg2)"/>
+    <g clip-path="url(#bc2)">${lines}</g></svg>`;
+  return el;
+}
+
+function render() {
+  // ── Header ──
+  const bfs = Math.max(9, CW*0.15);
+  const bpad = `7px ${Math.round(CW*0.22)}px`;
+  document.getElementById('hdr-moves').textContent = moves;
+  document.getElementById('title').style.fontSize = Math.max(18, CW*0.46)+'px';
+  document.querySelectorAll('.btn').forEach(b => { b.style.fontSize=bfs+'px'; b.style.padding=bpad; });
+  document.getElementById('btn-undo').disabled = !hist.length;
+
+  // ── Pyramid ──
+  const pyrArea = document.getElementById('pyramid-area');
+  pyrArea.innerHTML = '';
+  pyrArea.style.width = (7*CW + 6*Math.round(CW*0.52)) + 'px';
+
+  // Calculate card step (horizontal distance between card centers in a row)
+  const step = CW + 2;
+  const pyrWidth = 7*CW + 6*(step-CW);
+
+  for (let r=0;r<7;r++) {
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'pyr-row';
+    rowDiv.style.cssText = `position:relative;width:${pyrWidth}px;height:${r<6 ? CH-ROW_OVERLAP : CH}px;flex-shrink:0;`;
+
+    for (let c=0;c<=r;c++) {
+      const card = state.pyramid[r][c];
+      if (!card) continue;
+      const removed = state.removed.has(card.id);
+      if (removed) continue;
+
+      const avail = isAvailable(r, c);
+      const isSel = sel && sel.source==='pyramid' && sel.r===r && sel.c===c;
+      const el = makeCardEl(card, avail, isSel);
+
+      // Center the row: offset = (7-1-(r))*step/2 for base row
+      const rowCards = r+1;
+      const rowW = rowCards*CW + (rowCards-1)*(step-CW);
+      const rowLeft = (pyrWidth - rowW)/2;
+      el.style.left = (rowLeft + c*(step)) + 'px';
+      el.style.top  = '0px';
+      el.style.zIndex = r+1;
+      el.style.borderRadius = Math.round(CW*0.10)+'px';
+
+      if (avail) {
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          tryRemove(card, 'pyramid', r, c, e, el);
+        });
+      }
+      rowDiv.appendChild(el);
+    }
+    pyrArea.appendChild(rowDiv);
+  }
+
+  // ── Stock ──
+  const sw = document.getElementById('stock-wrap');
+  sw.innerHTML = '';
+  sw.style.cssText = `width:${CW}px;height:${CH}px;position:relative;flex-shrink:0`;
+  if (state.stock.length > 0) {
+    const back = makeStockBack();
+    back.addEventListener('click', e => { e.stopPropagation(); flipStock(); });
+    sw.appendChild(back);
+    // count badge
+    const badge = document.createElement('div');
+    badge.style.cssText = `position:absolute;bottom:4px;right:5px;font-family:'Nunito',sans-serif;font-size:${Math.max(8,CW*0.15)}px;font-weight:700;color:rgba(255,255,255,0.5);pointer-events:none;z-index:10`;
+    badge.textContent = state.stock.length;
+    sw.appendChild(badge);
+  } else {
+    // Empty stock — recycled pile
+    const sl = document.createElement('div');
+    sl.className = 'slot';
+    sl.style.cssText = `width:${CW}px;height:${CH}px;border-radius:${Math.round(CW*0.10)}px;position:absolute;top:0;left:0;cursor:pointer`;
+    sl.innerHTML = `<span style="color:rgba(255,255,255,0.25);font-size:${CW*0.4}px;font-family:'Nunito',sans-serif">↺</span>`;
+    sl.addEventListener('click', e => { e.stopPropagation(); flipStock(); });
+    sw.appendChild(sl);
+  }
+
+  // ── Waste ──
+  const ww = document.getElementById('waste-wrap');
+  ww.innerHTML = '';
+  ww.style.cssText = `width:${CW}px;height:${CH}px;position:relative;flex-shrink:0`;
+  const wt = wasteTop();
+  if (wt) {
+    const isSel = sel && sel.source==='waste';
+    const el = makeCardEl(wt, true, isSel);
+    el.style.left = '0'; el.style.top = '0';
+    el.style.zIndex = '1';
+    el.style.borderRadius = Math.round(CW*0.10)+'px';
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      tryRemove(wt, 'waste', null, null, e, el);
+    });
+    ww.appendChild(el);
+  } else {
+    const sl = document.createElement('div');
+    sl.className = 'slot';
+    sl.style.cssText = `width:${CW}px;height:${CH}px;border-radius:${Math.round(CW*0.10)}px;position:absolute;top:0;left:0`;
+    ww.appendChild(sl);
+  }
+
+  // win/lose overlays
+  if (won)  document.getElementById('win-overlay').classList.add('show');
+  if (lost) document.getElementById('lose-overlay').classList.add('show');
+
+  renderStats();
+}
+
+// ── EVENT WIRING ──────────────────────────────────────────────────────────────
+document.getElementById('btn-theme').addEventListener('click', toggleTheme);
+document.getElementById('btn-sound').addEventListener('click', toggleSound);
+document.getElementById('btn-undo').addEventListener('click', undo);
+document.getElementById('btn-restart').addEventListener('click', () => { restartDeal(); });
+document.getElementById('btn-new').addEventListener('click', newGame);
+document.getElementById('btn-play-again').addEventListener('click', newGame);
+document.getElementById('btn-stats').addEventListener('click', openStats);
+document.getElementById('stats-overlay').addEventListener('click', e => {
+  if (e.target===document.getElementById('stats-overlay')) closeStats();
+});
+document.getElementById('btn-reset-stats').addEventListener('click', () => {
+  if (confirm('Reset all statistics?')) resetStats();
+});
+document.getElementById('btn-settings').addEventListener('click', openSettings);
+document.getElementById('settings-overlay').addEventListener('click', e => {
+  if (e.target===document.getElementById('settings-overlay')) closeSettings();
+});
+document.getElementById('btn-lose-restart').addEventListener('click', () => {
+  document.getElementById('lose-overlay').classList.remove('show');
+  restartDeal();
+});
+document.getElementById('btn-lose-new').addEventListener('click', () => {
+  document.getElementById('lose-overlay').classList.remove('show');
+  newGame();
+});
+// Tap elsewhere to deselect
+document.getElementById('app').addEventListener('click', () => {
+  if (sel) { sel=null; render(); }
+});
+window.addEventListener('resize', () => { calcSizes(); render(); });
+
+// ── BOOT ─────────────────────────────────────────────────────────────────────
+calcSizes();
+loadTheme();
+loadSettings();
+loadStats();
+if (!loadGame()) dealCards();
+else render();
+</script>
+</body>
+</html>
