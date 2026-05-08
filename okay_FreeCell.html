@@ -80,16 +80,20 @@
     --text-muted-box: rgba(255,255,255,0.4);
     --text-moves-box: rgba(255,255,255,0.4);
 
-    --red:          #e05555;
-    --black-suit:   rgba(255,255,255,0.82);
+    --red:          #e03535;
 
     --card-shadow:     0 2px 12px rgba(0,0,0,0.6), 0 1px 4px rgba(0,0,0,0.4);
     --card-shadow-sel: 0 0 0 2.5px #f0c040, 0 6px 28px rgba(240,192,64,0.22), 0 2px 12px rgba(0,0,0,0.6);
   }
 
-  /* Dark mode card face — warm gradient on dark surface */
+  /* Dark mode card face — keep cream white, contrast does the work */
   [data-theme="dark"] .card {
-    background: linear-gradient(170deg, #242428 0%, #1c1c20 100%);
+    background: linear-gradient(170deg, #fffef8 0%, #f7f5ee 100%);
+  }
+
+  /* Dark mode black suits back to near-black on white card */
+  [data-theme="dark"] {
+    --black-suit: #1a1a1a;
   }
 
   /* Dark mode win box and stats panel */
@@ -1038,8 +1042,6 @@ function commit(next) {
   if (toFoundation) {
     SUITS.forEach(s => { if(next.found[s].length > state.found[s].length) foundPop.add(s); });
     playFoundationPlace();
-    // Spawn +1 floaters for each newly completed foundation card
-    SUITS.forEach(s => { if(foundPop.has(s)) setTimeout(()=>spawnScorePop(s), 180); });
   } else {
     playCardMove();
   }
@@ -1391,13 +1393,6 @@ function render() {
         ? (darkMode?'rgba(224,85,85,0.3)':'rgba(240,160,160,0.38)')
         : (darkMode?'rgba(232,232,232,0.18)':'rgba(240,237,230,0.28)');
       wrap.appendChild(makeSlot(suit,lc));
-    }
-    if(pile.length>0){
-      const badge=document.createElement('div');
-      const badgeColor=getVar('--text-badge');
-      badge.style.cssText=`position:absolute;bottom:3px;right:4px;font-size:${Math.max(8,CW*0.14)}px;font-weight:700;color:${badgeColor};pointer-events:none;z-index:10;font-family:'Space Mono',monospace`;
-      badge.textContent=pile.length;
-      wrap.appendChild(badge);
     }
     foundRow.appendChild(wrap);
   });
