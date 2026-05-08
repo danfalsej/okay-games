@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Okay Solitaire</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Nunito:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -14,13 +14,12 @@
     --bg-base:      #1a3828;
     --bg-mid:       #142d20;
     --bg-deep:      #0d1f16;
-    --bg-card:      #ffffff;
-    --bg-card-sel:  #fffef8;
+    --bg-card:      #fffef8;
     --bg-panel:     rgba(10,22,15,0.72);
     --bg-overlay:   rgba(6,14,10,0.82);
     --bg-win-box:   #ffffff;
     --border-card:  rgba(0,0,0,0.07);
-    --border-slot:  rgba(255,255,255,0.16);
+    --border-slot:  rgba(255,255,255,0.10);
     --border-win:   rgba(255,255,255,0.12);
     --border-stats: rgba(0,0,0,0.08);
     --text:         rgba(255,255,255,0.92);
@@ -30,7 +29,7 @@
     --text-box:     #111a14;
     --text-muted-box:#7a9082;
     --accent:       #f0c040;
-    --red:          #e03535;
+    --red:          #be3030;
     --blk:          #1a2820;
     --back-from:    #2a5298;
     --back-to:      #1a3268;
@@ -47,17 +46,35 @@
   }
 
   [data-theme="dark"] {
-    --bg-base:      #0c1c26;
-    --bg-mid:       #091520;
-    --bg-deep:      #060e18;
-    --bg-panel:     rgba(4,10,18,0.78);
-    --bg-overlay:   rgba(2,6,12,0.88);
-    --border-slot:  rgba(255,255,255,0.12);
-    --red:          #e84848;
-    --blk:          #1e2d3d;
-    --card-shadow:     0 2px 10px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.3);
-    --card-shadow-sel: 0 0 0 2.5px #f0c040, 0 6px 28px rgba(240,192,64,0.25), 0 2px 10px rgba(0,0,0,0.5);
+    --bg-base:      #111113;
+    --bg-mid:       #0d0d0f;
+    --bg-deep:      #080809;
+    --bg-panel:     rgba(8,8,10,0.88);
+    --bg-overlay:   rgba(4,4,6,0.92);
+    --bg-win-box:   #1a1a1e;
+    --border-card:  rgba(255,255,255,0.07);
+    --border-slot:  rgba(255,255,255,0.08);
+    --border-win:   rgba(255,255,255,0.1);
+    --border-stats: rgba(255,255,255,0.08);
+    --text-box:     rgba(255,255,255,0.90);
+    --text-muted-box: rgba(255,255,255,0.4);
+    --text-badge:   rgba(255,255,255,0.25);
+    --red:          #e03535;
+    --blk:          #1a1a1a;
+    --card-shadow:     0 2px 12px rgba(0,0,0,0.6), 0 1px 4px rgba(0,0,0,0.4);
+    --card-shadow-sel: 0 0 0 2.5px #f0c040, 0 6px 28px rgba(240,192,64,0.22), 0 2px 12px rgba(0,0,0,0.6);
   }
+
+  [data-theme="dark"] .card:not(.back) {
+    background: linear-gradient(170deg, #fffef8 0%, #f7f5ee 100%);
+  }
+  [data-theme="dark"] #win-box {
+    background: var(--bg-win-box);
+    border-color: rgba(255,255,255,0.1);
+  }
+  [data-theme="dark"] #stats-panel  { background: #141416; border-top-color: rgba(255,255,255,0.08); }
+  [data-theme="dark"] #settings-panel { background: #141416; border-top-color: rgba(255,255,255,0.08); }
+  [data-theme="dark"] .stats-cell   { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.07); }
 
   html, body {
     min-height: 100%;
@@ -65,13 +82,13 @@
     overscroll-behavior: none;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Nunito', system-ui, sans-serif;
   }
 
   #app {
     min-height: 100vh;
-    background: radial-gradient(ellipse at 50% 0%, var(--bg-base) 0%, var(--bg-deep) 100%),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+    background: radial-gradient(ellipse 80% 60% at 50% 20%, var(--bg-base) 0%, var(--bg-deep) 100%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
     display: flex; flex-direction: column; align-items: center;
     padding: 20px 6px 100px;
     user-select: none; touch-action: manipulation;
@@ -79,35 +96,52 @@
 
   /* ── HEADER ── */
   #header {
-    width: 100%;
-    padding-bottom: 14px; margin-bottom: 14px;
+    padding-bottom: 8px; margin-bottom: 8px;
     display: flex; justify-content: space-between;
     align-items: center; gap: 12px;
   }
   #title {
-    font-family: 'Playfair Display', serif; font-weight: 900;
-    color: var(--text); letter-spacing: -0.5px; line-height: 1; flex-shrink: 0;
+    font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
+    color: var(--text); letter-spacing: -0.5px; line-height: 1;
   }
-  #header-right { display: flex; align-items: center; gap: 18px; }
-  #header-stats { display: flex; gap: 18px; align-items: center; }
-  .stat-col { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+  #header-right { display: flex; align-items: center; gap: 10px; }
+  #header-stats  { display: flex; align-items: center; gap: 12px; }
+  .stat-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
   .stat-lbl {
-    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
-    color: var(--text-muted); line-height: 1; font-weight: 500;
+    font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text-muted); line-height: 1; font-weight: 600;
+    font-family: 'Nunito', sans-serif;
   }
   .stat-val {
-    font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-size: 18px; font-weight: 700;
     color: var(--text); line-height: 1;
+    transition: color 0.4s ease, transform 0.35s ease;
+    display: inline-block;
   }
-  .stat-val.muted { color: var(--text-muted); font-weight: 500; }
-
-  #btn-theme {
+  .stat-divider {
+    width: 1px; height: 26px;
+    background: rgba(255,255,255,0.14); flex-shrink: 0;
+  }
+  /* ── ICON PILL ── */
+  #icon-pill {
+    display: flex; align-items: center;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 999px; padding: 3px; gap: 2px;
+  }
+  #btn-sound, #btn-theme, #btn-home {
     background: none; border: none; cursor: pointer;
-    padding: 6px; line-height: 1; font-size: 17px;
-    opacity: 0.4; transition: opacity 0.15s; color: white;
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 999px; font-size: 13px; color: white;
+    opacity: 0.55; text-decoration: none;
+    transition: opacity 0.15s, background 0.12s;
     -webkit-tap-highlight-color: transparent; flex-shrink: 0;
   }
-  #btn-theme:hover { opacity: 0.8; }
+  #btn-sound:hover, #btn-theme:hover, #btn-home:hover {
+    opacity: 1; background: rgba(255,255,255,0.1);
+  }
+  #btn-sound.muted { opacity: 0.22; }
 
   /* ── GAME BOARD ── */
   #top-row {
@@ -121,20 +155,20 @@
 
   /* ── SLOTS ── */
   .slot {
-    background: rgba(0,0,0,0.15);
-    border: 1.5px dashed var(--border-slot);
+    background: rgba(0,0,0,0.12);
+    border: 1.5px solid rgba(255,255,255,0.1);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.18);
     border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; flex-shrink: 0;
     position: absolute; top: 0; left: 0;
-    line-height: 1;
-    transition: border-color 0.2s;
+    line-height: 1; transition: border-color 0.2s;
   }
 
   /* ── CARDS ── */
   .card {
-    cursor: pointer; position: absolute; left: 0;
-    background: var(--bg-card);
+    cursor: grab; position: absolute; left: 0;
+    background: linear-gradient(170deg, #fffef8 0%, #f7f5ee 100%);
     border: 1px solid var(--border-card);
     border-radius: 10px;
     display: flex; flex-direction: column; justify-content: space-between;
@@ -142,6 +176,7 @@
     box-shadow: var(--card-shadow);
     transition: box-shadow 0.15s, transform 0.1s;
     overflow: hidden;
+    touch-action: none;
   }
   .card::after {
     content: '';
@@ -157,15 +192,47 @@
   }
   .card.back {
     background: linear-gradient(145deg, var(--back-from), var(--back-to));
-    border-color: transparent;
-    cursor: default;
+    border-color: transparent; cursor: default;
   }
   .card.back.flippable { cursor: pointer; }
-  .card-corner { font-family: 'Inter', sans-serif; font-weight: 700; line-height: 1.1; }
-  .card-corner-bot { transform: rotate(180deg); text-align: right; }
-  .card-pip {
-    position: absolute; left: 0; right: 0;
-    text-align: center; line-height: 1; pointer-events: none;
+  .card-corner { font-family: 'Inter', sans-serif; font-weight: 500; line-height: 1.1; }
+
+  @media (hover: hover) {
+    .card:not(.back):not(.sel):hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.18);
+    }
+  }
+  .card:not(.back):active {
+    transform: scale(0.93) translateY(1px) !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.22) !important;
+    transition: transform 0.07s ease, box-shadow 0.07s ease !important;
+  }
+
+  /* ── TAP RIPPLE ── */
+  .ripple {
+    position: absolute; border-radius: 50%;
+    background: rgba(0,0,0,0.09);
+    transform: scale(0);
+    animation: rippleAnim 0.5s ease-out forwards;
+    pointer-events: none; z-index: 20;
+  }
+  @keyframes rippleAnim { to { transform: scale(4.5); opacity: 0; } }
+
+  /* ── FOUND POP ── */
+  @keyframes foundPop {
+    0%   { transform: scale(1); }
+    45%  { transform: scale(1.11); }
+    100% { transform: scale(1); }
+  }
+  .found-pop { animation: foundPop 0.26s cubic-bezier(0.34,1.56,0.64,1); }
+
+  /* ── DROP HIGHLIGHT ── */
+  body.is-dragging { cursor: grabbing; user-select: none; }
+  body.is-dragging .card { cursor: grabbing; }
+  .drop-hi {
+    outline: 2.5px solid var(--accent); outline-offset: -2px;
+    border-radius: 10px; background: rgba(240,192,64,0.09) !important;
   }
 
   /* ── FOOTER ── */
@@ -182,10 +249,6 @@
   #controls {
     display: flex; align-items: center; gap: 8px;
     justify-content: center; width: 100%; flex-wrap: nowrap;
-  }
-  #hint {
-    color: var(--text-hint); font-family: 'Inter', sans-serif; font-weight: 400;
-    text-align: center; margin-top: 8px; letter-spacing: 0;
   }
 
   #top-row.right-handed { flex-direction: row-reverse; }
@@ -219,39 +282,34 @@
     margin: 0 auto 20px;
   }
   #settings-title {
-    font-family: 'Playfair Display', serif; font-weight: 900;
+    font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
     color: rgba(255,255,255,0.9); font-size: 20px;
-    margin-bottom: 22px; letter-spacing: 1px;
+    margin-bottom: 22px; letter-spacing: 0;
   }
   .setting-row {
     display: flex; align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
+    justify-content: space-between; margin-bottom: 16px;
   }
   .setting-row:last-child { margin-bottom: 0; }
   .setting-lbl {
-    font-family: 'Inter', sans-serif; font-weight: 500;
-    font-size: 14px; color: rgba(255,255,255,0.7);
-    flex-shrink: 0;
+    font-family: 'Nunito', sans-serif; font-weight: 500;
+    font-size: 14px; color: rgba(255,255,255,0.7); flex-shrink: 0;
   }
   .setting-opts { display: flex; gap: 6px; }
   .opt-btn {
-    font-family: 'Inter', sans-serif; font-weight: 600;
+    font-family: 'Nunito', sans-serif; font-weight: 600;
     font-size: 12px; padding: 6px 14px;
     border-radius: 999px;
     border: 1px solid rgba(255,255,255,0.18);
     background: rgba(255,255,255,0.08);
     color: rgba(255,255,255,0.7);
     cursor: pointer; transition: background 0.12s, color 0.12s, border-color 0.12s;
-    white-space: nowrap;
-    -webkit-tap-highlight-color: transparent;
+    white-space: nowrap; -webkit-tap-highlight-color: transparent;
   }
   .opt-btn:hover  { background: rgba(255,255,255,0.14); }
   .opt-btn:active { transform: scale(0.95); }
   .opt-btn.active {
-    background: var(--btn-primary-bg);
-    color: var(--btn-primary-text);
-    border-color: transparent;
+    background: var(--btn-primary-bg); color: var(--btn-primary-text); border-color: transparent;
   }
 
   /* ── STATS PANEL ── */
@@ -278,38 +336,30 @@
     margin: 0 auto 20px;
   }
   #stats-title {
-    font-family: 'Playfair Display', serif; font-weight: 900;
+    font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
     color: rgba(255,255,255,0.9); font-size: 20px;
-    margin-bottom: 22px; letter-spacing: 1px;
+    margin-bottom: 22px; letter-spacing: 0;
   }
-  .stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 20px;
-  }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
   .stats-cell {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 12px;
-    padding: 14px 16px;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 14px 16px;
     display: flex; flex-direction: column; gap: 4px;
   }
   .stats-cell-lbl {
-    font-family: 'Inter', sans-serif; font-weight: 500;
+    font-family: 'Nunito', sans-serif; font-weight: 500;
     font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
     color: rgba(255,255,255,0.4);
   }
   .stats-cell-val {
-    font-family: 'Playfair Display', serif; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-weight: 700;
     font-size: 28px; color: rgba(255,255,255,0.9); line-height: 1;
   }
   .stats-cell-val.accent { color: var(--accent); }
   #btn-reset-stats {
-    font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500;
+    font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 500;
     color: rgba(255,255,255,0.25); background: none; border: none;
-    cursor: pointer; padding: 4px 0; letter-spacing: 0.5px;
-    transition: color 0.15s;
+    cursor: pointer; padding: 4px 0; letter-spacing: 0.5px; transition: color 0.15s;
   }
   #btn-reset-stats:hover { color: rgba(255,255,255,0.5); }
 
@@ -322,7 +372,7 @@
 
   /* ── BUTTONS ── */
   .btn {
-    font-family: 'Inter', sans-serif; font-weight: 600; letter-spacing: 0;
+    font-family: 'Nunito', sans-serif; font-weight: 600; letter-spacing: 0;
     cursor: pointer; user-select: none;
     border: 1px solid var(--btn-ghost-border);
     border-radius: 999px;
@@ -371,11 +421,11 @@
     box-shadow: 0 24px 60px rgba(0,0,0,0.4);
   }
   #win-title {
-    font-family: 'Playfair Display', serif; font-weight: 900;
-    color: var(--text-box); margin-bottom: 6px; letter-spacing: 4px;
+    font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800;
+    color: var(--text-box); margin-bottom: 6px; letter-spacing: 0;
   }
   #win-moves {
-    font-family: 'Inter', sans-serif; font-weight: 500;
+    font-family: 'Nunito', sans-serif; font-weight: 500;
     color: var(--text-muted-box); margin-bottom: 20px;
   }
   #win-stats {
@@ -384,13 +434,13 @@
     border-top: 1px solid var(--border-stats);
   }
   .ws-col { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-  .ws-lbl { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; color: var(--text-muted-box); }
-  .ws-val { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; color: var(--text-box); }
+  .ws-lbl { font-family: 'Nunito', sans-serif; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; color: var(--text-muted-box); }
+  .ws-val { font-family: 'Nunito', sans-serif; font-size: 32px; font-weight: 700; color: var(--text-box); }
 
   #btn-again {
     background: var(--btn-primary-bg); color: var(--btn-primary-text);
     border: none; border-radius: 999px; padding: 12px 32px;
-    font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 700;
+    font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 700;
     cursor: pointer; transition: background 0.12s, transform 0.1s;
   }
   #btn-again:hover  { background: var(--btn-primary-hover); }
@@ -419,20 +469,26 @@
     <div id="title">Okay Solitaire</div>
     <div id="header-right">
       <div id="header-stats">
-        <div class="stat-col">
-          <div class="stat-lbl">MOVES</div>
-          <div class="stat-val muted" id="hdr-moves">0</div>
+        <div class="stat-item">
+          <div class="stat-val" id="hdr-moves">0</div>
+          <div class="stat-lbl">Moves</div>
         </div>
-        <div class="stat-col">
-          <div class="stat-lbl">WINS</div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
           <div class="stat-val" id="hdr-wins">0</div>
+          <div class="stat-lbl">Wins</div>
         </div>
-        <div class="stat-col">
-          <div class="stat-lbl">STREAK</div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
           <div class="stat-val" id="hdr-streak">0</div>
+          <div class="stat-lbl">Streak</div>
         </div>
       </div>
-      <button id="btn-theme" aria-label="Toggle night mode">&#9680;</button>
+      <div id="icon-pill">
+        <button id="btn-sound" aria-label="Toggle sound" title="Toggle sound">♪</button>
+        <button id="btn-theme" aria-label="Toggle night mode" title="Toggle night mode">◐</button>
+        <a href="index.html" id="btn-home" title="Home" aria-label="Home">⌂</a>
+      </div>
     </div>
   </div>
 
@@ -456,7 +512,6 @@
     <button class="btn" id="btn-stats" aria-label="Stats">Stats</button>
     <button class="btn" id="btn-settings" aria-label="Settings">⚙︎</button>
   </div>
-  <div id="hint">Tap a card to play &middot; tap again to place</div>
 </div>
 
 <div id="stats-overlay">
@@ -505,13 +560,6 @@
       </div>
     </div>
     <div class="setting-row">
-      <span class="setting-lbl">Theme</span>
-      <div class="setting-opts">
-        <button class="opt-btn" id="opt-light" onclick="setSetting('theme','light')">Light</button>
-        <button class="opt-btn" id="opt-dark"  onclick="setSetting('theme','dark')">Dark</button>
-      </div>
-    </div>
-    <div class="setting-row">
       <span class="setting-lbl">Deal Mode</span>
       <div class="setting-opts">
         <button class="opt-btn" id="opt-d1" onclick="setSetting('deal',1)">Deal 1</button>
@@ -531,7 +579,7 @@
 
 <div id="win-overlay">
   <div id="win-box">
-    <div id="win-title">YOU WIN</div>
+    <div id="win-title">You won</div>
     <div id="win-moves"></div>
     <div id="win-stats">
       <div class="ws-col"><div class="ws-lbl">WINS</div><div class="ws-val" id="w-wins">0</div></div>
@@ -540,6 +588,8 @@
     <button class="btn" id="btn-again">Play Again</button>
   </div>
 </div>
+
+<canvas id="confetti-canvas" style="display:none;position:fixed;inset:0;z-index:10001;pointer-events:none"></canvas>
 
 <script>
 'use strict';
@@ -554,6 +604,245 @@ const SAVE_KEY  = 'okaysol_v1';
 const STATS_KEY = 'okaysol_stats_v1';
 
 const SETTINGS_KEY = 'okaysol_settings_v1';
+
+// ── SOUND ─────────────────────────────────────────────────────────────────────
+let audioCtx = null, soundEnabled = true;
+function getAudio() {
+  if (!audioCtx) try { audioCtx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e) {}
+  return audioCtx;
+}
+function playTone(freq,type,dur,vol,delay=0) {
+  if (!soundEnabled) return;
+  try {
+    const ctx=getAudio(); if(!ctx) return;
+    const osc=ctx.createOscillator(), g=ctx.createGain();
+    osc.connect(g); g.connect(ctx.destination);
+    osc.type=type; osc.frequency.value=freq;
+    const t=ctx.currentTime+delay;
+    g.gain.setValueAtTime(vol,t);
+    g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    osc.start(t); osc.stop(t+dur+0.01);
+  } catch(e) {}
+}
+function playCardMove()        { playTone(520,'sine',0.055,0.07); }
+function playFoundationPlace() { playTone(900,'sine',0.13,0.10); playTone(1350,'sine',0.10,0.055,0.045); }
+function playCardFlip()        { playTone(360,'sine',0.07,0.06); }
+function playError()           { playTone(200,'sine',0.14,0.07); }
+function playWin() {
+  [[523,0],[659,0.11],[784,0.22],[1047,0.38]].forEach(([f,d])=>playTone(f,'sine',0.28,0.13,d));
+}
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  const btn = document.getElementById('btn-sound');
+  btn.textContent = soundEnabled ? '♪' : '♩';
+  btn.classList.toggle('muted', !soundEnabled);
+}
+
+// ── CONFETTI ──────────────────────────────────────────────────────────────────
+function launchConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  canvas.style.display = 'block';
+  const ctx = canvas.getContext('2d');
+  const COLORS = ['#f0c040','#e03535','#4ade80','#60a5fa','#f97316','#c084fc','#ffffff'];
+  const particles = Array.from({length:150}, () => ({
+    x: Math.random()*canvas.width, y: -20-Math.random()*140,
+    vx: (Math.random()-0.5)*5.5, vy: 1.8+Math.random()*3.5,
+    color: COLORS[Math.floor(Math.random()*COLORS.length)],
+    w: 7+Math.random()*9, h: 4+Math.random()*5,
+    rot: Math.random()*Math.PI*2, rotV: (Math.random()-0.5)*0.18,
+    shape: Math.random()>0.38?'rect':'circle', alpha: 1,
+  }));
+  const START=performance.now(), DUR=3400;
+  (function frame(now) {
+    const t=(now-START)/DUR;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    let any=false;
+    particles.forEach(p => {
+      p.x+=p.vx; p.y+=p.vy; p.vy+=0.07; p.rot+=p.rotV;
+      p.alpha = t<0.55 ? 1 : Math.max(0,1-(t-0.55)/0.45);
+      if (p.y<canvas.height+30 && p.alpha>0) {
+        any=true; ctx.save(); ctx.globalAlpha=p.alpha; ctx.fillStyle=p.color;
+        ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+        if (p.shape==='rect') ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+        else { ctx.beginPath(); ctx.arc(0,0,p.w/2,0,Math.PI*2); ctx.fill(); }
+        ctx.restore();
+      }
+    });
+    if (any && now-START<DUR+600) requestAnimationFrame(frame);
+    else { canvas.style.display='none'; ctx.clearRect(0,0,canvas.width,canvas.height); }
+  })(performance.now());
+}
+
+// ── FLIP ANIMATION ────────────────────────────────────────────────────────────
+let _cardPositions = {};
+
+function snapshotPositions() {
+  _cardPositions = {};
+  document.querySelectorAll('[data-card-id]').forEach(el => {
+    _cardPositions[el.dataset.cardId] = el.getBoundingClientRect();
+  });
+}
+
+function applyFlipAnimations() {
+  document.querySelectorAll('.anim-ghost').forEach(g => g.remove());
+  document.querySelectorAll('[data-card-id]').forEach(el => { el.style.visibility = ''; });
+
+  document.querySelectorAll('[data-card-id]').forEach(el => {
+    const old = _cardPositions[el.dataset.cardId];
+    if (!old) return;
+    const now = el.getBoundingClientRect();
+    const dx = old.left - now.left, dy = old.top - now.top;
+    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
+
+    const ghost = el.cloneNode(true);
+    ghost.removeAttribute('data-card-id');
+    ghost.classList.add('anim-ghost');
+    ghost.style.cssText += `position:fixed;left:${now.left}px;top:${now.top}px;` +
+      `width:${now.width}px;height:${now.height}px;margin:0;z-index:1000;` +
+      `transition:none;transform:translate(${dx}px,${dy}px)`;
+    el.style.visibility = 'hidden';
+    document.body.appendChild(ghost);
+    void ghost.offsetWidth;
+    ghost.style.transition = 'transform 0.2s cubic-bezier(0.25,0.46,0.45,0.94)';
+    ghost.style.transform = '';
+    let done = false;
+    const finish = () => { if(done)return; done=true; ghost.remove(); el.style.visibility=''; };
+    ghost.addEventListener('transitionend', finish, {once:true});
+    setTimeout(finish, 350);
+  });
+}
+
+// ── RIPPLE ────────────────────────────────────────────────────────────────────
+function spawnRipple(el, e) {
+  const rect = el.getBoundingClientRect();
+  const x = (e.clientX ?? rect.left+rect.width/2) - rect.left;
+  const y = (e.clientY ?? rect.top+rect.height/2) - rect.top;
+  const size = Math.max(rect.width, rect.height) * 0.8;
+  const rip = document.createElement('div');
+  rip.className = 'ripple';
+  rip.style.cssText = `width:${size}px;height:${size}px;left:${x-size/2}px;top:${y-size/2}px`;
+  el.appendChild(rip);
+  rip.addEventListener('animationend', () => rip.remove(), {once:true});
+}
+
+// ── MOVE COUNTER FLASH ────────────────────────────────────────────────────────
+function flashMoveCount() {
+  const el = document.getElementById('hdr-moves');
+  el.style.transition = 'none';
+  el.style.color = '#f0c040';
+  el.style.transform = 'scale(1.3)';
+  setTimeout(() => {
+    el.style.transition = 'color 0.4s ease, transform 0.35s ease';
+    el.style.color = '';
+    el.style.transform = '';
+  }, 80);
+}
+
+// ── FOUNDATION POP ────────────────────────────────────────────────────────────
+let foundPopSuits = new Set();
+
+// ── DRAG AND DROP ─────────────────────────────────────────────────────────────
+let drag = null;
+const DRAG_THRESH = 7;
+
+function initDrag(e, fromInfo, targetEl) {
+  if (won) return;
+  if (e.button !== undefined && e.button > 0) return;
+  drag = { fromInfo, targetEl, px: e.clientX, py: e.clientY, moved: false, ghost: null, offX:0, offY:0 };
+  e.preventDefault();
+}
+
+function buildDragGhost(cx, cy) {
+  const cards = drag.fromInfo.cards;
+  cards.forEach(c => {
+    const el = document.querySelector(`[data-card-id="${c.id}"]`);
+    if (el) el.style.opacity = '0.18';
+  });
+  const totalH = CH + (cards.length-1) * OFF_U;
+  const ghost = document.createElement('div');
+  ghost.style.cssText = `position:fixed;z-index:2000;pointer-events:none;width:${CW}px;height:${totalH}px;`;
+  cards.forEach((card, i) => {
+    const el = makeCardEl(card, i*OFF_U, i+1, null);
+    el.style.boxShadow = '0 18px 44px rgba(0,0,0,0.5)';
+    ghost.appendChild(el);
+  });
+  const firstEl = document.querySelector(`[data-card-id="${cards[0].id}"]`);
+  const rect = firstEl ? firstEl.getBoundingClientRect() : {left:cx-CW/2, top:cy-CH*0.15};
+  drag.offX = cx-rect.left; drag.offY = cy-rect.top;
+  ghost.style.left = (cx-drag.offX)+'px'; ghost.style.top = (cy-drag.offY)+'px';
+  ghost.style.transform = 'rotate(1.5deg) scale(1.04)';
+  document.body.appendChild(ghost);
+  drag.ghost = ghost;
+  document.body.classList.add('is-dragging');
+}
+
+function updateDropHighlight(cx, cy) {
+  document.querySelectorAll('.drop-hi').forEach(el => el.classList.remove('drop-hi'));
+  const under = document.elementFromPoint(cx, cy);
+  if (!under) return;
+  const zone = under.closest('[data-drop]');
+  if (zone) zone.classList.add('drop-hi');
+}
+
+function onPointerMove(e) {
+  if (!drag) return;
+  const cx=e.clientX, cy=e.clientY;
+  if (!drag.moved) {
+    if (Math.abs(cx-drag.px)<DRAG_THRESH && Math.abs(cy-drag.py)<DRAG_THRESH) return;
+    drag.moved = true;
+    buildDragGhost(cx, cy);
+  }
+  if (drag.ghost) { drag.ghost.style.left=(cx-drag.offX)+'px'; drag.ghost.style.top=(cy-drag.offY)+'px'; }
+  updateDropHighlight(cx, cy);
+  e.preventDefault();
+}
+
+function onPointerUp(e) {
+  if (!drag) return;
+  const cx=e.clientX, cy=e.clientY;
+  document.querySelectorAll('.drop-hi').forEach(el => el.classList.remove('drop-hi'));
+  document.body.classList.remove('is-dragging');
+
+  if (!drag.moved) {
+    // pure tap
+    const { fromInfo, targetEl } = drag;
+    drag = null;
+    if (targetEl) spawnRipple(targetEl, e);
+    if (fromInfo._onTap) fromInfo._onTap();
+    return;
+  }
+
+  // restore dimmed cards
+  drag.fromInfo.cards.forEach(c => {
+    const orig = document.querySelector(`[data-card-id="${c.id}"]`);
+    if (orig) orig.style.opacity = '';
+  });
+  if (drag.ghost) drag.ghost.remove();
+
+  const under = document.elementFromPoint(cx, cy);
+  const zone = under ? under.closest('[data-drop]') : null;
+  const fromInfo = drag.fromInfo;
+  drag = null;
+
+  if (!zone) { playError(); return; }
+
+  const type = zone.dataset.drop;
+  sel = fromInfo;
+
+  if (type === 'found') {
+    const si = +zone.dataset.si;
+    if (!moveSelTo('found', si)) { sel=null; playError(); }
+  } else if (type === 'tab') {
+    const col = +zone.dataset.col;
+    if (!moveSelTo('tab', col)) { sel=null; playError(); }
+  } else if (type === 'stock') {
+    sel = null; flipStock();
+  }
+}
+
+document.addEventListener('pointermove', onPointerMove, {passive:false});
+document.addEventListener('pointerup', onPointerUp);
 
 // ── SETTINGS STATE (declared early so calcSizes can read it) ─────────────────
 let settings = { theme: 'light', deal: 1, font: 'normal', hand: 'left' };
@@ -600,8 +889,6 @@ function setSetting(key, val) {
 }
 
 function updateSettingsUI() {
-  document.getElementById('opt-light').classList.toggle('active',  settings.theme === 'light');
-  document.getElementById('opt-dark').classList.toggle('active',   settings.theme === 'dark');
   document.getElementById('opt-d1').classList.toggle('active',     settings.deal === 1);
   document.getElementById('opt-d3').classList.toggle('active',     settings.deal === 3);
   document.getElementById('opt-small').classList.toggle('active',  settings.font === 'small');
@@ -744,12 +1031,17 @@ function snap() {
   };
 }
 
-function commit(next) {
+function commit(next, toFoundation) {
   hist.push(snap());
+  snapshotPositions();
   state = next;
   moves++;
+  if (toFoundation) playFoundationPlace();
+  else playCardMove();
   saveGame();
   render();
+  flashMoveCount();
+  applyFlipAnimations();
   checkWin();
 }
 
@@ -775,7 +1067,11 @@ function checkWin() {
     won = true;
     recordWin(); saveGame();
     document.getElementById('win-moves').textContent = `Completed in ${moves} moves`;
-    document.getElementById('win-overlay').classList.add('show');
+    setTimeout(() => {
+      playWin();
+      launchConfetti();
+      document.getElementById('win-overlay').classList.add('show');
+    }, 260);
   }
 }
 
@@ -829,8 +1125,10 @@ function setDeal(n) {
 
 function undo() {
   if (!hist.length) return;
+  snapshotPositions();
   state = hist.pop(); moves = Math.max(0, moves-1);
   sel = null; saveGame(); render();
+  applyFlipAnimations();
 }
 
 // ── AUTO-MOVE ─────────────────────────────────────────────────────────────────
@@ -878,11 +1176,13 @@ function flipStock() {
     const flipped = ns.stock.splice(ns.stock.length - n, n);
     flipped.forEach(c => { c.up = true; });
     ns.waste.push(...flipped);
+    playCardFlip();
   } else {
     ns.stock = ns.waste.reverse().map(c => ({...c, up:false}));
     ns.waste = [];
+    playCardFlip();
   }
-  commit(ns);
+  commit(ns, false);
 }
 
 // ── REMOVE SELECTION FROM SNAPSHOT ───────────────────────────────────────────
@@ -911,7 +1211,7 @@ function moveSelTo(targetType, targetArg) {
     if (!canFoundation(card, ns.foundations)) return false;
     removeSel(ns);
     ns.foundations[suit].push({...card, up:true});
-    sel = null; commit(ns); return true;
+    sel = null; commit(ns, true); return true;
   }
 
   if (targetType === 'tab') {
@@ -919,7 +1219,7 @@ function moveSelTo(targetType, targetArg) {
     if (!canTableau(card, col)) return false;
     removeSel(ns);
     ns.tableau[targetArg].push(...sel.cards.map(clone));
-    sel = null; commit(ns); return true;
+    sel = null; commit(ns, false); return true;
   }
 
   return false;
@@ -1043,10 +1343,11 @@ function makeBackSVG(w, h, r) {
   </svg>`;
 }
 
-function makeCardEl(card, top, z, onClick) {
+function makeCardEl(card, top, z, onTap) {
   const el = document.createElement('div');
   const faceDown = !card.up;
   el.className = 'card' + (faceDown ? ' back' : '') + ((!faceDown && isSelected(card)) ? ' sel' : '');
+  if (!faceDown && card.id) el.dataset.cardId = card.id;
   const r = Math.max(8, Math.round(CW*0.10));
   const p = Math.max(3, Math.round(CW*0.08));
 
@@ -1060,19 +1361,33 @@ function makeCardEl(card, top, z, onClick) {
     const col = isRed(card.suit) ? cssVar('--red') : cssVar('--blk');
     const rf = Math.max(10, CW*0.30) * fontScale;
     const sf = Math.max(8,  CW*0.21) * fontScale;
-    const g  = Math.max(1,  CW*0.05);
     const iconSz = Math.max(22, CW*0.78) * fontScale;
     el.innerHTML =
-      `<div class="card-corner" style="color:${col};display:flex;align-items:center;gap:${g}px;font-family:'Inter',sans-serif;font-weight:700">` +
-        `<span style="font-size:${rf}px;line-height:1">${card.rank}</span>` +
-        `<span style="font-size:${sf}px;line-height:1">${card.suit}</span>` +
-      `</div>` +
+      `<div style="position:absolute;top:${p}px;left:${p}px;color:${col};font-family:'Inter',sans-serif;font-weight:500;font-size:${rf}px;line-height:1;letter-spacing:-0.01em">${card.rank}</div>` +
+      `<div style="position:absolute;top:${p + (rf-sf)/2}px;right:${p}px;color:${col};font-family:'Inter',sans-serif;font-weight:500;font-size:${sf}px;line-height:1">${card.suit}</div>` +
       `<div style="position:absolute;bottom:${Math.max(6,CW*0.22)}px;left:0;right:0;display:flex;align-items:center;justify-content:center;pointer-events:none">` +
         `<div style="width:${iconSz}px;height:${iconSz}px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:${col};font-size:${iconSz}px;line-height:1;opacity:0.93">${card.suit}</div>` +
       `</div>`;
   }
 
-  if (onClick) el.addEventListener('click', e => { e.stopPropagation(); onClick(); });
+  if (onTap || !faceDown) {
+    const fromInfo = {
+      from: 'unknown', cards: card.id ? [card] : [],
+      _onTap: onTap ? () => { if(onTap) onTap(); } : null
+    };
+    el.addEventListener('pointerdown', e => {
+      e.stopPropagation();
+      if (!faceDown && card.id && onTap) {
+        // Build a real fromInfo for drag — will be fleshed out at drag start
+        const fi = { ...fromInfo, _onTap: onTap };
+        initDrag(e, fi, el);
+      } else if (onTap) {
+        // face-down or stock: just tap
+        onTap();
+      }
+    }, {passive: false});
+  }
+
   return el;
 }
 
@@ -1083,9 +1398,6 @@ function render() {
   document.getElementById('tableau').style.width     = totalW + 'px';
   document.getElementById('title').style.fontSize    = Math.max(16, CW*0.36) + 'px';
   document.getElementById('hdr-moves').textContent   = moves;
-
-  document.querySelectorAll('.stat-val').forEach(e => e.style.fontSize = Math.max(11, CW*0.20)+'px');
-  document.querySelectorAll('.stat-lbl').forEach(e => e.style.fontSize = Math.max(8,  CW*0.10)+'px');
 
   // ── STOCK ──
   const sw = document.getElementById('stock-wrap');
@@ -1135,6 +1447,7 @@ function render() {
     const pile = state.foundations[suit];
     const wrap = document.createElement('div');
     wrap.style.cssText = `position:relative;width:${CW}px;height:${CH}px;flex-shrink:0`;
+    wrap.dataset.drop = 'found'; wrap.dataset.si = si;
 
     if (pile.length) {
       const card = pile[pile.length-1];
@@ -1160,6 +1473,7 @@ function render() {
     const wrap = document.createElement('div');
     wrap.className = 'col-wrap';
     wrap.style.cssText = `width:${CW}px;height:${totalH}px;flex-shrink:0`;
+    wrap.dataset.drop = 'tab'; wrap.dataset.col = ci;
 
     if (!col.length) {
       const sl = makeSlot(() => onTabEmpty(ci));
@@ -1183,9 +1497,7 @@ function render() {
   // ── FOOTER ──
   const bfs  = Math.max(9, CW*0.138), bpad = `7px ${Math.round(CW*0.18)}px`;
   const dpad = `7px ${Math.round(CW*0.13)}px`, dfs = Math.max(8, CW*0.12);
-  document.querySelectorAll('.btn').forEach(b  => { b.style.fontSize=bfs+'px'; b.style.padding=bpad; });
-  document.querySelectorAll('.deal-btn').forEach(b => { b.style.fontSize=dfs+'px'; b.style.padding=dpad; });
-  document.getElementById('hint').style.fontSize = Math.max(8, CW*0.10) + 'px';
+  document.querySelectorAll('.btn').forEach(b => { b.style.fontSize=bfs+'px'; b.style.padding=bpad; });
   document.getElementById('btn-undo').disabled    = !hist.length;
   document.getElementById('btn-restart').disabled = !initialDeal;
 
@@ -1266,6 +1578,7 @@ function toggleAuto() {
 
 // ── EVENT WIRING ─────────────────────────────────────────────────────────────
 document.getElementById('btn-theme').addEventListener('click', toggleTheme);
+document.getElementById('btn-sound').addEventListener('click', toggleSound);
 document.getElementById('btn-undo').addEventListener('click', undo);
 document.getElementById('btn-auto').addEventListener('click', toggleAuto);
 document.getElementById('btn-restart').addEventListener('click', () => { stopAuto(); restartDeal(); });
