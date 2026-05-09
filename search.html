@@ -87,30 +87,77 @@ function render(){
  }
  bind();
 }
+// --- replace bind(), pick(), clearSel(), finish() with these ---
+
 function bind(){
- document.querySelectorAll('.cell').forEach(cell=>{
-   cell.addEventListener('pointerdown',e=>{selecting=true;clearSel();pick(cell)});
-   cell.addEventListener('pointerenter',()=> selecting && pick(cell));
- });
- window.addEventListener('pointerup',finish,{once:true});
+  const grid = document.getElementById('grid');
+
+  // remove any previous handlers to avoid duplicates
+  grid.onpointerdown = null;
+  grid.onpointermove = null;
+  grid.onpointerup = null;
+  grid.onpointercancel = null;
+
+  grid.onpointerdown = (e) => {
+    // only primary button / primary touch
+    if (e.isPrimary === false) return;
+    e.preventDefault();
+    selecting = true;
+    path = [];
+    clearSel();
+    // capture pointer so we keep getting events outside element
+    grid.setPointerCapture(e.pointerId);
+    // pick the starting cell
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    if (el && el.classList.contains('cell')) pick(el);
+  };
+
+  grid.onpointermove = (e) => {
+    if (!selecting) return;
+    // find the cell under the pointer
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    if (el && el.classList.contains('cell')) pick(el);
+  };
+
+  const endPointer = (e) => {
+    if (selecting) {
+      selecting = false;
+      // handle selection finish
+      finishSelection();
+    }
+    try { grid.releasePointerCapture && grid.releasePointerCapture(e.pointerId); } catch (err) {}
+  };
+
+  grid.onpointerup = endPointer;
+  grid.onpointercancel = endPointer;
 }
+
 function pick(cell){
- if(path.includes(cell.dataset.pos)) return;
- path.push(cell.dataset.pos);
- cell.classList.add('selected');
+  const pos = cell.dataset.pos;
+  if (!pos) return;
+  if (path.includes(pos)) return;
+  path.push(pos);
+  cell.classList.add('selected');
 }
-function clearSel(){document.querySelectorAll('.selected').forEach(e=>e.classList.remove('selected'));path=[]}
-function finish(){
- selecting=false;
- const sorted=[...path].sort().join('|');
- let hit=placed.find(p=>[...p.cells].sort().join('|')===sorted && !found.has(p.word));
- if(hit){
-   found.add(hit.word);
-   hit.cells.forEach(pos=>document.querySelector(`[data-pos="${pos}"]`)?.classList.add('found'));
-   showToast(`Found: ${hit.word}`);
-   document.getElementById('status').textContent=`Words found: ${found.size}`;
-   if(found.size===placed.length) setTimeout(()=>alert("🎉 You found every hidden word!"),250);
- }
+
+function clearSel(){
+  document.querySelectorAll('.selected').forEach(e=>e.classList.remove('selected'));
+  path = [];
+}
+
+function finishSelection(){
+  const sorted = [...path].sort().join('|');
+  const hit = placed.find(p=>[...p.cells].sort().join('|')===sorted && !found.has(p.word));
+  if (hit){
+    found.add(hit.word);
+    hit.cells.forEach(pos=>document.querySelector(`[data-pos="${pos}"]`)?.classList.add('found'));
+    showToast(`Found: ${hit.word}`);
+    document.getElementById('status').textContent=`Words found: ${found.size}`;
+    if(found.size===placed.length) setTimeout(()=>alert("🎉 You found every hidden word!"),250);
+  }
+  clearSel();
+}
+
  clearSel();
  bind();
 }
