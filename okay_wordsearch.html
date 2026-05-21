@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Word Search</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #f2f4f7;
+    --surface:  #ffffff;
+    --border:   #e0e4ea;
+    --border2:  #cdd2db;
+    --text:     #1a1d23;
+    --text2:    #4a5060;
+    --muted:    #8a909e;
+    --accent:   #2563eb;
+    --sel-bg:   rgba(37,99,235,0.10);
+
+    /* found word colors — clear, distinct */
+    --c1: #2563eb; /* blue */
+    --c2: #16a34a; /* green */
+    --c3: #dc2626; /* red */
+    --c4: #9333ea; /* purple */
+    --c5: #ea580c; /* orange */
+    --c6: #0891b2; /* teal */
+    --c7: #be185d; /* pink */
+    --c8: #65a30d; /* lime */
+
+    --c1b: rgba(37,99,235,0.12);
+    --c2b: rgba(22,163,74,0.12);
+    --c3b: rgba(220,38,38,0.12);
+    --c4b: rgba(147,51,234,0.12);
+    --c5b: rgba(234,88,12,0.12);
+    --c6b: rgba(8,145,178,0.12);
+    --c7b: rgba(190,24,93,0.12);
+    --c8b: rgba(101,163,13,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #app {
+    width: 100%;
+    max-width: 460px;
+    margin: 0 auto;
+    padding: 0 16px 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 0 0;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  #new-game-btn {
+    background: var(--surface);
+    border: 1.5px solid var(--border2);
+    color: var(--text2);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    padding: 7px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+  }
+  #new-game-btn:active { background: var(--bg); border-color: var(--accent); color: var(--accent); }
+
+  /* ── STATUS BAR ── */
+  #status-bar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1px;
+  }
+
+  #found-count {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  #found-count em { font-style: normal; color: var(--accent); font-weight: 600; }
+
+  #timer {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    transition: color 0.3s;
+  }
+  #timer.active { color: var(--text2); }
+
+  #hint-btn {
+    background: var(--surface);
+    border: 1.5px solid var(--border2);
+    color: var(--text2);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 6px 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+  }
+  #hint-btn:active { border-color: var(--accent); color: var(--accent); }
+
+  /* ── GRID PANEL ── */
+  #grid-wrap {
+    width: 100%;
+    background: var(--surface);
+    border-radius: 16px;
+    border: 1.5px solid var(--border);
+    padding: 8px;
+    position: relative;
+    touch-action: none;
+    user-select: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.05);
+  }
+
+  #grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(0.82rem, 3.9vw, 1.12rem);
+    font-weight: 500;
+    color: var(--text);
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.12s;
+    -webkit-user-select: none;
+    border-radius: 0;
+  }
+
+  .cell.selecting {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .cell.found-1 { color: var(--c1); font-weight: 600; }
+  .cell.found-2 { color: var(--c2); font-weight: 600; }
+  .cell.found-3 { color: var(--c3); font-weight: 600; }
+  .cell.found-4 { color: var(--c4); font-weight: 600; }
+  .cell.found-5 { color: var(--c5); font-weight: 600; }
+  .cell.found-6 { color: var(--c6); font-weight: 600; }
+  .cell.found-7 { color: var(--c7); font-weight: 600; }
+  .cell.found-8 { color: var(--c8); font-weight: 600; }
+
+  #overlay {
+    position: absolute;
+    top: 8px; left: 8px;
+    width: calc(100% - 16px);
+    height: calc(100% - 16px);
+    pointer-events: none;
+    border-radius: 10px;
+  }
+
+  /* ── WORDS PANEL ── */
+  #words-panel {
+    width: 100%;
+    background: var(--surface);
+    border-radius: 16px;
+    border: 1.5px solid var(--border);
+    padding: 16px 18px 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  #words-panel h2 {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  #word-list { display: flex; flex-wrap: wrap; gap: 7px 8px; }
+
+  .word-chip {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 5px 11px;
+    border: 1.5px solid var(--border2);
+    color: var(--muted);
+    border-radius: 7px;
+    background: var(--bg);
+    transition: all 0.25s ease;
+  }
+
+  .word-chip.found {
+    border-color: transparent;
+    color: white;
+    font-weight: 600;
+    text-decoration: line-through;
+    text-decoration-color: rgba(255,255,255,0.5);
+  }
+  .word-chip.found-c1 { background: var(--c1); }
+  .word-chip.found-c2 { background: var(--c2); }
+  .word-chip.found-c3 { background: var(--c3); }
+  .word-chip.found-c4 { background: var(--c4); }
+  .word-chip.found-c5 { background: var(--c5); }
+  .word-chip.found-c6 { background: var(--c6); }
+  .word-chip.found-c7 { background: var(--c7); }
+  .word-chip.found-c8 { background: var(--c8); }
+
+  /* ── WIN SCREEN ── */
+  #win-screen {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(242,244,247,0.92);
+    z-index: 100;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    backdrop-filter: blur(16px);
+  }
+  #win-screen.show { display: flex; animation: wFade 0.35s ease; }
+  @keyframes wFade { from { opacity:0; transform:scale(0.97); } to { opacity:1; transform:scale(1); } }
+
+  .win-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 40px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+    width: calc(100% - 48px);
+    max-width: 320px;
+  }
+
+  .win-icon {
+    font-size: 2.8rem;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .win-eyebrow {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .win-theme {
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    text-align: center;
+  }
+
+  .win-time {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--muted);
+  }
+
+  .win-divider {
+    width: 100%;
+    height: 1.5px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 4px 0;
+  }
+
+  .win-btn {
+    width: 100%;
+    background: var(--accent);
+    border: none;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    padding: 13px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    margin-top: 4px;
+  }
+  .win-btn:active { opacity: 0.88; transform: scale(0.99); }
+
+  /* ── LOADING ── */
+  #loading {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    z-index: 200;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 14px;
+    transition: opacity 0.4s;
+  }
+  #loading.hidden { opacity:0; pointer-events:none; }
+
+  .load-spinner {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2.5px solid var(--border2);
+    border-top-color: var(--accent);
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .load-label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+
+  /* ── HINT ── */
+  .hint-flash { animation: hFlash 0.5s ease; }
+  @keyframes hFlash {
+    0%   { background: #fef08a; border-radius: 4px; }
+    100% { background: transparent; }
+  }
+
+  @keyframes foundPop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.25); }
+    100% { transform: scale(1); }
+  }
+  .found-pop { animation: foundPop 0.25s ease; }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="load-spinner"></div>
+  <div class="load-label">Building puzzle…</div>
+</div>
+
+<div id="app">
+  <header>
+    <h1>Word Search</h1>
+    <button id="new-game-btn">New Game</button>
+  </header>
+
+  <div id="status-bar">
+    <div id="found-count"><em id="fc">0</em> / <span id="tc">0</span> found</div>
+    <div id="timer">00:00</div>
+    <button id="hint-btn">Hint</button>
+  </div>
+
+  <div id="grid-wrap">
+    <div id="grid"></div>
+    <canvas id="overlay"></canvas>
+  </div>
+
+  <div id="words-panel">
+    <h2>Find these words</h2>
+    <div id="word-list"></div>
+  </div>
+</div>
+
+<div id="win-screen">
+  <div class="win-card">
+    <div class="win-icon">🎉</div>
+    <div class="win-eyebrow">Puzzle solved!</div>
+    <div class="win-theme" id="win-theme-label"></div>
+    <div class="win-divider"></div>
+    <div class="win-time" id="win-time-label"></div>
+    <button class="win-btn" id="win-new-btn">Play Again</button>
+  </div>
+</div>
+
+<script>
+const THEMES = [
+  { theme:"Ocean Life",           words:["DOLPHIN","SEAHORSE","OCTOPUS","CORAL","WHALE","JELLYFISH","LOBSTER","SARDINE","ANEMONE","PLANKTON"] },
+  { theme:"Space Exploration",    words:["NEBULA","PULSAR","ASTEROID","COMET","GALAXY","QUASAR","ECLIPSE","COSMOS","ORBITAL","ROVER"] },
+  { theme:"Culinary Spices",      words:["SAFFRON","CINNAMON","PAPRIKA","TURMERIC","CARDAMOM","ROSEMARY","TARRAGON","OREGANO","GINGER","FENNEL"] },
+  { theme:"Ancient Civilizations",words:["PHARAOH","PYRAMID","SPHINX","EMPEROR","ORACLE","GLADIATOR","PAPYRUS","TEMPLE","DYNASTY","AQUEDUCT"] },
+  { theme:"Jazz Music",           words:["BEBOP","TRUMPET","SAXOPHONE","BASSLINE","HARMONY","SYNCOPATE","RIFF","SCAT","CHORUS","GROOVE"] },
+  { theme:"Mountain World",       words:["AVALANCHE","GLACIER","CREVASSE","SUMMIT","MORAINE","TUNDRA","ALPINE","BIVOUAC","CRAMPON","COULOIR"] },
+  { theme:"Mythology",            words:["OLYMPUS","PEGASUS","CHIMERA","MINOTAUR","CYCLOPS","SIREN","PHOENIX","KRAKEN","GORGON","CENTAUR"] },
+  { theme:"Gemstones",            words:["SAPPHIRE","EMERALD","DIAMOND","AMETHYST","GARNET","TOPAZ","OPAL","ONYX","CITRINE","MALACHITE"] },
+  { theme:"Weather Phenomena",    words:["CYCLONE","TORNADO","MONSOON","BLIZZARD","THUNDER","DROUGHT","SQUALL","TYPHOON","RAINBOW","AURORA"] },
+  { theme:"Architecture",         words:["BUTTRESS","CORBEL","FRIEZE","PARAPET","ROTUNDA","CUPOLA","PORTICO","PEDIMENT","ARCADE","ATRIUM"] },
+];
+
+const SIZE=12, COLORS=8;
+const DIRS=[[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
+
+let grid=[],placedWords=[],foundWords=new Set();
+let selecting=false,startCell=null,currentCells=[];
+let timerInterval=null,seconds=0,gameActive=false;
+let currentTheme='';
+let canvas,ctx,cellW,cellH;
+let foundLines=[];
+
+const FOUND_LINE_COLORS=[
+  'rgba(37,99,235,0.18)',
+  'rgba(22,163,74,0.18)',
+  'rgba(220,38,38,0.18)',
+  'rgba(147,51,234,0.18)',
+  'rgba(234,88,12,0.18)',
+  'rgba(8,145,178,0.18)',
+  'rgba(190,24,93,0.18)',
+  'rgba(101,163,13,0.18)',
+];
+
+const FOUND_STROKE=[
+  'rgba(37,99,235,0.7)',
+  'rgba(22,163,74,0.7)',
+  'rgba(220,38,38,0.7)',
+  'rgba(147,51,234,0.7)',
+  'rgba(234,88,12,0.7)',
+  'rgba(8,145,178,0.7)',
+  'rgba(190,24,93,0.7)',
+  'rgba(101,163,13,0.7)',
+];
+
+window.addEventListener('load', ()=>setTimeout(newGame,300));
+document.getElementById('new-game-btn').addEventListener('click', newGame);
+document.getElementById('win-new-btn').addEventListener('click', ()=>{
+  document.getElementById('win-screen').classList.remove('show');
+  newGame();
+});
+document.getElementById('hint-btn').addEventListener('click', giveHint);
+
+function newGame(){
+  clearInterval(timerInterval);
+  seconds=0; foundWords=new Set(); gameActive=false; foundLines=[];
+  document.getElementById('timer').classList.remove('active');
+  document.getElementById('timer').textContent='00:00';
+
+  const pick=THEMES[Math.floor(Math.random()*THEMES.length)];
+  currentTheme=pick.theme;
+  const words=shuffle([...pick.words]).slice(0,10);
+
+  grid=Array.from({length:SIZE},()=>Array(SIZE).fill(''));
+  placedWords=[];
+  for(const w of words) placeWord(w);
+
+  const alpha='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  for(let r=0;r<SIZE;r++)
+    for(let c=0;c<SIZE;c++)
+      if(!grid[r][c]) grid[r][c]=alpha[Math.floor(Math.random()*26)];
+
+  renderGrid(); renderWords(); updateFoundCount();
+  document.getElementById('loading').classList.add('hidden');
+}
+
+function placeWord(word){
+  for(let i=0;i<350;i++){
+    const dir=DIRS[Math.floor(Math.random()*DIRS.length)];
+    const r=Math.floor(Math.random()*SIZE), c=Math.floor(Math.random()*SIZE);
+    if(canPlace(word,r,c,dir)){ doPlace(word,r,c,dir); return; }
+  }
+}
+function canPlace(word,r,c,[dr,dc]){
+  for(let i=0;i<word.length;i++){
+    const nr=r+dr*i,nc=c+dc*i;
+    if(nr<0||nr>=SIZE||nc<0||nc>=SIZE) return false;
+    if(grid[nr][nc]&&grid[nr][nc]!==word[i]) return false;
+  }
+  return true;
+}
+function doPlace(word,r,c,[dr,dc]){
+  const cells=[];
+  for(let i=0;i<word.length;i++){
+    grid[r+dr*i][c+dc*i]=word[i];
+    cells.push([r+dr*i,c+dc*i]);
+  }
+  placedWords.push({word,cells});
+}
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function renderGrid(){
+  const el=document.getElementById('grid');
+  el.innerHTML='';
+  for(let r=0;r<SIZE;r++)
+    for(let c=0;c<SIZE;c++){
+      const cell=document.createElement('div');
+      cell.className='cell';
+      cell.textContent=grid[r][c];
+      cell.dataset.r=r; cell.dataset.c=c;
+      el.appendChild(cell);
+    }
+  setupTouch(); setupCanvas();
+}
+function renderWords(){
+  const list=document.getElementById('word-list');
+  list.innerHTML='';
+  document.getElementById('tc').textContent=placedWords.length;
+  placedWords.forEach(({word})=>{
+    const chip=document.createElement('div');
+    chip.className='word-chip'; chip.textContent=word; chip.id='chip-'+word;
+    list.appendChild(chip);
+  });
+}
+function updateFoundCount(){ document.getElementById('fc').textContent=foundWords.size; }
+
+function setupCanvas(){
+  const gridEl=document.getElementById('grid');
+  canvas=document.getElementById('overlay');
+  requestAnimationFrame(()=>{
+    const rect=gridEl.getBoundingClientRect();
+    canvas.width=rect.width; canvas.height=rect.height;
+    canvas.style.width=rect.width+'px'; canvas.style.height=rect.height+'px';
+    const first=gridEl.querySelector('.cell');
+    if(first){const cr=first.getBoundingClientRect();cellW=cr.width;cellH=cr.height;}
+    ctx=canvas.getContext('2d');
+    redrawCanvas();
+  });
+}
+
+function center(r,c){ return{x:c*cellW+cellW/2, y:r*cellH+cellH/2}; }
+
+function drawLine(cells, fillColor, strokeColor){
+  if(!ctx||cells.length<2) return;
+  const a=center(...cells[0]), b=center(...cells[cells.length-1]);
+  ctx.save();
+  // Filled capsule background
+  ctx.strokeStyle=fillColor;
+  ctx.lineWidth=cellW*0.78;
+  ctx.lineCap='round';
+  ctx.globalAlpha=1;
+  ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+  // Crisp border stroke
+  if(strokeColor){
+    ctx.strokeStyle=strokeColor;
+    ctx.lineWidth=cellW*0.78;
+    ctx.lineCap='round';
+    ctx.globalAlpha=1;
+    // draw border by stroking slightly wider first — just use fill + thin edge
+    ctx.lineWidth=cellW*0.82;
+    ctx.globalAlpha=0.18;
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function redrawCanvas(){
+  if(!ctx) return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  foundLines.forEach(({cells,ci})=>drawLine(cells, FOUND_LINE_COLORS[ci%COLORS], FOUND_STROKE[ci%COLORS]));
+  if(currentCells.length>=2) drawLine(currentCells,'rgba(37,99,235,0.13)','rgba(37,99,235,0.5)');
+}
+
+function setupTouch(){
+  const gridEl=document.getElementById('grid');
+  const fresh=gridEl.cloneNode(false);
+  while(gridEl.firstChild) fresh.appendChild(gridEl.firstChild);
+  gridEl.parentNode.replaceChild(fresh,gridEl);
+
+  function cellAt(x,y){
+    const rect=fresh.getBoundingClientRect();
+    const c=Math.floor((x-rect.left)/cellW), r=Math.floor((y-rect.top)/cellH);
+    return(r>=0&&r<SIZE&&c>=0&&c<SIZE)?[r,c]:null;
+  }
+  function onStart(x,y){
+    if(!gameActive){gameActive=true;startTimer();}
+    const pos=cellAt(x,y); if(!pos)return;
+    selecting=true; startCell=pos; currentCells=[pos];
+    setSel(currentCells); redrawCanvas();
+  }
+  function onMove(x,y){
+    if(!selecting||!startCell)return;
+    const pos=cellAt(x,y); if(!pos)return;
+    currentCells=lineOf(startCell,pos);
+    clearSel(); setSel(currentCells); redrawCanvas();
+  }
+  function onEnd(){
+    if(!selecting)return;
+    selecting=false;
+    checkSel(currentCells);
+    clearSel(); currentCells=[]; redrawCanvas();
+  }
+
+  fresh.addEventListener('touchstart',e=>{e.preventDefault();onStart(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
+  fresh.addEventListener('touchmove', e=>{e.preventDefault();onMove(e.touches[0].clientX, e.touches[0].clientY); },{passive:false});
+  fresh.addEventListener('touchend',  e=>{e.preventDefault();onEnd();},{passive:false});
+  fresh.addEventListener('mousedown', e=>onStart(e.clientX,e.clientY));
+  fresh.addEventListener('mousemove', e=>onMove(e.clientX, e.clientY));
+  fresh.addEventListener('mouseup',   ()=>onEnd());
+  fresh.addEventListener('mouseleave',()=>{if(selecting)onEnd();});
+}
+
+function lineOf([r1,c1],[r2,c2]){
+  const dr=Math.sign(r2-r1),dc=Math.sign(c2-c1);
+  const lr=Math.abs(r2-r1),lc=Math.abs(c2-c1);
+  if(dr===0&&dc===0)return[[r1,c1]];
+  if(dr!==0&&dc!==0&&lr!==lc){
+    if(lr>=lc) return Array.from({length:lr+1},(_,i)=>[r1+dr*i,c1]);
+    return Array.from({length:lc+1},(_,i)=>[r1,c1+dc*i]);
+  }
+  const len=Math.max(lr,lc);
+  return Array.from({length:len+1},(_,i)=>[r1+dr*i,c1+dc*i]);
+}
+
+function getCell(r,c){ return document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`); }
+function setSel(cells){ cells.forEach(([r,c])=>{ const e=getCell(r,c); if(e)e.classList.add('selecting'); }); }
+function clearSel(){ document.querySelectorAll('.cell.selecting').forEach(e=>e.classList.remove('selecting')); }
+
+function checkSel(cells){
+  if(cells.length<3)return;
+  const fwd=cells.map(([r,c])=>grid[r][c]).join('');
+  const rev=fwd.split('').reverse().join('');
+  for(const pw of placedWords){
+    if(foundWords.has(pw.word))continue;
+    if(pw.word===fwd||pw.word===rev){markFound(pw);return;}
+  }
+}
+
+function markFound(pw){
+  foundWords.add(pw.word);
+  const ci=foundWords.size-1;
+  pw.cells.forEach(([r,c])=>{
+    const el=getCell(r,c); if(!el)return;
+    el.className=el.className.replace(/found-\d+/g,'').trim();
+    el.classList.add(`found-${(ci%COLORS)+1}`,'found-pop');
+    setTimeout(()=>el.classList.remove('found-pop'),280);
+  });
+  foundLines.push({cells:pw.cells,ci});
+  const chip=document.getElementById('chip-'+pw.word);
+  if(chip)chip.classList.add('found',`found-c${(ci%COLORS)+1}`);
+  updateFoundCount(); redrawCanvas();
+  if(foundWords.size===placedWords.length)setTimeout(showWin,700);
+}
+
+function giveHint(){
+  const rem=placedWords.filter(pw=>!foundWords.has(pw.word));
+  if(!rem.length)return;
+  const pw=rem[Math.floor(Math.random()*rem.length)];
+  const [r,c]=pw.cells[Math.floor(pw.cells.length/2)];
+  const el=getCell(r,c);
+  if(el){el.classList.add('hint-flash');setTimeout(()=>el.classList.remove('hint-flash'),550);}
+}
+
+function startTimer(){
+  document.getElementById('timer').classList.add('active');
+  timerInterval=setInterval(()=>{seconds++;updateTimer();},1000);
+}
+function updateTimer(){
+  const m=String(Math.floor(seconds/60)).padStart(2,'0');
+  const s=String(seconds%60).padStart(2,'0');
+  document.getElementById('timer').textContent=`${m}:${s}`;
+}
+
+function showWin(){
+  clearInterval(timerInterval);
+  const m=String(Math.floor(seconds/60)).padStart(2,'0');
+  const s=String(seconds%60).padStart(2,'0');
+  document.getElementById('win-theme-label').textContent=currentTheme;
+  document.getElementById('win-time-label').textContent=`Solved in ${m}:${s}`;
+  document.getElementById('win-screen').classList.add('show');
+}
+
+window.addEventListener('resize',()=>{setupCanvas();setTimeout(redrawCanvas,120);});
+</script>
+</body>
+</html>
