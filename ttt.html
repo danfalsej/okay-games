@@ -1,0 +1,223 @@
+Here is a complete, single-file Tic Tac Toe game.
+
+This file includes the **HTML** for structure, **CSS** for styling (making it look modern and responsive), and **JavaScript** for the game logic (winning conditions, resetting, etc.).
+
+### How to use:
+1.  Copy the code below.
+2.  Create a new file on your computer named `tictactoe.html`.
+3.  Paste the code into that file and save it.
+4.  Double-click the file to open it in your web browser (Chrome, Firefox, Edge, etc.).
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <style>
+        /* CSS STYLES */
+
+        * { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+        body { 
+            background-color: #2c3e50; 
+            color: #ecf0f1; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        h1 { margin-bottom: 20px; font-size: 3rem; letter-spacing: 2px;}
+
+        #status { 
+            font-size: 1.5rem; 
+            margin-bottom: 20px; 
+            color: #f1c40f; /* Gold */
+        }
+
+        .game--board {
+            display: grid;
+            grid-template-rows: repeat(3, auto);
+            grid-column-gap: 10px;
+            grid-row-gap: 10px;
+            justify-self: center; 
+            align-self: center; 
+        }
+
+        .cell { 
+            width: 105px; height: 105px; 
+            background-color: #fff; color: #333;
+            font-size: 3.5rem; font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;\n\n        }
+
+        .cell--occupied { background-color: #ddd;}
+
+        /* Colors for X and O */
+        .cell[data-player="X"] { color: #ff3e3e; } /* Red */
+        
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Tic Tac Toe</h1>
+    <div id="status">Player X's Turn</div>
+
+    <!-- The 9 Grid Cells -->
+    <div class="game--board"> 
+        <!-- Row 0 -->
+        <button type='button' data-index="0" class='cell' onclick='userMove(0)'></button>
+        <button type='button' data-index="1" class='cell' onclick='userMove(1)'></button>
+        <button type='button' data-index="2" class='cell' onclick='userMove(2)'></button>
+
+        <!-- Row 1 -->
+        <button type='button' data-index="3" class='cell' onclick='userMove(3)'></button>
+        <button type='button' data-index="4" class='cell' onclick='userMove(4)'></button>
+        <button type='button' data-index="5" class='cell' onclick='userMove(5)'></button>
+
+        <!-- Row 2 -->
+        <button type='button' data-index="6" class='cell' onclick='userMove(6)'></button>
+        <button type='button' data-index="7" class='cell' onclick='userMove(7)'></button>
+        <button type='button' data-index="8" class='cell' onclick='userMove(8)'></button>
+    </div>
+
+    <h2 id="restart-message"></h2>
+</div>
+
+<script type="text/javascript">
+    // JAVASCRIPT LOGIC
+
+    const statusDisplay = document.getElementById('status');
+    const restartMessage = document.getElementById('restart-message');
+    
+    let gameActive = true;
+    
+    // Winning Combinations (Indices in the grid)
+    const winningConditions = [0, 1, 2, 3, 4, 
+                                5,6,7,8];
+
+    function statusMessage(msg) {
+        statusDisplay.innerHTML = msg;
+        gameActive = false; // Stop game when someone wins or draws to prevent double clicks
+    }
+
+    function cellIsOccupied(cell) {
+        const cellValue = document.querySelector(`.cell[data-index="${cell}"]`);
+        return cellValue !== null && !cellValue.textContent.includes("X") && !cellValue.textContent.includes("O");
+    }
+
+    function userMove(index) {
+        // If the game is over, do nothing
+        if (!gameActive) return;
+
+        const player = "X";
+
+        // If cell is empty, place player and check win
+        if (!cellIsOccupied(index)) { 
+            document.querySelector(`.cell[data-index="${index}"]`).textContent = player;
+            
+            let roundWon = false;
+            for (let i=0; i < winningConditions.length; i++) {
+                const [a, b, c] = winningConditions[i]; // Unpack indices into an array of 3
+
+                if (document.querySelector(`.cell[data-index="${a}"]`).textContent === player 
+                    && document.querySelector(`.cell[data-index="${b}"]`).textContent === player 
+                    && document.querySelector(`.cell[data-index="${c}"]`).textContent === player) {
+                    
+                    roundWon = true;
+                }
+            }
+
+            if (!roundWon) {
+                statusMessage("Player O's Turn"); // The other player is O (counter-turn)
+            } else {
+                statusMessage("You Won!"); 
+                gameActive = false; 
+            }
+
+        // If cell is occupied, do nothing and let the other player turn
+        } else {
+            statusMessage(`Player O's Turn`);
+        }
+
+    // The other player plays (O) after every user move check if the game isn't over yet.
+    function computerMove() {
+        if (!gameActive) return;
+
+        let availableMoves = []; // Get all available indices
+        
+        winningConditions.forEach(index => {
+            const cell = document.querySelector(`.cell[data-index="${index}"]`);
+            if (cell.textContent == "O") return; // Don't allow O to block another O in the same spot
+            
+            availableMoves.push(index)
+        })
+
+        if (availableMoves.length === 0) {
+            gameActive = false; 
+            statusMessage("It's a Draw");
+        } else {
+            const randomIndex = Math.floor(Math.random() * availableMoves.length);
+            
+            // Find the index in the grid that matches the random move we found above.
+            const chosenCell = document.querySelector(`.cell[data-index="${availableMoves[randomIndex]}"]`);
+
+            chosenCell.textContent = "O";
+
+            let roundWon = false;
+            for (let i=0; i < winningConditions.length; i++) {
+                const [a, b, c] = winningConditions[i]; 
+
+                if (document.querySelector(`.cell[data-index="${a}"]`).textContent === "O" 
+                    && document.querySelector(`.cell[data-index="${b}"]`).textContent === "O" 
+                    && document.querySelector(`.cell[data-index="${c}"]`).textContent === "O") {
+                    
+                    roundWon = true;
+                }
+            }
+
+            if (!roundWon) {
+                statusMessage("Player X's Turn"); // Switch turn back to user.
+            } else {
+                statusMessage("Computer Won!"); 
+                gameActive = false; 
+            }
+
+        }
+
+    // Reset the game and restart. This is called automatically by the HTML button, 
+    // but here it's just a function for clarity.
+    function resetGame() {
+        statusMessage("Player X's Turn");
+        gameActive = true;
+        
+        for (let i=0; i<9; i++) {
+            const cell = document.querySelector(`.cell[data-index="${i}"]`);
+            cell.textContent = ""; // Clear cells from memory. Keep button styling though.
+        }
+
+    }
+
+    function startGame() {
+        statusMessage("Player X's Turn"); 
+        gameActive = true;
+        for (let i=0; i<9; i++) {
+            const cell = document.querySelector(`.cell[data-index="${i}"]`);
+            cell.textContent = ""; // Clear cells from memory. Keep button styling though.
+        }
+
+    }
+
+</script>
+
+</body>
+</html>
+```
